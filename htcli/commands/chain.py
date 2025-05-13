@@ -1,6 +1,6 @@
 import typer
 
-app = typer.Typer()
+app = typer.Typer(name="chain", help="Chain commands")
 
 
 @app.command()

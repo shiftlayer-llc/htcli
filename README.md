@@ -47,6 +47,10 @@ Run the CLI:
 ```bash
 poetry run htcli --help
 ```
+or simply run:
+```bash
+htcli --help
+```
 
 ## 🧑‍💻 CLI Usage
 ### Subnet Commands

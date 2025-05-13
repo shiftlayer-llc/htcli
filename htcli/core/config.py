@@ -22,14 +22,14 @@ class chain_config:
 
 
 class subnet_config:
-    subnet_id = typer.Option(
+    id = typer.Option(
         0,
         "--subnet.id",
         "--subnet_id",
         "--netuid",
         help="Unique ID for the subnetwork",
     )
-    subnet_name = typer.Option(
+    name = typer.Option(
         "default",
         "--subnet.name",
         "--subnet_name",
@@ -38,7 +38,7 @@ class subnet_config:
 
 
 class wallet_config:
-    wallet_path = typer.Option(
+    path = typer.Option(
         os.path.expanduser("~/.hypertensor/wallets"),
         "--wallet.path",
         "--wallet_path",
@@ -50,7 +50,7 @@ class wallet_config:
         "--wallet_name",
         help="Name of the wallet",
     )
-    wallet_password = typer.Option(
+    password = typer.Option(
         None,
         "--wallet.password",
         "--wallet_password",
@@ -64,10 +64,10 @@ class wallet_config:
     )
 
     def __repr__(self):
-        return f"wallet_config(wallet_path={self.wallet_path}, name={self.name}"
+        return f"wallet_config(wallet_path={self.path}, name={self.name}"
 
     def __str__(self):
-        return f"wallet_config(wallet_path={self.wallet_path}, name={self.name}"
+        return f"wallet_config(wallet_path={self.path}, name={self.name}"
 
 
 class htcli_config:

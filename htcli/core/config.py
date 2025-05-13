@@ -35,6 +35,20 @@ class subnet_config:
         "--subnet_name",
         help="Name of the subnetwork",
     )
+    path = typer.Option(
+        "",
+        "--subnet.path",
+        "--subnet_path",
+        "--path",
+        help="Path to download the model",
+    )
+    memory_mb = typer.Option(
+        400,
+        "--subnet.memory_mb",
+        "--subnet_memory_mb",
+        "--memory_mb",
+        help="Memory requirements to host entire model one time",
+    )
 
 
 class wallet_config:
@@ -56,11 +70,15 @@ class wallet_config:
         "--wallet_password",
         help="Password for the wallet",
     )
-    mnemonic = typer.Option(
+    phrase = typer.Option(
         None,
         "--wallet.mnemonic",
         "--wallet_mnemonic",
-        help="Mnemonic for the wallet",
+        "--mnemonic",
+        "--wallet.phrase",
+        "--wallet_phrase",
+        "--phrase",
+        help="Coldkey phrase that controls actions that include funds (Mnemonic for the wallet)",
     )
 
     def __repr__(self):
@@ -70,13 +88,30 @@ class wallet_config:
         return f"wallet_config(wallet_path={self.wallet_path}, name={self.name}"
 
 
+class options_config:
+    registration_blocks = typer.Option(
+        14400,
+        "--subnet.registration_blocks",
+        "--subnet_registration_blocks",
+        "--registration_blocks",
+        help="blocks to keep subnet in registration period",
+    )
+    entry_interval = typer.Option(
+        14400,
+        "--subnet.entry_interval",
+        "--subnet_entry_interval",
+        "--entry_interval",
+        help="blocks required between each subnet node entry",
+    )
+
 class htcli_config:
     def __init__(
-        self, chain: chain_config, subnet: subnet_config, wallet: wallet_config
+        self, chain: chain_config, subnet: subnet_config, wallet: wallet_config, options: options_config
     ):
         self.chain = chain
         self.subnet = subnet
         self.wallet = wallet
+        self.options = options
 
     def __repr__(self):
         return f"htcli_config(chain={self.chain}, subnet={self.subnet}, wallet={self.wallet})"

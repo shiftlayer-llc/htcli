@@ -5,7 +5,12 @@ description = "CLI to interact with Hypertensor"
 authors = [{ name = "ultrashiny", email = "vasyl.123.000@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["typer (>=0.15.3,<0.16.0)"]
+dependencies = [
+    "typer (>=0.15.3,<0.16.0)",
+    "substrate-interface",
+    "tenacity",
+    "python-dotenv"
+]
 
 [project.urls]
 repository = "https://github.com/shiftlayer-llc/htcli"

@@ -1,14 +1,215 @@
 import typer
+from htcli.core.config import subnet_config, chain_config, wallet_config, options_config
+from htcli.hypertensor.substrate.config import SubstrateConfigCustom
+from htcli.hypertensor.substrate.chain_functions import (
+    get_max_subnet_entry_interval,
+    get_max_subnet_registration_blocks,
+    get_min_subnet_registration_blocks,
+    register_subnet,
+    activate_subnet,
+    remove_subnet,
+)
+from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv(os.path.join(Path.cwd(), ".env"))
+
+PHRASE = os.getenv("PHRASE")
 
 app = typer.Typer()
 
+chain_config = chain_config()
+sn_config = subnet_config()
+wallet_config = wallet_config()
+options_config = options_config()
+
 
 @app.command()
-def info():
+def info(
+    subnet_id: int = sn_config.subnet_id,
+    subnet_name: str = sn_config.subnet_name,
+):
     """
     Get the info of the subnet
     """
-    typer.echo("Getting info of the subnet...")
+    typer.echo(f"Getting info of the subnet {subnet_id}...")
     # Here you would implement the logic to get the info of the subnet
+    # For now, we'll just print a message
+    # This is a placeholder for the actual implementation
+
+
+@app.command()
+def register(
+    rpc_url: str = chain_config.rpc_url,
+    env: str = chain_config.env,
+    phrase: str = wallet_config.phrase,
+    path: str = subnet_config.path,
+    memory_mb: int = subnet_config.memory_mb,
+    registration_blocks: int = options_config.registration_blocks,
+    entry_interval: int = options_config.entry_interval,
+):
+    """
+    Register a subnet
+    """
+    typer.echo(f"Regsitering a subnet...")
+
+    if rpc_url:
+        rpc = rpc_url
+    else:
+        if env == "local":
+            rpc = os.getenv("LOCAL_RPC")
+        elif env == "dev":
+            rpc = os.getenv("DEV_RPC")
+
+    if phrase is not None:
+        substrate = SubstrateConfigCustom(phrase, rpc)
+    else:
+        substrate = SubstrateConfigCustom(PHRASE, rpc)
+
+    if registration_blocks == 0:
+        registration_blocks = int(
+            str(get_min_subnet_registration_blocks(substrate.interface))
+        )
+    else:
+        min_registration_blocks = int(
+            str(get_min_subnet_registration_blocks(substrate.interface))
+        )
+        assert (
+            registration_blocks >= min_registration_blocks
+        ), f"Registration blocks must be >= {min_registration_blocks}. "
+
+        max_registration_blocks = int(
+            str(get_max_subnet_registration_blocks(substrate.interface))
+        )
+        assert (
+            registration_blocks <= max_registration_blocks
+        ), f"Registration blocks must be <= {max_registration_blocks}. "
+
+    if entry_interval != 0:
+        max_entry_interval = get_max_subnet_entry_interval(substrate.interface)
+        assert (
+            entry_interval <= max_entry_interval
+        ), f"Entry interval blocks must be <= {max_entry_interval}. "
+
+    try:
+        receipt = register_subnet(
+            substrate.interface,
+            substrate.keypair,
+            path,
+            memory_mb,
+            registration_blocks,
+            entry_interval,
+        )
+        if receipt.is_success:
+            typer.echo("✅ Success, triggered events:")
+            for event in receipt.triggered_events:
+                typer.echo(f"* {event.value}")
+        else:
+            typer.echo("⚠️ Extrinsic Failed: ", receipt.error_message)
+    except Exception as e:
+        typer.echo("Error: ", e, exc_info=True)
+
+
+
+@app.command()
+def activate(
+    rpc_url: str = chain_config.rpc_url,
+    env: str = chain_config.env,
+    phrase: str = wallet_config.phrase,
+    subnet_id: int = sn_config.subnet_id,
+):
+    """
+    Activate a registered subnet
+    """
+    typer.echo(f"Activating a subnet {subnet_id}...")
+    
+    if rpc_url:
+        rpc = rpc_url
+    else:
+        if env == "local":
+            rpc = os.getenv("LOCAL_RPC")
+        elif env == "dev":
+            rpc = os.getenv("DEV_RPC")
+    if phrase is not None:
+        substrate = SubstrateConfigCustom(phrase, rpc)
+    else:
+        substrate = SubstrateConfigCustom(PHRASE, rpc)
+
+    try:
+        receipt = activate_subnet(
+            substrate.interface,
+            substrate.keypair,
+            subnet_id,
+        )
+        if receipt.is_success:
+            typer.echo('✅ Success, triggered events:')
+            for event in receipt.triggered_events:
+                typer.echo(f'* {event.value}')
+        else:
+            typer.echo('⚠️ Extrinsic Failed: ', receipt.error_message)
+    except Exception as e:
+        typer.echo("Error: ", e, exc_info=True)
+
+
+
+@app.command()
+def remove(
+    rpc_url: str = chain_config.rpc_url,
+    env: str = chain_config.env,
+    phrase: str = wallet_config.phrase,
+    subnet_id: int = sn_config.subnet_id,
+):
+    """
+    Remove a subnet
+    """
+    typer.echo(f"Removing a subnet {subnet_id}...")
+    if rpc_url:
+        rpc = rpc_url
+    else:
+        if env == "local":
+            rpc = os.getenv("LOCAL_RPC")
+        elif env == "dev":
+            rpc = os.getenv("DEV_RPC")
+    if phrase is not None:
+        substrate = SubstrateConfigCustom(phrase, rpc)
+    else:
+        substrate = SubstrateConfigCustom(PHRASE, rpc)
+    try:
+        receipt = remove_subnet(
+            substrate.interface,
+            substrate.keypair,
+            subnet_id,
+        )
+        if receipt.is_success:
+            typer.echo('✅ Success, triggered events:')
+            for event in receipt.triggered_events:
+                typer.echo(f'* {event.value}')
+        else:
+            typer.echo('⚠️ Extrinsic Failed: ', receipt.error_message)
+    except Exception as e:
+        typer.echo("Error: ", e, exc_info=True)
+
+
+@app.command()
+def nodes(
+    subnet_id: int = sn_config.subnet_id,
+):
+    """
+    List all subnet nodes info in the subnet
+    """
+    typer.echo(f"List all subnet nodes info in the subnet {subnet_id}...")
+    # Here you would implement the logic to list all subnet nodes info in the subnet
+    # For now, we'll just print a message
+    # This is a placeholder for the actual implementation
+
+
+@app.command()
+def list():
+    """
+    List all subnets
+    """
+    typer.echo(f"List all subnets...")
+    # Here you would implement the logic to list all subnets
     # For now, we'll just print a message
     # This is a placeholder for the actual implementation

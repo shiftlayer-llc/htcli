@@ -1,6 +1,6 @@
 import typer
 
-app = typer.Typer()
+app = typer.Typer(name="wallet", help="Wallet commands")
 
 
 @app.command()

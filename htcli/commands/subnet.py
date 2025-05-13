@@ -10,14 +10,10 @@ from htcli.hypertensor.substrate.chain_functions import (
     remove_subnet,
 )
 from pathlib import Path
-import os
-from dotenv import load_dotenv
 
-load_dotenv(os.path.join(Path.cwd(), ".env"))
+app = typer.Typer(name="subnet", help="Subnet commands")
 
-PHRASE = os.getenv("PHRASE")
-
-app = typer.Typer()
+subnet_cfg = subnet_config()
 
 chain_config = chain_config()
 sn_config = subnet_config()
@@ -58,9 +54,10 @@ def register(
         rpc = rpc_url
     else:
         if env == "local":
-            rpc = os.getenv("LOCAL_RPC")
+            rpc = "ws://127.0.0.1"
         elif env == "dev":
-            rpc = os.getenv("DEV_RPC")
+            #TODO: please add dev rpc url
+            rpc = "DEV_RPC"
 
     if phrase is not None:
         substrate = SubstrateConfigCustom(phrase, rpc)
@@ -128,9 +125,10 @@ def activate(
         rpc = rpc_url
     else:
         if env == "local":
-            rpc = os.getenv("LOCAL_RPC")
+            rpc = "ws://127.0.0.1"
         elif env == "dev":
-            rpc = os.getenv("DEV_RPC")
+            #TODO: please add dev rpc url
+            rpc = "DEV_RPC"
     if phrase is not None:
         substrate = SubstrateConfigCustom(phrase, rpc)
     else:
@@ -168,9 +166,10 @@ def remove(
         rpc = rpc_url
     else:
         if env == "local":
-            rpc = os.getenv("LOCAL_RPC")
+            rpc = "ws://127.0.0.1"
         elif env == "dev":
-            rpc = os.getenv("DEV_RPC")
+            #TODO: please add dev rpc url
+            rpc = "DEV_RPC"
     if phrase is not None:
         substrate = SubstrateConfigCustom(phrase, rpc)
     else:

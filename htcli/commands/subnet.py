@@ -8,42 +8,46 @@ from htcli.hypertensor.substrate.chain_functions import (
     register_subnet,
     activate_subnet,
     remove_subnet,
+    get_block_number,
 )
 from pathlib import Path
 
 app = typer.Typer(name="subnet", help="Subnet commands")
 
+chain_cfg = chain_config()
 subnet_cfg = subnet_config()
-
-chain_config = chain_config()
-sn_config = subnet_config()
-wallet_config = wallet_config()
-options_config = options_config()
-
+wallet_cfg = wallet_config()
+options_cfg = options_config()
 
 @app.command()
-def info(
-    subnet_id: int = sn_config.subnet_id,
-    subnet_name: str = sn_config.subnet_name,
+def info(    
+    subnet_id: int = subnet_cfg.id,
 ):
     """
     Get the info of the subnet
     """
     typer.echo(f"Getting info of the subnet {subnet_id}...")
-    # Here you would implement the logic to get the info of the subnet
-    # For now, we'll just print a message
-    # This is a placeholder for the actual implementation
+    
+    
+    substrate = SubstrateConfigCustom("", "ws://127.0.0.1:9944")
 
+    try:
+        receipt = get_block_number(
+            substrate.interface,
+        )
+        typer.echo(f"✅ Success, block number: {receipt}")
+    except Exception as e:
+        typer.echo(f"Error: {e}")
 
 @app.command()
 def register(
-    rpc_url: str = chain_config.rpc_url,
-    env: str = chain_config.env,
-    phrase: str = wallet_config.phrase,
+    rpc_url: str = chain_cfg.rpc_url,
+    env: str = chain_cfg.env,
+    phrase: str = wallet_cfg.phrase,
     path: str = subnet_config.path,
     memory_mb: int = subnet_config.memory_mb,
-    registration_blocks: int = options_config.registration_blocks,
-    entry_interval: int = options_config.entry_interval,
+    registration_blocks: int = options_cfg.registration_blocks,
+    entry_interval: int = options_cfg.entry_interval,
 ):
     """
     Register a subnet
@@ -111,10 +115,10 @@ def register(
 
 @app.command()
 def activate(
-    rpc_url: str = chain_config.rpc_url,
-    env: str = chain_config.env,
-    phrase: str = wallet_config.phrase,
-    subnet_id: int = sn_config.subnet_id,
+    rpc_url: str = chain_cfg.rpc_url,
+    env: str = chain_cfg.env,
+    phrase: str = wallet_cfg.phrase,
+    subnet_id: int = subnet_cfg.id,
 ):
     """
     Activate a registered subnet
@@ -153,10 +157,10 @@ def activate(
 
 @app.command()
 def remove(
-    rpc_url: str = chain_config.rpc_url,
-    env: str = chain_config.env,
-    phrase: str = wallet_config.phrase,
-    subnet_id: int = sn_config.subnet_id,
+    rpc_url: str = chain_cfg.rpc_url,
+    env: str = chain_cfg.env,
+    phrase: str = wallet_cfg.phrase,
+    subnet_id: int = subnet_cfg.id,
 ):
     """
     Remove a subnet
@@ -192,7 +196,7 @@ def remove(
 
 @app.command()
 def nodes(
-    subnet_id: int = sn_config.subnet_id,
+    subnet_id: int = subnet_cfg.id,
 ):
     """
     List all subnet nodes info in the subnet

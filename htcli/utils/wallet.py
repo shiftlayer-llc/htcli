@@ -7,7 +7,7 @@ import multihash
 from hivemind.proto import crypto_pb2
 from hivemind.p2p.p2p_daemon_bindings.datastructures import PeerID
 
-def create_wallet(name: str, key_type: str = "ed25519", path: str = None, mnemonic: str = None) -> tuple[str, PeerID]:
+def create_wallet(name: str, key_type: str = "ed25519", path: str = None, mnemonic: str = None, password: str = None) -> tuple[str, PeerID]:
     """
     Create or regenerate a wallet with cryptographic keys
     
@@ -16,6 +16,7 @@ def create_wallet(name: str, key_type: str = "ed25519", path: str = None, mnemon
         key_type: Type of key to generate (ed25519 or rsa)
         path: Path to store the wallet (optional)
         mnemonic: Mnemonic for regenerating wallet (optional)
+        password: Password for encrypting the private key
     
     Returns:
         tuple: (wallet_path, peer_id)
@@ -61,11 +62,11 @@ def create_wallet(name: str, key_type: str = "ed25519", path: str = None, mnemon
                 multihash.coerce_code("sha2-256")
             )
             
-            # Save private key
+            # Save private key with password encryption
             private_key_bytes = private_key.private_bytes(
                 encoding=serialization.Encoding.DER,
                 format=serialization.PrivateFormat.PKCS8,
-                encryption_algorithm=serialization.NoEncryption()
+                encryption_algorithm=serialization.BestAvailableEncryption(password.encode()) if password else serialization.NoEncryption()
             )
             
             # Create and save PrivateKey protobuf
@@ -91,8 +92,12 @@ def create_wallet(name: str, key_type: str = "ed25519", path: str = None, mnemon
             # Generate encoded digest
             encoded_digest = b"\x00$" + encoded_public_key
             
-            # Save private key
-            private_key_bytes = private_key.private_bytes_raw()
+            # Save private key with password encryption
+            private_key_bytes = private_key.private_bytes(
+                encoding=serialization.Encoding.DER,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.BestAvailableEncryption(password.encode()) if password else serialization.NoEncryption()
+            )
             
             # Create and save PrivateKey protobuf
             private_key_proto = crypto_pb2.PrivateKey(

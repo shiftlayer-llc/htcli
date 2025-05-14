@@ -40,27 +40,28 @@ class subnet_config:
 class wallet_config:
     path = typer.Option(
         os.path.expanduser("~/.hypertensor/wallets"),
-        "--wallet.path",
-        "--wallet_path",
+        "--path",
         help="Path to the wallets directory",
     )
     name = typer.Option(
         None,
-        "--wallet.name",
-        "--wallet_name",
+        "--name",
         help="Name of the wallet",
     )
     password = typer.Option(
         None,
-        "--wallet.password",
-        "--wallet_password",
+        "--password",
         help="Password for the wallet",
     )
     mnemonic = typer.Option(
         None,
-        "--wallet.mnemonic",
-        "--wallet_mnemonic",
+        "--mnemonic",
         help="Mnemonic for the wallet",
+    )
+    key_type = typer.Option(
+        "ed25519",
+        "--key-type",
+        help="Key type (ed25519 or rsa)",
     )
 
     def __repr__(self):

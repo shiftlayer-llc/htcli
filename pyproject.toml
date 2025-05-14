@@ -4,10 +4,15 @@ version = "0.1.0"
 description = "CLI to interact with Hypertensor"
 authors = [{ name = "ultrashiny", email = "vasyl.123.000@gmail.com" }]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.9,<4"
 dependencies = [
     "typer[all] (>=0.15.3,<0.16.0)",
     "click (==8.0.4)",
+    "cryptography (>=41.0.0)",
+    "multihash (>=0.1.0)",
+    "protobuf (==5.29.0)",
+    "six (>=1.16.0)",
+    "hivemind @ git+https://github.com/hayotensor/hypermind.git@9975c772aeb6fb0f5caa2133ddf4275ad6b6f9f7",
 ]
 
 [project.urls]

@@ -258,3 +258,72 @@ def list(
             typer.echo(f"Status: Error reading wallet - {str(e)}")
             typer.echo(f"Path: {wallet_file}")
             typer.echo("-" * 80)
+
+@app.command()
+def delete(
+    name: str = wallet_config.name,
+    path: str = wallet_config.path
+):
+    """
+    Delete a wallet by name
+    """
+    # Use default path if not provided
+    if path is None:
+        path = os.path.expanduser("~/.hypertensor/wallets")
+    
+    # Get wallet directory
+    wallet_dir = Path(path)
+    
+    if not wallet_dir.exists():
+        typer.echo(f"No wallets directory found at {wallet_dir}")
+        raise typer.Exit(code=1)
+    
+    # Create wallet file path
+    wallet_path = wallet_dir / f"{name}.wallet"
+    
+    if not wallet_path.exists():
+        typer.echo(f"Wallet '{name}' not found at {wallet_path}")
+        raise typer.Exit(code=1)
+    
+    try:
+        # Delete the wallet file
+        wallet_path.unlink()
+        typer.echo(f"Successfully deleted wallet '{name}' at {wallet_path}")
+    except Exception as e:
+        typer.echo(f"Failed to delete wallet: {str(e)}")
+        raise typer.Exit(code=1)
+    
+@app.command()
+def delete(
+    name: str = wallet_config.name,
+    path: str = wallet_config.path
+):
+    """
+    delete a wallet by name
+    """
+    # Use default path if not provided
+    if path is None:
+        path = os.path.expanduser("~/.hypertensor/wallets")
+    
+    # Get wallet directory
+    wallet_dir = Path(path)
+
+    if not wallet_dir.exists():
+        typer.echo(f"No wallets directory found at {wallet_dir}")
+        raise typer.Exit(code=1)
+    
+    # Create wallet file path
+    wallet_path = wallet_dir / f"{name}.wallet"
+
+    if not wallet_path.exists():
+        typer.echo(f"Wallet '{name}' not found at {wallet_path}")
+        raise typer.Exit(code=1)
+    
+    try:
+        # Delete the wallet file
+        wallet_path.unlink()
+        typer.echo(f"Successfully deleted wallet '{name}' at {wallet_path}")
+    except Exception as e:
+        typer.echo(f"Failed to delete wallet: {str(e)}")
+        raise typer.Exit(code=1)
+        

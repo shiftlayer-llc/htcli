@@ -235,12 +235,12 @@ def regen(
         raise typer.Exit(code=1)
 
 @app.command()
-def export(
+def reveal(
     name: str = wallet_config.name,
     path: str = wallet_config.path
 ):
     """
-    Export mnemonic key for a wallet. Requires password confirmation.
+    reveal mnemonic key for a wallet. Requires password confirmation.
     """
     # Use default path if not provided
     if path is None:
@@ -330,6 +330,6 @@ def export(
             typer.echo("-" * 80)
             
     except Exception as e:
-        typer.echo(f"Failed to export wallet: {str(e)}")
+        typer.echo(f"Failed to reveal wallet: {str(e)}")
         raise typer.Exit(code=1)
 

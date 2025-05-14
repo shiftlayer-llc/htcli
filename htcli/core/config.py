@@ -50,7 +50,8 @@ class wallet_config:
     )
     password = typer.Option(
         None,
-        "--password",
+        "--wallet.password",
+        "--wallet_password",
         help="Password for the wallet",
     )
     mnemonic = typer.Option(

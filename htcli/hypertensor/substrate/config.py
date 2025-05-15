@@ -19,4 +19,4 @@ class SubstrateConfigwithKeypair:
     self.url = url
     self.interface: SubstrateInterface = SubstrateInterface(url=url)
     self.keypair = keypair_from_name(name)
-    # self.hotkey = keypair_from_name(name).ss58_address
+    self.hotkey = keypair_from_name(name).ss58_address

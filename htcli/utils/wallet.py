@@ -66,10 +66,18 @@ def keypair_from_name(
             format=serialization.PrivateFormat.Raw,
             encryption_algorithm=serialization.NoEncryption()
         ).hex()
+
+        # Get public key
+        public_key_bytes = private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw
+        ).hex()
         
         # Return the Keypair object from the private key
         return Keypair.create_from_private_key(
             private_key_bytes,
-            crypto_type=KeypairType.ECDSA,
+            public_key=public_key_bytes,
+            crypto_type=KeypairType.ED25519,
+            ss58_format=42
         )
 

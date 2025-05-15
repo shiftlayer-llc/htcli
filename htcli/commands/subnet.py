@@ -1,6 +1,6 @@
 import typer
 from htcli.core.config import subnet_config, chain_config, wallet_config, options_config
-from htcli.hypertensor.substrate.config import SubstrateConfigCustom
+from htcli.hypertensor.substrate.config import SubstrateConfigCustom, SubstrateConfigwithKeypair
 from htcli.hypertensor.substrate.chain_functions import (
     get_max_subnet_entry_interval,
     get_max_subnet_registration_blocks,
@@ -8,7 +8,7 @@ from htcli.hypertensor.substrate.chain_functions import (
     register_subnet,
     activate_subnet,
     remove_subnet,
-    get_block_number,
+    get_subnet_data,
 )
 from pathlib import Path
 
@@ -22,6 +22,7 @@ options_cfg = options_config()
 @app.command()
 def info(    
     subnet_id: int = subnet_cfg.id,
+    wallet_name: str = wallet_cfg.name,
 ):
     """
     Get the info of the subnet
@@ -29,13 +30,13 @@ def info(
     typer.echo(f"Getting info of the subnet {subnet_id}...")
     
     
-    substrate = SubstrateConfigCustom("", "ws://127.0.0.1:9944")
+    substrate = SubstrateConfigwithKeypair(wallet_name, "ws://127.0.0.1:9944")
 
     try:
-        receipt = get_block_number(
+        receipt = get_max_subnet_entry_interval(
             substrate.interface,
         )
-        typer.echo(f"✅ Success, block number: {receipt}")
+        typer.echo(f"✅ Success, {receipt}")
     except Exception as e:
         typer.echo(f"Error: {e}")
 
@@ -43,7 +44,7 @@ def info(
 def register(
     rpc_url: str = chain_cfg.rpc_url,
     env: str = chain_cfg.env,
-    phrase: str = wallet_cfg.phrase,
+    name: str = wallet_cfg.name,
     path: str = subnet_config.path,
     memory_mb: int = subnet_config.memory_mb,
     registration_blocks: int = options_cfg.registration_blocks,
@@ -58,15 +59,12 @@ def register(
         rpc = rpc_url
     else:
         if env == "local":
-            rpc = "ws://127.0.0.1"
+            rpc = "ws://127.0.0.1:9944"
         elif env == "dev":
             #TODO: please add dev rpc url
             rpc = "DEV_RPC"
 
-    if phrase is not None:
-        substrate = SubstrateConfigCustom(phrase, rpc)
-    else:
-        substrate = SubstrateConfigCustom(PHRASE, rpc)
+    substrate = SubstrateConfigwithKeypair(name, rpc)
 
     if registration_blocks == 0:
         registration_blocks = int(

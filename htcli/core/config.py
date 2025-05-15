@@ -4,7 +4,7 @@ import os
 
 class chain_config:
     rpc_url = typer.Option(
-        "http://localhost:8000",
+        "ws://localhost:9944",
         "--chain.rpc_url",
         "--rpc_url",
         "--chain.url",
@@ -43,7 +43,7 @@ class subnet_config:
         help="Path to download the model",
     )
     memory_mb = typer.Option(
-        400,
+        4096,
         "--subnet.memory_mb",
         "--subnet_memory_mb",
         "--memory_mb",
@@ -59,7 +59,7 @@ class wallet_config:
         help="Path to the wallets directory",
     )
     name = typer.Option(
-        None,
+        "default",
         "--wallet.name",
         "--wallet_name",
         help="Name of the wallet",
@@ -97,7 +97,7 @@ class options_config:
         help="blocks to keep subnet in registration period",
     )
     entry_interval = typer.Option(
-        14400,
+        0,
         "--subnet.entry_interval",
         "--subnet_entry_interval",
         "--entry_interval",

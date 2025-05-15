@@ -45,14 +45,10 @@ def keypair_from_name(
         typer.echo("Password cannot be empty")
         raise typer.Exit(code=1)
     
-
     # Read the private key file
     with open(wallet_path, "rb") as f:
-        data = f.read()
-        private_key_proto = crypto_pb2.PrivateKey.FromString(data)
-    
-        # Get key type
-        key_type = "RSA" if private_key_proto.key_type == crypto_pb2.RSA else "Ed25519"
+        # Get Key proto from the private key raw bytes
+        private_key_proto = crypto_pb2.PrivateKey.FromString(f.read())
         
         try:
             # Load private key with password
@@ -64,55 +60,16 @@ def keypair_from_name(
             typer.echo("Invalid password")
             raise typer.Exit(code=1)
 
-
-        # Get public key
-        public_key = private_key.public_key().public_bytes(
-            encoding=serialization.Encoding.Raw,
-            format=serialization.PublicFormat.Raw
-        )
-        
-        # Create crypto_pb2.PublicKey
-        encoded_public_key = crypto_pb2.PublicKey(
-            key_type=private_key_proto.key_type,
-            data=public_key
-        ).SerializeToString()
-        
-
-        # Generate encoded digest
-        if key_type == "RSA":
-            encoded_digest = multihash.encode(
-                hashlib.sha256(encoded_public_key).digest(),
-                multihash.coerce_code("sha2-256")
-            )
-        else:
-            encoded_digest = b"\x00$" + encoded_public_key
-        
-        # Generate and display PeerID
-        # peer_id = PeerID(encoded_digest)
-
-        # Display wallet information
-        typer.echo("\nWallet Information:")
-        typer.echo("-" * 80)
-        typer.echo(f"Name: {name}")
-        typer.echo(f"Type: {key_type}")
-        # typer.echo(f"Peer ID: {peer_id}")
-        typer.echo(f"Path: {wallet_path}")
-        
-        # Display mnemonic key
-        typer.echo("\nMnemonic Key:")
-        typer.echo("-" * 80)
-        # Convert private key to mnemonic format
-        mnemonic = private_key.private_bytes(
+        # Get private key bytes
+        private_key_bytes = private_key.private_bytes(
             encoding=serialization.Encoding.Raw,
             format=serialization.PrivateFormat.Raw,
             encryption_algorithm=serialization.NoEncryption()
         ).hex()
-        typer.echo(mnemonic)
-        typer.echo("-" * 80)
         
+        # Return the Keypair object from the private key
         return Keypair.create_from_private_key(
-            private_key,
-            public_key=public_key,
+            private_key_bytes,
             crypto_type=KeypairType.ECDSA,
         )
 

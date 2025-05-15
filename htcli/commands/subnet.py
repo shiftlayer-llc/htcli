@@ -29,7 +29,6 @@ def info(
     """
     typer.echo(f"Getting info of the subnet {subnet_id}...")
     
-    
     substrate = SubstrateConfigwithKeypair(wallet_name, "ws://127.0.0.1:9944")
 
     try:
@@ -43,7 +42,6 @@ def info(
 @app.command()
 def register(
     rpc_url: str = chain_cfg.rpc_url,
-    env: str = chain_cfg.env,
     name: str = wallet_cfg.name,
     path: str = subnet_config.path,
     memory_mb: int = subnet_config.memory_mb,
@@ -55,16 +53,7 @@ def register(
     """
     typer.echo(f"Regsitering a subnet...")
 
-    if rpc_url:
-        rpc = rpc_url
-    else:
-        if env == "local":
-            rpc = "ws://127.0.0.1:9944"
-        elif env == "dev":
-            #TODO: please add dev rpc url
-            rpc = "DEV_RPC"
-
-    substrate = SubstrateConfigwithKeypair(name, rpc)
+    substrate = SubstrateConfigwithKeypair(name, rpc_url)
 
     if registration_blocks == 0:
         registration_blocks = int(
@@ -114,8 +103,7 @@ def register(
 @app.command()
 def activate(
     rpc_url: str = chain_cfg.rpc_url,
-    env: str = chain_cfg.env,
-    phrase: str = wallet_cfg.phrase,
+    name: str = wallet_cfg.name,
     subnet_id: int = subnet_cfg.id,
 ):
     """
@@ -123,18 +111,7 @@ def activate(
     """
     typer.echo(f"Activating a subnet {subnet_id}...")
     
-    if rpc_url:
-        rpc = rpc_url
-    else:
-        if env == "local":
-            rpc = "ws://127.0.0.1"
-        elif env == "dev":
-            #TODO: please add dev rpc url
-            rpc = "DEV_RPC"
-    if phrase is not None:
-        substrate = SubstrateConfigCustom(phrase, rpc)
-    else:
-        substrate = SubstrateConfigCustom(PHRASE, rpc)
+    substrate = SubstrateConfigwithKeypair(name, rpc_url)
 
     try:
         receipt = activate_subnet(
@@ -156,26 +133,16 @@ def activate(
 @app.command()
 def remove(
     rpc_url: str = chain_cfg.rpc_url,
-    env: str = chain_cfg.env,
-    phrase: str = wallet_cfg.phrase,
+    name: str = wallet_cfg.name,
     subnet_id: int = subnet_cfg.id,
 ):
     """
     Remove a subnet
     """
     typer.echo(f"Removing a subnet {subnet_id}...")
-    if rpc_url:
-        rpc = rpc_url
-    else:
-        if env == "local":
-            rpc = "ws://127.0.0.1"
-        elif env == "dev":
-            #TODO: please add dev rpc url
-            rpc = "DEV_RPC"
-    if phrase is not None:
-        substrate = SubstrateConfigCustom(phrase, rpc)
-    else:
-        substrate = SubstrateConfigCustom(PHRASE, rpc)
+    
+    substrate = SubstrateConfigwithKeypair(name, rpc_url)
+
     try:
         receipt = remove_subnet(
             substrate.interface,

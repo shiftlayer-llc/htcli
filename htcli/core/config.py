@@ -4,16 +4,16 @@ import os
 
 class chain_config:
     rpc_url = typer.Option(
-        "http://localhost:8000",
+        None,
         "--chain.rpc_url",
         "--rpc_url",
         "--chain.url",
         help="RPC URL for the chain",
     )
-    env = typer.Option(
-        "local",
-        "--chain.env",
-        "--env",
+    rpc_network = typer.Option(
+        "mainnet",
+        "--chain.rpc_network",
+        "--rpc_network",
         help="Environment for the chain (local/testnet/mainnet)",
     )
 

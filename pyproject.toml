@@ -9,6 +9,8 @@ dependencies = [
     "typer[all] (>=0.15.3,<0.16.0)",
     "click (==8.0.4)",
     "python-dotenv (>=1.1.0,<2.0.0)",
+    "google (>=3.0.0,<4.0.0)",
+    "protobuf (>=6.31.0,<7.0.0)",
 ]
 
 [project.urls]

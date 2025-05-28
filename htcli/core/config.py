@@ -36,6 +36,21 @@ class subnet_config:
         help="Name of the subnetwork",
     )
 
+    path = typer.Option(
+        "",
+        "--subnet.path",
+        "--subnet_path",
+        "--path",
+        help="Path to download the model",
+    )
+    memory_mb = typer.Option(
+        4096,
+        "--subnet.memory_mb",
+        "--subnet_memory_mb",
+        "--memory_mb",
+        help="Memory requirements to host entire model one time",
+    )
+
 
 class wallet_config:
     path = typer.Option(
@@ -69,6 +84,21 @@ class wallet_config:
     def __str__(self):
         return f"wallet_config(wallet_path={self.path}, name={self.name}"
 
+class options_config:
+    registration_blocks = typer.Option(
+        14400,
+        "--subnet.registration_blocks",
+        "--subnet_registration_blocks",
+        "--registration_blocks",
+        help="blocks to keep subnet in registration period",
+    )
+    entry_interval = typer.Option(
+        0,
+        "--subnet.entry_interval",
+        "--subnet_entry_interval",
+        "--entry_interval",
+        help="blocks required between each subnet node entry",
+    )
 
 class htcli_config:
     def __init__(

@@ -140,6 +140,12 @@ def register_subnet(
   memory_mb: int,
   registration_blocks: int,
   entry_interval: int,
+  max_node_registration_epochs: int,
+  node_registration_interval: int,
+  node_activation_interval: int,
+  node_queue_period: int,
+  max_node_penalties: int,
+  coldkey_whitelist: set
 ) -> ExtrinsicReceipt:
   """
   Register subnet node and stake
@@ -162,6 +168,12 @@ def register_subnet(
         'memory_mb': memory_mb,
         'registration_blocks': registration_blocks,
         'entry_interval': entry_interval,
+        'max_node_registration_epochs': max_node_registration_epochs,
+        'node_registration_interval': node_registration_interval,
+        'node_activation_interval': node_activation_interval,
+        'node_queue_period': node_queue_period,
+        'max_node_penalties': max_node_penalties,
+        'coldkey_whitelist': coldkey_whitelist
       }
     }
   )

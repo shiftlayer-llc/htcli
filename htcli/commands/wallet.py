@@ -305,6 +305,94 @@ def list(
         typer.echo(f"An error occurred while listing wallets: {str(e)}")
         raise typer.Exit(code=1)
 
+@app.command()
+def remove(
+    name: str = typer.Option(None, "--wallet.name", help="Name of the wallet to remove"),
+    all: bool = typer.Option(False, "--all", help="Remove all wallets"),
+    path: str = typer.Option(None, "--path", help="Base path to store the wallets"),
+    force: bool = typer.Option(False, "--force", help="Skip confirmation prompt")
+):
+    """
+    Remove a specific wallet or all wallets. Requires confirmation unless --force is used.
+    """
+    if not name and not all:
+        typer.echo("Error: Either --wallet.name or --all must be specified")
+        raise typer.Exit(code=1)
+
+    if name and all:
+        typer.echo("Error: Cannot specify both --wallet.name and --all")
+        raise typer.Exit(code=1)
+
+    base_path = path or os.path.expanduser("~/.hypertensor/wallets")
+    base_wallet_dir = Path(base_path)
+
+    if not base_wallet_dir.exists():
+        typer.echo(f"No wallets found at {base_wallet_dir}")
+        raise typer.Exit(code=1)
+
+    try:
+        if all:
+            # List all wallets to be removed
+            wallet_dirs = [d for d in base_wallet_dir.iterdir() if d.is_dir()]
+            if not wallet_dirs:
+                typer.echo("No wallets found to remove")
+                raise typer.Exit(code=1)
+
+            typer.echo(typer.style("\nWallets to be removed:", bold=True))
+            typer.echo("=======================")
+            for wallet_dir in wallet_dirs:
+                typer.echo(f"📁 {wallet_dir.name}")
+
+            if not force:
+                if not typer.confirm(typer.style("\n⚠️  Are you sure you want to remove ALL wallets? This action cannot be undone!", fg=typer.colors.RED)):
+                    typer.echo("Operation cancelled")
+                    raise typer.Exit(code=1)
+
+            # Remove all wallets
+            for wallet_dir in wallet_dirs:
+                try:
+                    import shutil
+                    shutil.rmtree(wallet_dir)
+                    typer.echo(f"✅ Removed wallet: {wallet_dir.name}")
+                except Exception as e:
+                    typer.echo(f"❌ Failed to remove wallet {wallet_dir.name}: {str(e)}")
+
+        else:
+            # Remove specific wallet
+            wallet_dir = base_wallet_dir / name
+            if not wallet_dir.exists():
+                typer.echo(f"Wallet '{name}' not found at {wallet_dir}")
+                raise typer.Exit(code=1)
+
+            # Show wallet details before removal
+            typer.echo(typer.style(f"\nWallet to be removed:", bold=True))
+            typer.echo("=======================")
+            typer.echo(f"📁 {name}")
+            
+            # Check for hotkeys
+            hotkeys_dir = wallet_dir / "hotkeys"
+            if hotkeys_dir.exists():
+                hotkey_count = len([f for f in hotkeys_dir.iterdir() if f.is_file()])
+                typer.echo(f"  🔑 Has {hotkey_count} hotkeys")
+
+            if not force:
+                if not typer.confirm(typer.style(f"\n⚠️  Are you sure you want to remove wallet '{name}'? This action cannot be undone!", fg=typer.colors.RED)):
+                    typer.echo("Operation cancelled")
+                    raise typer.Exit(code=1)
+
+            # Remove the wallet
+            try:
+                import shutil
+                shutil.rmtree(wallet_dir)
+                typer.echo(f"✅ Successfully removed wallet: {name}")
+            except Exception as e:
+                typer.echo(f"❌ Failed to remove wallet: {str(e)}")
+                raise typer.Exit(code=1)
+
+    except Exception as e:
+        typer.echo(f"An error occurred: {str(e)}")
+        raise typer.Exit(code=1)
+
 # Remove other wallet commands for now, focusing on 'create'
 # @app.command()
 # def list(...): pass

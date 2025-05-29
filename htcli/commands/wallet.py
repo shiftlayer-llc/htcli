@@ -194,6 +194,117 @@ def create(
         typer.echo(f"An unexpected error occurred: {str(e)}")
         raise typer.Exit(code=1)
 
+@app.command()
+def list(
+    name: str = typer.Option(None, "--wallet.name", help="Name of the wallet to list (if not provided, lists all wallets)"),
+    path: str = typer.Option(None, "--path", help="Base path to store the wallets")
+):
+    """
+    List wallet information. If --wallet.name is provided, shows details for that specific wallet.
+    Otherwise, lists all available wallets.
+    """
+    base_path = path or os.path.expanduser("~/.hypertensor/wallets")
+    base_wallet_dir = Path(base_path)
+
+    if not base_wallet_dir.exists():
+        typer.echo(f"No wallets found at {base_wallet_dir}")
+        raise typer.Exit(code=1)
+
+    try:
+        if name:
+            # List specific wallet
+            wallet_dir = base_wallet_dir / name
+            if not wallet_dir.exists():
+                typer.echo(f"Wallet '{name}' not found at {wallet_dir}")
+                raise typer.Exit(code=1)
+
+            # Check for coldkey
+            coldkey_path = wallet_dir / "coldkey"
+            coldkey_pub_path = wallet_dir / "coldkey.pub"
+            
+            if coldkey_path.exists():
+                typer.echo(typer.style(f"\nColdkey Wallet: {name}", bold=True))
+                typer.echo("=======================")
+                try:
+                    with open(coldkey_pub_path, 'r') as f:
+                        pub_data = json.load(f)
+                        typer.echo(f"📍 Address: {pub_data.get('ss58Address', 'Unknown')}")
+                        typer.echo(f"📁 Private Key Path: {coldkey_path} {'(password-protected)' if coldkey_path.stat().st_mode & 0o600 else ''}")
+                        typer.echo(f"📄 Public Key Path: {coldkey_pub_path}")
+                except Exception as e:
+                    typer.echo(f"Error reading coldkey info: {str(e)}")
+
+            # Check for hotkeys
+            hotkeys_dir = wallet_dir / "hotkeys"
+            if hotkeys_dir.exists():
+                hotkey_files = list(hotkeys_dir.glob("*"))
+                if hotkey_files:
+                    typer.echo(typer.style(f"\nHotkeys for {name}:", bold=True))
+                    typer.echo("=======================")
+                    for hotkey_file in hotkey_files:
+                        try:
+                            with open(hotkey_file, 'r') as f:
+                                hotkey_data = json.load(f)
+                                typer.echo(f"📍 Hotkey: {hotkey_file.name}")
+                                typer.echo(f"  Address: {hotkey_data.get('ss58Address', 'Unknown')}")
+                                typer.echo(f"  Path: {hotkey_file} {'(password-protected)' if hotkey_file.stat().st_mode & 0o600 else ''}")
+                        except Exception as e:
+                            typer.echo(f"Error reading hotkey {hotkey_file.name}: {str(e)}")
+
+        else:
+            # List all wallets
+            wallet_dirs = [d for d in base_wallet_dir.iterdir() if d.is_dir()]
+            if not wallet_dirs:
+                typer.echo("No wallets found")
+                raise typer.Exit(code=1)
+
+            typer.echo(typer.style("\nAvailable Wallets:", bold=True))
+            typer.echo("=======================")
+            
+            for wallet_dir in wallet_dirs:
+                wallet_name = wallet_dir.name
+                coldkey_path = wallet_dir / "coldkey"
+                coldkey_pub_path = wallet_dir / "coldkey.pub"
+                hotkeys_dir = wallet_dir / "hotkeys"
+                
+                # Get coldkey address if available
+                coldkey_address = "Unknown"
+                if coldkey_pub_path.exists():
+                    try:
+                        with open(coldkey_pub_path, 'r') as f:
+                            pub_data = json.load(f)
+                            coldkey_address = pub_data.get('ss58Address', 'Unknown')
+                    except Exception:
+                        pass
+
+                # Count hotkeys
+                hotkey_count = 0
+                hotkey_addresses = []
+                if hotkeys_dir.exists():
+                    hotkey_files = [f for f in hotkeys_dir.iterdir() if f.is_file()]
+                    hotkey_count = len(hotkey_files)
+                    # Get hotkey addresses
+                    for hotkey_file in hotkey_files:
+                        try:
+                            with open(hotkey_file, 'r') as f:
+                                hotkey_data = json.load(f)
+                                hotkey_addresses.append(hotkey_data.get('ss58Address', 'Unknown'))
+                        except Exception:
+                            pass
+
+                typer.echo(f"📁 Wallet: {wallet_name}")
+                typer.echo(f"  📍 Coldkey Address: {coldkey_address}")
+                if hotkey_count > 0:
+                    typer.echo(f"  🔑 Hotkeys ({hotkey_count}):")
+                    for addr in hotkey_addresses:
+                        typer.echo(f"    • {addr}")
+                else:
+                    typer.echo(f"  🔑 Hotkeys: {hotkey_count}")
+
+    except Exception as e:
+        typer.echo(f"An error occurred while listing wallets: {str(e)}")
+        raise typer.Exit(code=1)
+
 # Remove other wallet commands for now, focusing on 'create'
 # @app.command()
 # def list(...): pass

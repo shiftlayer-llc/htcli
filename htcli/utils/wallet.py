@@ -86,8 +86,9 @@ def create_wallet(
     name: str, # This will be the file name (coldkey or hotkey name)
     wallet_dir: Path, # Accept the full target directory path
     password: str = None, # Add password parameter
-    save_as_json: bool = False # New parameter to control saving format
-) -> tuple[str, str]: # Return main wallet file path and ss58_address
+    save_as_json: bool = False, # New parameter to control saving format
+    mnemonic: str = None # Optional mnemonic for regeneration
+) -> tuple[str, str, str]: # Return main wallet file path, ss58_address, and mnemonic
     """
     Create a Hypertensor-compatible wallet (coldkey or hotkey) in the specified directory.
     Generates a new keypair and saves it either as raw private key bytes + .pub file (default) or as a JSON file.
@@ -97,9 +98,10 @@ def create_wallet(
         wallet_dir: The full Path object for the directory where the wallet files should be created.
         password: Optional password for basic obfuscation.
         save_as_json: If True, saves data as a single JSON file with all info. If False (default), saves raw private key + .pub file.
+        mnemonic: Optional mnemonic phrase for regeneration. If provided, uses this instead of generating a new one.
 
     Returns:
-        Tuple of (main_wallet_file_path, ss58_address)
+        Tuple of (main_wallet_file_path, ss58_address, mnemonic)
     """
     # Create directory if it doesn't exist
     wallet_dir.mkdir(parents=True, exist_ok=True)
@@ -117,9 +119,13 @@ def create_wallet(
     if not save_as_json and (wallet_dir / f"{name}.pub").exists():
          raise ValueError(f".pub file with name '{name}.pub' already exists in {wallet_dir}. Remove existing file or use a different name.")
 
-    # Generate keypair using mnemonic
+    # Generate keypair using provided mnemonic or generate new one
     try:
-        keypair = Keypair.create_from_mnemonic(Keypair.generate_mnemonic(), ss58_format=42)
+        if mnemonic:
+            keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42)
+        else:
+            mnemonic = Keypair.generate_mnemonic()
+            keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42)
     except Exception as e:
         raise RuntimeError(f"Failed to generate keypair: {e}")
 
@@ -160,7 +166,7 @@ def create_wallet(
                 os.remove(main_wallet_file_path)
             raise RuntimeError(f"Failed to save wallet JSON file: {e}")
 
-        return str(main_wallet_file_path), keypair.ss58_address
+        return str(main_wallet_file_path), keypair.ss58_address, mnemonic
 
     else:
         # --- Save as raw private key bytes + .pub file (for coldkeys) ---
@@ -194,7 +200,7 @@ def create_wallet(
                 os.remove(private_key_file_path)
             raise RuntimeError(f"Failed to save public key file: {e}")
 
-        return str(private_key_file_path), keypair.ss58_address
+        return str(private_key_file_path), keypair.ss58_address, mnemonic
 
 if __name__ == "__main__":
     print(keypair_from_name(name="w8").ss58_address,"a")

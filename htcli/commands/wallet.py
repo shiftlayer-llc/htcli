@@ -60,12 +60,15 @@ def create(
              coldkey_file_name = "coldkey"
 
              # Call create_wallet for coldkey, passing the password and save_as_json=False
-             private_key_file_path, coldkey_ss58 = create_wallet(name=coldkey_file_name, wallet_dir=coldkey_dir, password=password, save_as_json=False)
+             private_key_file_path, coldkey_ss58, coldkey_mnemonic = create_wallet(name=coldkey_file_name, wallet_dir=coldkey_dir, password=password, save_as_json=False)
 
              typer.echo(typer.style(f"✅ Successfully created coldkey wallet '{name}'", fg=typer.colors.GREEN))
              typer.echo(f"📍 Coldkey Address: {coldkey_ss58}")
              typer.echo(f"📁 Coldkey Private Key Path: {private_key_file_path} {'(password-protected)' if password else ''}")
              typer.echo(f"📄 Coldkey Public Key Path: {private_key_file_path}.pub")
+             typer.echo(typer.style("\n⚠️  IMPORTANT: Save this mnemonic phrase in a secure location!", fg=typer.colors.YELLOW))
+             typer.echo(typer.style("It is the only way to recover your coldkey if you lose access to your wallet files.", fg=typer.colors.YELLOW))
+             typer.echo(typer.style(f"🔑 Coldkey Mnemonic: {coldkey_mnemonic}", fg=typer.colors.YELLOW))
 
         # --- Create hotkey wallet if requested ---
         if hotkey:
@@ -82,12 +85,15 @@ def create(
             hotkey_file_name = hotkey # Hotkey file is named after the hotkey name
 
             # Call create_wallet for hotkey, passing the password and save_as_json=True
-            hotkey_private_key_file_path, hotkey_ss58 = create_wallet(name=hotkey_file_name, wallet_dir=hotkey_dir, password=password, save_as_json=True)
+            hotkey_private_key_file_path, hotkey_ss58, hotkey_mnemonic = create_wallet(name=hotkey_file_name, wallet_dir=hotkey_dir, password=password, save_as_json=True)
 
             typer.echo(typer.style(f"✅ Successfully created hotkey wallet '{hotkey}'", fg=typer.colors.GREEN))
             typer.echo(f"📍 Hotkey Address: {hotkey_ss58}")
             # For hotkeys saved as JSON, the file path is the main wallet file path
             typer.echo(f"📁 Hotkey Wallet File Path: {hotkey_private_key_file_path} {'(password-protected)' if password else ''}")
+            typer.echo(typer.style("\n⚠️  IMPORTANT: Save this mnemonic phrase in a secure location!", fg=typer.colors.YELLOW))
+            typer.echo(typer.style("It is the only way to recover your hotkey if you lose access to your wallet files.", fg=typer.colors.YELLOW))
+            typer.echo(typer.style(f"🔑 Hotkey Mnemonic: {hotkey_mnemonic}", fg=typer.colors.YELLOW))
 
         if hotkey and coldkey_ss58 is None:
             coldkey_pub_path = base_wallet_dir / name / "coldkey.pub"
@@ -391,6 +397,80 @@ def remove(
 
     except Exception as e:
         typer.echo(f"An error occurred: {str(e)}")
+        raise typer.Exit(code=1)
+
+@app.command()
+def regen_coldkey(
+    name: str = typer.Option(..., "--wallet.name", help="Name of the wallet to regenerate"),
+    mnemonic: str = typer.Option(..., "--mnemonic", help='Mnemonic phrase to regenerate the coldkey (must be in quotes, e.g. --mnemonic "word1 word2 word3 ...")'),
+    password: str = typer.Option(None, "--wallet.password", help="Password for the wallet (for encryption)"),
+    path: str = typer.Option(None, "--path", help="Base path to store the wallets"),
+    force: bool = typer.Option(False, "--force", help="Overwrite existing wallet if it exists")
+):
+    """
+    Regenerate a coldkey wallet from a mnemonic phrase. This will create a new coldkey with the same keys as the original.
+    
+    Example:
+        htcli wallet regen-coldkey --wallet.name mywallet --mnemonic "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12"
+    """
+    base_path = path or os.path.expanduser("~/.hypertensor/wallets")
+    base_wallet_dir = Path(base_path)
+
+    # Create base directory if it doesn't exist
+    base_wallet_dir.mkdir(parents=True, exist_ok=True)
+
+    # Determine coldkey directory and file name
+    coldkey_dir = base_wallet_dir / name
+    coldkey_file_name = "coldkey"
+
+    # Check if wallet already exists
+    if coldkey_dir.exists() and not force:
+        typer.echo(f"Error: Wallet '{name}' already exists at {coldkey_dir}")
+        typer.echo("Use --force to overwrite existing wallet")
+        raise typer.Exit(code=1)
+
+    try:
+        # Prompt for password if not provided
+        if password is None:
+            password = getpass.getpass(f"Enter password for wallet '{name}': ")
+            if not password:
+                typer.echo("Error: Password cannot be empty.")
+                raise typer.Exit(code=1)
+
+        # Create keypair from mnemonic
+        try:
+            keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42)
+        except Exception as e:
+            typer.echo(f"Error: Invalid mnemonic phrase - {str(e)}")
+            raise typer.Exit(code=1)
+
+        # Create directory if it doesn't exist
+        coldkey_dir.mkdir(parents=True, exist_ok=True)
+
+        # Save the coldkey using create_wallet function
+        private_key_file_path, coldkey_ss58, coldkey_mnemonic = create_wallet(
+            name=coldkey_file_name,
+            wallet_dir=coldkey_dir,
+            password=password,
+            save_as_json=False,
+            mnemonic=mnemonic  # Pass the provided mnemonic
+        )
+
+        typer.echo(typer.style(f"✅ Successfully regenerated coldkey wallet '{name}'", fg=typer.colors.GREEN))
+        typer.echo(f"📍 Coldkey Address: {coldkey_ss58}")
+        typer.echo(f"📁 Coldkey Private Key Path: {private_key_file_path} {'(password-protected)' if password else ''}")
+        typer.echo(f"📄 Coldkey Public Key Path: {private_key_file_path}.pub")
+        typer.echo(typer.style("\n⚠️  IMPORTANT: This is the same mnemonic you provided:", fg=typer.colors.YELLOW))
+        typer.echo(typer.style(f"🔑 Coldkey Mnemonic: {coldkey_mnemonic}", fg=typer.colors.YELLOW))
+
+    except ValueError as e:
+        typer.echo(f"Error: {str(e)}")
+        raise typer.Exit(code=1)
+    except RuntimeError as e:
+        typer.echo(f"Error: {str(e)}")
+        raise typer.Exit(code=1)
+    except Exception as e:
+        typer.echo(f"An unexpected error occurred: {str(e)}")
         raise typer.Exit(code=1)
 
 # Remove other wallet commands for now, focusing on 'create'

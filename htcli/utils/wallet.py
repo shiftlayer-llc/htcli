@@ -79,7 +79,7 @@ def keypair_from_name(
              ss58_format=42
          )
     except Exception as e:
-          typer.echo(f"Error creating keypair from private key: {str(e)}. Corrupted key or incorrect password?")
+          typer.echo(f"Error creating keypair from private key: {str(e)}. The private key may be corrupted or invalid.")
           raise typer.Exit(code=1)
 
 def create_wallet(

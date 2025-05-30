@@ -473,6 +473,59 @@ def regen_coldkey(
         typer.echo(f"An unexpected error occurred: {str(e)}")
         raise typer.Exit(code=1)
 
+@app.command()
+def balance(
+    name: str = typer.Option(None, "--wallet.name", help="Name of the wallet to check balance"),
+    ss58_address: str = typer.Option(None, "--ss58-address", help="SS58 address to check balance"),
+    path: str = typer.Option(None, "--path", help="Base path to store the wallets")
+):
+    """
+    Check the balance of a wallet using either the wallet name or SS58 address.
+    
+    Examples:
+        htcli wallet balance --wallet.name mywallet
+        htcli wallet balance --ss58-address 5DaTcPcom7o9wRYdCB9qkfkobPREmgXcyRhE1qPXb7UDeXkY
+    """
+    if not name and not ss58_address:
+        typer.echo("Error: Either --wallet.name or --ss58-address must be specified")
+        raise typer.Exit(code=1)
+
+    if name and ss58_address:
+        typer.echo("Error: Cannot specify both --wallet.name and --ss58-address")
+        raise typer.Exit(code=1)
+
+    try:
+        # If wallet name is provided, get the SS58 address from the wallet
+        if name:
+            base_path = path or os.path.expanduser("~/.hypertensor/wallets")
+            base_wallet_dir = Path(base_path)
+            coldkey_pub_path = base_wallet_dir / name / "coldkey.pub"
+
+            if not coldkey_pub_path.exists():
+                typer.echo(f"Error: Wallet '{name}' not found at {coldkey_pub_path}")
+                raise typer.Exit(code=1)
+
+            try:
+                with open(coldkey_pub_path, 'r') as f:
+                    pub_data = json.load(f)
+                    ss58_address = pub_data.get('ss58Address')
+                    if not ss58_address:
+                        typer.echo(f"Error: Could not find SS58 address in wallet '{name}'")
+                        raise typer.Exit(code=1)
+            except Exception as e:
+                typer.echo(f"Error reading wallet file: {str(e)}")
+                raise typer.Exit(code=1)
+
+        # TODO: Implement actual balance checking using the network
+        # For now, just show a placeholder message
+        typer.echo(f"Checking balance for address: {ss58_address}")
+        typer.echo("Balance checking functionality will be implemented in a future update.")
+        typer.echo("This will connect to the Hypertensor network to fetch the actual balance.")
+
+    except Exception as e:
+        typer.echo(f"An error occurred: {str(e)}")
+        raise typer.Exit(code=1)
+
 # Remove other wallet commands for now, focusing on 'create'
 # @app.command()
 # def list(...): pass

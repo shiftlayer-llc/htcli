@@ -8,6 +8,16 @@ from substrateinterface.base import KeypairType
 import json
 from mnemonic import Mnemonic # Keep import for generate_mnemonic
 
+def obfuscate_bytes(data: bytes, key: str) -> bytes:
+    """
+    Basic XOR obfuscation/de-obfuscation of bytes using a key string.
+    If no key is provided, returns the original data unchanged.
+    """
+    if not key:
+        return data # Return original data if no password
+    key_bytes = key.encode('utf-8')
+    return bytes(data[i] ^ key_bytes[i % len(key_bytes)] for i in range(len(data)))
+
 def create_wallet(
     name: str, # This will be the file name (coldkey or hotkey name)
     wallet_dir: Path, # Accept the full target directory path
@@ -54,13 +64,6 @@ def create_wallet(
             keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42)
     except Exception as e:
         raise RuntimeError(f"Failed to generate keypair: {e}")
-
-    # --- Basic XOR Obfuscation ---
-    def obfuscate_bytes(data: bytes, key: str) -> bytes:
-        if not key:
-            return data # Return original data if no password
-        key_bytes = key.encode('utf-8')
-        return bytes(data[i] ^ key_bytes[i % len(key_bytes)] for i in range(len(data)))
 
     def obfuscate_str(data: str, key: str) -> str:
         if not key:

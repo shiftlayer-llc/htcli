@@ -3,11 +3,34 @@ import os
 from pathlib import Path
 import json
 from substrateinterface.base import Keypair, KeypairType
-from hivemind.utils.logging import get_logger
+import logging
 from htcli.utils.wallet import create_wallet
+from htcli.config.wallet import (
+    DEFAULT_WALLET_PATH,
+    WALLET_NAME_OPTION,
+    WALLET_PASSWORD_OPTION,
+    WALLET_HOTKEY_OPTION,
+    WALLET_PATH_OPTION,
+    BALANCE_WALLET_NAME_OPTION,
+    BALANCE_SS58_OPTION,
+    LIST_WALLET_NAME_OPTION,
+    REMOVE_WALLET_NAME_OPTION,
+    REMOVE_ALL_OPTION,
+    REMOVE_FORCE_OPTION,
+    REGEN_WALLET_NAME_OPTION,
+    REGEN_MNEMONIC_OPTION,
+    REGEN_FORCE_OPTION,
+    COLDKEY_FILE_NAME,
+    HOTKEYS_DIR_NAME
+)
 import getpass
 
-logger = get_logger(__name__)
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 app = typer.Typer(name="wallet", help="Wallet commands")
 
@@ -21,46 +44,39 @@ def info():
 
 @app.command()
 def create(
-    name: str = typer.Option(..., "--wallet.name", help="Name of the wallet"),
-    password: str = typer.Option(None, "--wallet.password", help="Password for the wallet (for encryption)"),
-    path: str = typer.Option(None, "--path", help="Base path to store the wallets"),
-    hotkey: str = typer.Option(None, "--wallet.hotkey", help="Name of the hotkey wallet")
+    name: str = WALLET_NAME_OPTION,
+    password: str = WALLET_PASSWORD_OPTION,
+    path: str = WALLET_PATH_OPTION,
+    hotkey: str = WALLET_HOTKEY_OPTION
 ):
     """
     Create a new wallet with cryptographic keys (coldkey and optional hotkey) following the Bittensor structure.
     Generates a new keypair, saves password-obfuscated private key bytes to a file, and public key info to a .pub file.
     """
-    base_path = path or os.path.expanduser("~/.hypertensor/wallets")
+    base_path = path or DEFAULT_WALLET_PATH
     base_wallet_dir = Path(base_path)
 
     if password is None:
-        # Only prompt for password if it's a coldkey creation OR if it's a hotkey creation AND --wallet.password was NOT used.
-        # If hotkey is being created and --wallet.password IS used, password is not None, so this block is skipped.
-        # If hotkey is being created and --wallet.password is NOT used, password is None, and we check if it's a hotkey.
-        # If it's a hotkey and password is None, we will NOT prompt, and password remains None.
-        # If it's a coldkey and password is None, we WILL prompt.
         if not hotkey:
-            # Prompt for password for coldkey creation if not provided
             prompt_name = name
             password = getpass.getpass(f"Enter password for wallet '{prompt_name}': ")
             if not password:
                 typer.echo("Error: Password cannot be empty.")
                 raise typer.Exit(code=1)
-        # If hotkey is true and password is None, we don't prompt, password remains None.
 
     try:
         coldkey_ss58 = None
 
-        # --- Create coldkey wallet if needed ---
-        # If creating a hotkey, we need the coldkey directory to exist.
-        # We will only call create_wallet for coldkey if hotkey is NOT specified.
         if not hotkey:
-             # Determine coldkey directory and file name
-             coldkey_dir = base_wallet_dir / name # Coldkey directory is named after the wallet name
-             coldkey_file_name = "coldkey"
+             coldkey_dir = base_wallet_dir / name
+             coldkey_file_name = COLDKEY_FILE_NAME
 
-             # Call create_wallet for coldkey, passing the password and save_as_json=False
-             private_key_file_path, coldkey_ss58, coldkey_mnemonic = create_wallet(name=coldkey_file_name, wallet_dir=coldkey_dir, password=password, save_as_json=False)
+             private_key_file_path, coldkey_ss58, coldkey_mnemonic = create_wallet(
+                 name=coldkey_file_name,
+                 wallet_dir=coldkey_dir,
+                 password=password,
+                 save_as_json=False
+             )
 
              typer.echo(typer.style(f"✅ Successfully created coldkey wallet '{name}'", fg=typer.colors.GREEN))
              typer.echo(f"📍 Coldkey Address: {coldkey_ss58}")
@@ -70,26 +86,24 @@ def create(
              typer.echo(typer.style("It is the only way to recover your coldkey if you lose access to your wallet files.", fg=typer.colors.YELLOW))
              typer.echo(typer.style(f"🔑 Coldkey Mnemonic: {coldkey_mnemonic}", fg=typer.colors.YELLOW))
 
-        # --- Create hotkey wallet if requested ---
         if hotkey:
-            # Determine coldkey directory to check for parent existence
             coldkey_dir_check = base_wallet_dir / name
-            # Check if the parent coldkey directory exists
             if not coldkey_dir_check.exists():
                 typer.echo(f"Error: Parent coldkey '{name}' not found at {coldkey_dir_check}. Create the coldkey first.")
                 raise typer.Exit(code=1)
 
-            # Determine hotkey directory and file name
-            # Hotkeys are in a 'hotkeys' subdirectory within the coldkey's directory
-            hotkey_dir = base_wallet_dir / name / "hotkeys" # Use the coldkey name for the parent directory
-            hotkey_file_name = hotkey # Hotkey file is named after the hotkey name
+            hotkey_dir = base_wallet_dir / name / HOTKEYS_DIR_NAME
+            hotkey_file_name = hotkey
 
-            # Call create_wallet for hotkey, passing the password and save_as_json=True
-            hotkey_private_key_file_path, hotkey_ss58, hotkey_mnemonic = create_wallet(name=hotkey_file_name, wallet_dir=hotkey_dir, password=password, save_as_json=True)
+            hotkey_private_key_file_path, hotkey_ss58, hotkey_mnemonic = create_wallet(
+                name=hotkey_file_name,
+                wallet_dir=hotkey_dir,
+                password=password,
+                save_as_json=True
+            )
 
             typer.echo(typer.style(f"✅ Successfully created hotkey wallet '{hotkey}'", fg=typer.colors.GREEN))
             typer.echo(f"📍 Hotkey Address: {hotkey_ss58}")
-            # For hotkeys saved as JSON, the file path is the main wallet file path
             typer.echo(f"📁 Hotkey Wallet File Path: {hotkey_private_key_file_path} {'(password-protected)' if password else ''}")
             typer.echo(typer.style("\n⚠️  IMPORTANT: Save this mnemonic phrase in a secure location!", fg=typer.colors.YELLOW))
             typer.echo(typer.style("It is the only way to recover your hotkey if you lose access to your wallet files.", fg=typer.colors.YELLOW))
@@ -202,14 +216,14 @@ def create(
 
 @app.command()
 def list(
-    name: str = typer.Option(None, "--wallet.name", help="Name of the wallet to list (if not provided, lists all wallets)"),
-    path: str = typer.Option(None, "--path", help="Base path to store the wallets")
+    name: str = LIST_WALLET_NAME_OPTION,
+    path: str = WALLET_PATH_OPTION
 ):
     """
     List wallet information. If --wallet.name is provided, shows details for that specific wallet.
     Otherwise, lists all available wallets.
     """
-    base_path = path or os.path.expanduser("~/.hypertensor/wallets")
+    base_path = path or DEFAULT_WALLET_PATH
     base_wallet_dir = Path(base_path)
 
     if not base_wallet_dir.exists():
@@ -313,10 +327,10 @@ def list(
 
 @app.command()
 def remove(
-    name: str = typer.Option(None, "--wallet.name", help="Name of the wallet to remove"),
-    all: bool = typer.Option(False, "--all", help="Remove all wallets"),
-    path: str = typer.Option(None, "--path", help="Base path to store the wallets"),
-    force: bool = typer.Option(False, "--force", help="Skip confirmation prompt")
+    name: str = REMOVE_WALLET_NAME_OPTION,
+    all: bool = REMOVE_ALL_OPTION,
+    path: str = WALLET_PATH_OPTION,
+    force: bool = REMOVE_FORCE_OPTION
 ):
     """
     Remove a specific wallet or all wallets. Requires confirmation unless --force is used.
@@ -329,7 +343,7 @@ def remove(
         typer.echo("Error: Cannot specify both --wallet.name and --all")
         raise typer.Exit(code=1)
 
-    base_path = path or os.path.expanduser("~/.hypertensor/wallets")
+    base_path = path or DEFAULT_WALLET_PATH
     base_wallet_dir = Path(base_path)
 
     if not base_wallet_dir.exists():
@@ -401,11 +415,11 @@ def remove(
 
 @app.command()
 def regen_coldkey(
-    name: str = typer.Option(..., "--wallet.name", help="Name of the wallet to regenerate"),
-    mnemonic: str = typer.Option(..., "--mnemonic", help='Mnemonic phrase to regenerate the coldkey (must be in quotes, e.g. --mnemonic "word1 word2 word3 ...")'),
-    password: str = typer.Option(None, "--wallet.password", help="Password for the wallet (for encryption)"),
-    path: str = typer.Option(None, "--path", help="Base path to store the wallets"),
-    force: bool = typer.Option(False, "--force", help="Overwrite existing wallet if it exists")
+    name: str = REGEN_WALLET_NAME_OPTION,
+    mnemonic: str = REGEN_MNEMONIC_OPTION,
+    password: str = WALLET_PASSWORD_OPTION,
+    path: str = WALLET_PATH_OPTION,
+    force: bool = REGEN_FORCE_OPTION
 ):
     """
     Regenerate a coldkey wallet from a mnemonic phrase. This will create a new coldkey with the same keys as the original.
@@ -413,7 +427,7 @@ def regen_coldkey(
     Example:
         htcli wallet regen-coldkey --wallet.name mywallet --mnemonic "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12"
     """
-    base_path = path or os.path.expanduser("~/.hypertensor/wallets")
+    base_path = path or DEFAULT_WALLET_PATH
     base_wallet_dir = Path(base_path)
 
     # Create base directory if it doesn't exist
@@ -421,7 +435,7 @@ def regen_coldkey(
 
     # Determine coldkey directory and file name
     coldkey_dir = base_wallet_dir / name
-    coldkey_file_name = "coldkey"
+    coldkey_file_name = COLDKEY_FILE_NAME
 
     # Check if wallet already exists
     if coldkey_dir.exists() and not force:
@@ -475,9 +489,9 @@ def regen_coldkey(
 
 @app.command()
 def balance(
-    name: str = typer.Option(None, "--wallet.name", help="Name of the wallet to check balance"),
-    ss58_address: str = typer.Option(None, "--ss58-address", help="SS58 address to check balance"),
-    path: str = typer.Option(None, "--path", help="Base path to store the wallets")
+    name: str = BALANCE_WALLET_NAME_OPTION,
+    ss58_address: str = BALANCE_SS58_OPTION,
+    path: str = WALLET_PATH_OPTION
 ):
     """
     Check the balance of a wallet using either the wallet name or SS58 address.
@@ -497,7 +511,7 @@ def balance(
     try:
         # If wallet name is provided, get the SS58 address from the wallet
         if name:
-            base_path = path or os.path.expanduser("~/.hypertensor/wallets")
+            base_path = path or DEFAULT_WALLET_PATH
             base_wallet_dir = Path(base_path)
             coldkey_pub_path = base_wallet_dir / name / "coldkey.pub"
 

@@ -45,6 +45,13 @@ def create(
     base_path = path or wallet_config.default_wallet_path
     base_wallet_dir = Path(base_path)
 
+    # Prompt for wallet name if not provided
+    if not name:
+        name = typer.prompt("Enter wallet name")
+        if not name:
+            typer.echo("Error: Wallet name cannot be empty.")
+            raise typer.Exit(code=1)
+
     if password is None:
         if not hotkey:
             prompt_name = name
@@ -359,7 +366,7 @@ def remove(
     Remove a specific wallet or all wallets. Requires confirmation unless --force is used.
     """
     if not name and not all:
-        typer.echo("Error: Either --wallet.nam or --all must be specified")
+        typer.echo("Error: Either --wallet.name or --all must be specified")
         raise typer.Exit(code=1)
 
     if name and all:
@@ -394,7 +401,7 @@ def remove(
                     )
                 ):
                     typer.echo("Operation cancelled")
-                    raise typer.Exit(code=1)
+                    return
 
             # Remove all wallets
             for wallet_dir in wallet_dirs:
@@ -434,7 +441,7 @@ def remove(
                     )
                 ):
                     typer.echo("Operation cancelled")
-                    raise typer.Exit(code=1)
+                    return
 
             # Remove the wallet
             try:

@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from substrateinterface import SubstrateInterface, Keypair
+from substrateinterface import Keypair
 import json
 
 

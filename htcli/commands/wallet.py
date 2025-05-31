@@ -1,7 +1,6 @@
 import typer
 from pathlib import Path
 import json
-from substrateinterface.base import Keypair
 import logging
 from htcli.utils.wallet import create_wallet
 from htcli.utils.helpers import (
@@ -352,7 +351,7 @@ def list(name: str = wallet_config.name, path: str = wallet_config.path):
 @app.command()
 def remove(
     name: str = wallet_config.name,
-    all: bool = wallet_config.remove_all,
+    all: bool = wallet_config.all,
     path: str = wallet_config.path,
     force: bool = wallet_config.force,
 ):

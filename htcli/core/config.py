@@ -68,7 +68,9 @@ class wallet_config:
     ss58_address = typer.Option(
         None, "--ss58-address", help="SS58 address to check balance"
     )
-    remove_all = typer.Option(False, "--all", help="Remove all wallets")
+    all = typer.Option(
+        False, "--all", help="Indicates to <all wallets>, <whole balance>, ...."
+    )
     mnemonic = typer.Option(
         None,
         "--mnemonic",

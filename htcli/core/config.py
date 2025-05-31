@@ -56,56 +56,50 @@ class wallet_config:
         "--wallet_password",
         help="Password for the wallet",
     )
-    mnemonic = typer.Option(
-        None,
-        "--wallet.mnemonic",
-        "--wallet_mnemonic",
-        help="Mnemonic for the wallet",
-    )
     hotkey = typer.Option(
         None,
         "--wallet.hotkey",
         help="Name of the hotkey wallet"
-    )
-    balance_wallet_name = typer.Option(
-        None,
-        "--wallet.name",
-        help="Name of the wallet to check balance"
     )
     balance_ss58 = typer.Option(
         None,
         "--ss58-address",
         help="SS58 address to check balance"
     )
+    remove_all = typer.Option(
+        False,
+        "--all",
+        help="Remove all wallets"
+    )
+    regen_mnemonic = typer.Option(
+        ...,
+        "--mnemonic",
+        help='Mnemonic phrase to regenerate the coldkey (must be in quotes, e.g. --mnemonic "word1 word2 word3 ...")'
+    )
     list_wallet_name = typer.Option(
         None,
         "--wallet.name",
-        help="Name of the wallet to list (if not provided, lists all wallets)"
+        help="Name of the wallet to list"
     )
     remove_wallet_name = typer.Option(
         None,
         "--wallet.name",
         help="Name of the wallet to remove"
     )
-    remove_all = typer.Option(
-        False,
-        "--all",
-        help="Remove all wallets"
-    )
-    remove_force = typer.Option(
-        False,
-        "--force",
-        help="Skip confirmation prompt"
+    balance_wallet_name = typer.Option(
+        None,
+        "--wallet.name",
+        help="Name of the wallet to check balance"
     )
     regen_wallet_name = typer.Option(
         ...,
         "--wallet.name",
         help="Name of the wallet to regenerate"
     )
-    regen_mnemonic = typer.Option(
-        ...,
-        "--mnemonic",
-        help='Mnemonic phrase to regenerate the coldkey (must be in quotes, e.g. --mnemonic "word1 word2 word3 ...")'
+    remove_force = typer.Option(
+        False,
+        "--force",
+        help="Skip confirmation prompt"
     )
     regen_force = typer.Option(
         False,

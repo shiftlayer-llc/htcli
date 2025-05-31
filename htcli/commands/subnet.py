@@ -3,11 +3,9 @@ from htcli.core.config import subnet_config
 
 app = typer.Typer(name="subnet", help="Subnet commands")
 
-subnet_cfg = subnet_config()
-
 
 @app.command()
-def info(subnet_id: int = subnet_cfg.id, subnet_name: str = subnet_cfg.name):
+def info(subnet_id: int = subnet_config.id, subnet_name: str = subnet_config.name):
     """
     Get the info of the subnet
     """

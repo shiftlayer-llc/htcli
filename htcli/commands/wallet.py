@@ -5,7 +5,12 @@ import json
 from substrateinterface.base import Keypair, KeypairType
 import logging
 from htcli.utils.wallet import create_wallet
+from htcli.utils.wallet_utils import (
+    read_wallet_data_for_verification,
+    deobfuscate_bytes,
+)
 from htcli.core.config import wallet_config
+from htcli.core.constants import COLDKEY_FILE_NAME, HOTKEYS_DIR_NAME
 import getpass
 
 # Configure logging
@@ -13,10 +18,6 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
-
-# Constants for file names
-COLDKEY_FILE_NAME = "coldkey"
-HOTKEYS_DIR_NAME = "hotkeys"
 
 app = typer.Typer(name="wallet", help="Wallet commands")
 
@@ -35,12 +36,10 @@ def create(
     name: str = wallet_config.name,
     password: str = wallet_config.password,
     path: str = wallet_config.path,
-    hotkey: str = typer.Option(
-        None, "--wallet.hotkey", help="Name of the hotkey wallet"
-    ),
+    hotkey: str = wallet_config.hotkey,
 ):
     """
-    Create a new wallet with cryptographic keys (coldkey and optional hotkey)
+    Create a new wallet with cryptographic keys (coldkey and optional hotkey) following the Bittensor structure.
     Generates a new keypair, saves password-obfuscated private key bytes to a file, and public key info to a .pub file.
     """
     base_path = path or wallet_config.default_wallet_path
@@ -157,51 +156,14 @@ def create(
 
         # --- Verification of Obfuscation/De-obfuscation ---
         try:
-            # Define deobfuscate_bytes function within the command for verification
-            # Need to use the password that was actually used for obfuscation
-            # If password was None for hotkey, then deobfuscation key is None.
-            deobfuscation_password = (
-                password  # Use the password variable from the command scope
-            )
-
-            # Need to be able to read both raw bytes (coldkey) and JSON (hotkey) for verification
-            def read_wallet_data_for_verification(
-                file_path: Path, is_json: bool, password: str
-            ):
-                if is_json:
-                    with open(file_path, "r") as f:
-                        wallet_data = json.load(f)
-                        obfuscated_private_key_hex = wallet_data.get(
-                            "privateKey", ""
-                        ).replace("0x", "")
-                        obfuscated_private_key_bytes = bytes.fromhex(
-                            obfuscated_private_key_hex
-                        )
-                        # De-obfuscate the private key bytes
-                        return deobfuscate_bytes(obfuscated_private_key_bytes, password)
-                else:
-                    with open(file_path, "rb") as f:
-                        saved_obfuscated_private_key = f.read()
-                        # De-obfuscate the private key bytes
-                        return deobfuscate_bytes(saved_obfuscated_private_key, password)
-
-            def deobfuscate_bytes(data: bytes, key: str) -> bytes:
-                if not key:
-                    return data
-                key_bytes = key.encode("utf-8")
-                return bytes(
-                    data[i] ^ key_bytes[i % len(key_bytes)] for i in range(len(data))
-                )
-
             # Only perform verification if a wallet was actually created and password was used
             if (
                 not hotkey and password is not None
             ):  # Verify coldkey if created with password
-                # original_coldkey_private_key is returned by create_wallet when save_as_json=False
                 deobfuscated_bytes = read_wallet_data_for_verification(
                     Path(private_key_file_path),
                     is_json=False,
-                    password=deobfuscation_password,
+                    password=password,
                 )
                 temp_keypair = Keypair.create_from_mnemonic(
                     Keypair.generate_mnemonic(), ss58_format=42
@@ -218,7 +180,7 @@ def create(
                 deobfuscated_bytes = read_wallet_data_for_verification(
                     Path(hotkey_private_key_file_path),
                     is_json=True,
-                    password=deobfuscation_password,
+                    password=password,
                 )
                 typer.echo(
                     typer.style(
@@ -492,7 +454,7 @@ def remove(
 @app.command()
 def regen_coldkey(
     name: str = wallet_config.name,
-    mnemonic: str = wallet_config.regen_mnemonic,
+    mnemonic: str = wallet_config.mnemonic,
     password: str = wallet_config.password,
     path: str = wallet_config.path,
     force: bool = wallet_config.force,
@@ -581,9 +543,123 @@ def regen_coldkey(
 
 
 @app.command()
+def regen_hotkey(
+    name: str = wallet_config.name,
+    hotkey: str = wallet_config.hotkey,
+    mnemonic: str = wallet_config.mnemonic,
+    path: str = wallet_config.path,
+    force: bool = wallet_config.force,
+):
+    """
+    Regenerate a hotkey wallet from a mnemonic phrase. This will create a new hotkey with the same keys as the original.
+
+    Example:
+        htcli wallet regen-hotkey --wallet.name mywallet --wallet.hotkey myhotkey --wallet.path /path/to/wallets --mnemonic "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12"
+    """
+    # Prompt for path if not provided
+    if not path:
+        path = typer.prompt(
+            "Enter wallet path", default=wallet_config.default_wallet_path
+        )
+        if not path:
+            typer.echo("Error: Wallet path cannot be empty.")
+            raise typer.Exit(code=1)
+
+    base_path = path
+    base_wallet_dir = Path(base_path)
+
+    # Create base directory if it doesn't exist
+    base_wallet_dir.mkdir(parents=True, exist_ok=True)
+
+    # Prompt for wallet name if not provided
+    if not name:
+        name = typer.prompt("Enter wallet name")
+        if not name:
+            typer.echo("Error: Wallet name cannot be empty.")
+            raise typer.Exit(code=1)
+
+    # Prompt for hotkey name if not provided
+    if not hotkey:
+        hotkey = typer.prompt("Enter hotkey name")
+        if not hotkey:
+            typer.echo("Error: Hotkey name cannot be empty.")
+            raise typer.Exit(code=1)
+
+    # Prompt for mnemonic if not provided
+    if not mnemonic:
+        typer.echo("Enter the mnemonic phrase (12 words separated by spaces):")
+        mnemonic = typer.prompt("Mnemonic", hide_input=True)
+        if not mnemonic:
+            typer.echo("Error: Mnemonic phrase cannot be empty.")
+            raise typer.Exit(code=1)
+
+    # Check if parent coldkey exists
+    coldkey_dir = base_wallet_dir / name
+    if not coldkey_dir.exists():
+        typer.echo(f"Error: Parent coldkey wallet '{name}' not found at {coldkey_dir}")
+        typer.echo("Create the coldkey wallet first using 'htcli wallet create'")
+        raise typer.Exit(code=1)
+
+    # Determine hotkey directory and file name
+    hotkey_dir = coldkey_dir / HOTKEYS_DIR_NAME
+    hotkey_file_name = hotkey  # Use the provided hotkey name
+
+    # Check if hotkey already exists
+    hotkey_path = hotkey_dir / hotkey_file_name
+    if hotkey_path.exists() and not force:
+        typer.echo(f"Error: Hotkey '{hotkey}' already exists at {hotkey_path}")
+        typer.echo("Use --force to overwrite existing hotkey")
+        raise typer.Exit(code=1)
+
+    try:
+        # Create keypair from mnemonic
+        try:
+            keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42)
+        except Exception as e:
+            typer.echo(f"Error: Invalid mnemonic phrase - {str(e)}")
+            raise typer.Exit(code=1)
+
+        # Create directory if it doesn't exist
+        hotkey_dir.mkdir(parents=True, exist_ok=True)
+
+        # Save the hotkey using create_wallet function without password
+        private_key_file_path, hotkey_ss58, hotkey_mnemonic = create_wallet(
+            name=hotkey_file_name,
+            wallet_dir=hotkey_dir,
+            password=None,  # No password needed for hotkey regeneration
+            save_as_json=True,
+            mnemonic=mnemonic,  # Pass the provided mnemonic
+        )
+
+        typer.echo(
+            typer.style(
+                f"✅ Successfully regenerated hotkey wallet '{hotkey}'",
+                fg=typer.colors.GREEN,
+            )
+        )
+        typer.echo(f"📍 Hotkey Address: {hotkey_ss58}")
+        typer.echo(f"📁 Hotkey Wallet File Path: {private_key_file_path}")
+        typer.echo(
+            typer.style(
+                f"🔑 Hotkey Mnemonic: {hotkey_mnemonic}", fg=typer.colors.YELLOW
+            )
+        )
+
+    except ValueError as e:
+        typer.echo(f"Error: {str(e)}")
+        raise typer.Exit(code=1)
+    except RuntimeError as e:
+        typer.echo(f"Error: {str(e)}")
+        raise typer.Exit(code=1)
+    except Exception as e:
+        typer.echo(f"An unexpected error occurred: {str(e)}")
+        raise typer.Exit(code=1)
+
+
+@app.command()
 def balance(
     name: str = wallet_config.name,
-    ss58_address: str = wallet_config.balance_ss58,
+    ss58_address: str = wallet_config.ss58_address,
     path: str = wallet_config.path,
 ):
     """
@@ -593,6 +669,9 @@ def balance(
         htcli wallet balance --wallet.name mywallet
         htcli wallet balance --ss58-address 5DaTcPcom7o9wRYdCB9qkfkobPREmgXcyRhE1qPXb7UDeXkY
     """
+    base_path = path or wallet_config.default_wallet_path
+    base_wallet_dir = Path(base_path)
+
     if not name and not ss58_address:
         typer.echo("Error: Either --wallet.name or --ss58-address must be specified")
         raise typer.Exit(code=1)
@@ -604,8 +683,6 @@ def balance(
     try:
         # If wallet name is provided, get the SS58 address from the wallet
         if name:
-            base_path = path or wallet_config.default_wallet_path
-            base_wallet_dir = Path(base_path)
             coldkey_pub_path = base_wallet_dir / name / "coldkey.pub"
 
             if not coldkey_pub_path.exists():

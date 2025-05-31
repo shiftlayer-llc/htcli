@@ -32,14 +32,14 @@ class subnet_config:
     id = typer.Option(
         DEFAULT_SUBNET_ID,
         "--subnet.id",
-        "--subnet_id",
+        "--subnet-id",
         "--netuid",
         help="Unique ID for the subnetwork",
     )
     name = typer.Option(
         DEFAULT_SUBNET_NAME,
         "--subnet.name",
-        "--subnet_name",
+        "--subnet-name",
         help="Name of the subnetwork",
     )
 
@@ -48,28 +48,28 @@ class wallet_config:
     path = typer.Option(
         DEFAULT_WALLET_PATH,
         "--wallet.path",
-        "--wallet_path",
+        "--wallet-path",
         help="Path to the wallets directory",
     )
     name = typer.Option(
         None,
         "--wallet.name",
-        "--wallet_name",
+        "--wallet-name",
         help="Name of the wallet",
     )
     password = typer.Option(
         None,
         "--wallet.password",
-        "--wallet_password",
+        "--wallet-password",
         help="Password for the wallet",
     )
     hotkey = typer.Option(None, "--wallet.hotkey", help="Name of the hotkey wallet")
-    balance_ss58 = typer.Option(
+    ss58_address = typer.Option(
         None, "--ss58-address", help="SS58 address to check balance"
     )
     remove_all = typer.Option(False, "--all", help="Remove all wallets")
-    regen_mnemonic = typer.Option(
-        ...,
+    mnemonic = typer.Option(
+        None,
         "--mnemonic",
         help='Mnemonic phrase to regenerate the coldkey (must be in quotes, e.g. --mnemonic "word1 word2 word3 ...")',
     )

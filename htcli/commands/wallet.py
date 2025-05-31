@@ -17,7 +17,10 @@ import getpass
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    filename="htcli.log",
+    filemode="a",
 )
 logger = logging.getLogger(__name__)
 
@@ -52,7 +55,7 @@ def create(
         name = typer.prompt("Enter wallet name")
         if not name:
             typer.echo("Error: Wallet name cannot be empty.")
-            raise typer.Exit(code=1)
+            return
 
     if password is None:
         if not hotkey:
@@ -60,7 +63,7 @@ def create(
             password = getpass.getpass(f"Enter password for wallet '{prompt_name}': ")
             if not password:
                 typer.echo("Error: Password cannot be empty.")
-                raise typer.Exit(code=1)
+                return
 
     try:
         coldkey_ss58 = None
@@ -111,7 +114,7 @@ def create(
                 typer.echo(
                     f"Error: Parent coldkey '{name}' not found at {coldkey_dir_check}. Create the coldkey first."
                 )
-                raise typer.Exit(code=1)
+                return
 
             hotkey_dir = base_wallet_dir / name / HOTKEYS_DIR_NAME
             hotkey_file_name = hotkey
@@ -227,13 +230,13 @@ def create(
 
     except ValueError as e:
         typer.echo(f"Error: {str(e)}")
-        raise typer.Exit(code=1)
+        return
     except RuntimeError as e:
         typer.echo(f"Error: {str(e)}")
-        raise typer.Exit(code=1)
+        return
     except Exception as e:
         typer.echo(f"An unexpected error occurred: {str(e)}")
-        raise typer.Exit(code=1)
+        return
 
 
 @app.command()
@@ -247,15 +250,18 @@ def list(name: str = wallet_config.name, path: str = wallet_config.path):
 
     if not base_wallet_dir.exists():
         typer.echo(f"No wallets found at {base_wallet_dir}")
-        raise typer.Exit(code=1)
+        return
 
     try:
         if name:
             # List specific wallet
             wallet_dir = base_wallet_dir / name
             if not wallet_dir.exists():
-                typer.echo(f"Wallet '{name}' not found at {wallet_dir}")
-                raise typer.Exit(code=1)
+                logger.error(f"Wallet '{name}' not found at {wallet_dir}")
+                typer.echo(
+                    typer.style(f"❌ Wallet '{name}' not found", fg=typer.colors.RED)
+                )
+                return
 
             # Check for coldkey
             coldkey_path = wallet_dir / "coldkey"
@@ -305,9 +311,11 @@ def list(name: str = wallet_config.name, path: str = wallet_config.path):
             wallet_dirs = [d for d in base_wallet_dir.iterdir() if d.is_dir()]
             if not wallet_dirs:
                 typer.echo("No wallets found")
-                raise typer.Exit(code=1)
+                return
 
-            typer.echo(typer.style("\nAvailable Wallets:", bold=True))
+            typer.echo(
+                typer.style(f"\nAvailable Wallets ({len(wallet_dirs)}):", bold=True)
+            )
             typer.echo("=======================")
 
             for wallet_dir in wallet_dirs:
@@ -354,7 +362,7 @@ def list(name: str = wallet_config.name, path: str = wallet_config.path):
 
     except Exception as e:
         typer.echo(f"An error occurred while listing wallets: {str(e)}")
-        raise typer.Exit(code=1)
+        return
 
 
 @app.command()
@@ -367,20 +375,22 @@ def remove(
     """
     Remove a specific wallet or all wallets. Requires confirmation unless --force is used.
     """
-    if not name and not all:
-        typer.echo("Error: Either --wallet.nam or --all must be specified")
-        raise typer.Exit(code=1)
+    # Prompt for path if not provided
+    if not path:
+        path = typer.prompt(
+            "Enter wallet path", default=wallet_config.default_wallet_path
+        )
+        if not path:
+            typer.echo("Error: Wallet path cannot be empty.")
+            return
 
-    if name and all:
-        typer.echo("Error: Cannot specify both --wallet.name and --all")
-        raise typer.Exit(code=1)
-
-    base_path = path or wallet_config.default_wallet_path
+    base_path = path
     base_wallet_dir = Path(base_path)
 
     if not base_wallet_dir.exists():
-        typer.echo(f"No wallets found at {base_wallet_dir}")
-        raise typer.Exit(code=1)
+        logger.error(f"No wallets found at {base_wallet_dir}")
+        typer.echo(typer.style("❌ No wallets found", fg=typer.colors.RED))
+        return
 
     try:
         if all:
@@ -388,7 +398,7 @@ def remove(
             wallet_dirs = [d for d in base_wallet_dir.iterdir() if d.is_dir()]
             if not wallet_dirs:
                 typer.echo("No wallets found to remove")
-                raise typer.Exit(code=1)
+                return
 
             typer.echo(typer.style("\nWallets to be removed:", bold=True))
             typer.echo("=======================")
@@ -400,7 +410,8 @@ def remove(
                     typer.style(
                         "\n⚠️  Are you sure you want to remove ALL wallets? This action cannot be undone!",
                         fg=typer.colors.RED,
-                    )
+                    ),
+                    default=False,
                 ):
                     typer.echo("Operation cancelled")
                     return
@@ -413,16 +424,24 @@ def remove(
                     shutil.rmtree(wallet_dir)
                     typer.echo(f"✅ Removed wallet: {wallet_dir.name}")
                 except Exception as e:
-                    typer.echo(
-                        f"❌ Failed to remove wallet {wallet_dir.name}: {str(e)}"
-                    )
+                    typer.echo(f"❌ Failed to remove wallet: {str(e)}")
 
         else:
+            # Prompt for wallet name if not provided
+            if not name:
+                name = typer.prompt("Enter wallet name to remove")
+                if not name:
+                    typer.echo("Error: Wallet name cannot be empty.")
+                    return
+
             # Remove specific wallet
             wallet_dir = base_wallet_dir / name
             if not wallet_dir.exists():
-                typer.echo(f"Wallet '{name}' not found at {wallet_dir}")
-                raise typer.Exit(code=1)
+                logger.error(f"Wallet '{name}' not found at {wallet_dir}")
+                typer.echo(
+                    typer.style(f"❌ Wallet '{name}' not found", fg=typer.colors.RED)
+                )
+                return
 
             # Show wallet details before removal
             typer.echo(typer.style(f"\nWallet to be removed:", bold=True))
@@ -440,7 +459,8 @@ def remove(
                     typer.style(
                         f"\n⚠️  Are you sure you want to remove wallet '{name}'? This action cannot be undone!",
                         fg=typer.colors.RED,
-                    )
+                    ),
+                    default=False,
                 ):
                     typer.echo("Operation cancelled")
                     return
@@ -453,11 +473,10 @@ def remove(
                 typer.echo(f"✅ Successfully removed wallet: {name}")
             except Exception as e:
                 typer.echo(f"❌ Failed to remove wallet: {str(e)}")
-                raise typer.Exit(code=1)
 
     except Exception as e:
         typer.echo(f"An error occurred: {str(e)}")
-        raise typer.Exit(code=1)
+        return
 
 
 @app.command()
@@ -488,7 +507,7 @@ def regen_coldkey(
     if coldkey_dir.exists() and not force:
         typer.echo(f"Error: Wallet '{name}' already exists at {coldkey_dir}")
         typer.echo("Use --force to overwrite existing wallet")
-        raise typer.Exit(code=1)
+        return
 
     try:
         # Prompt for password if not provided
@@ -496,14 +515,14 @@ def regen_coldkey(
             password = getpass.getpass(f"Enter password for wallet '{name}': ")
             if not password:
                 typer.echo("Error: Password cannot be empty.")
-                raise typer.Exit(code=1)
+                return
 
         # Create keypair from mnemonic
         try:
             keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42)
         except Exception as e:
             typer.echo(f"Error: Invalid mnemonic phrase - {str(e)}")
-            raise typer.Exit(code=1)
+            return
 
         # Create directory if it doesn't exist
         coldkey_dir.mkdir(parents=True, exist_ok=True)
@@ -542,13 +561,13 @@ def regen_coldkey(
 
     except ValueError as e:
         typer.echo(f"Error: {str(e)}")
-        raise typer.Exit(code=1)
+        return
     except RuntimeError as e:
         typer.echo(f"Error: {str(e)}")
-        raise typer.Exit(code=1)
+        return
     except Exception as e:
         typer.echo(f"An unexpected error occurred: {str(e)}")
-        raise typer.Exit(code=1)
+        return
 
 
 @app.command()
@@ -572,7 +591,7 @@ def regen_hotkey(
         )
         if not path:
             typer.echo("Error: Wallet path cannot be empty.")
-            raise typer.Exit(code=1)
+            return
 
     base_path = path
     base_wallet_dir = Path(base_path)
@@ -585,14 +604,14 @@ def regen_hotkey(
         name = typer.prompt("Enter wallet name")
         if not name:
             typer.echo("Error: Wallet name cannot be empty.")
-            raise typer.Exit(code=1)
+            return
 
     # Prompt for hotkey name if not provided
     if not hotkey:
         hotkey = typer.prompt("Enter hotkey name")
         if not hotkey:
             typer.echo("Error: Hotkey name cannot be empty.")
-            raise typer.Exit(code=1)
+            return
 
     # Prompt for mnemonic if not provided
     if not mnemonic:
@@ -600,14 +619,14 @@ def regen_hotkey(
         mnemonic = typer.prompt("Mnemonic", hide_input=True)
         if not mnemonic:
             typer.echo("Error: Mnemonic phrase cannot be empty.")
-            raise typer.Exit(code=1)
+            return
 
     # Check if parent coldkey exists
     coldkey_dir = base_wallet_dir / name
     if not coldkey_dir.exists():
         typer.echo(f"Error: Parent coldkey wallet '{name}' not found at {coldkey_dir}")
         typer.echo("Create the coldkey wallet first using 'htcli wallet create'")
-        raise typer.Exit(code=1)
+        return
 
     # Determine hotkey directory and file name
     hotkey_dir = coldkey_dir / HOTKEYS_DIR_NAME
@@ -618,7 +637,7 @@ def regen_hotkey(
     if hotkey_path.exists() and not force:
         typer.echo(f"Error: Hotkey '{hotkey}' already exists at {hotkey_path}")
         typer.echo("Use --force to overwrite existing hotkey")
-        raise typer.Exit(code=1)
+        return
 
     try:
         # Create keypair from mnemonic
@@ -626,7 +645,7 @@ def regen_hotkey(
             keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42)
         except Exception as e:
             typer.echo(f"Error: Invalid mnemonic phrase - {str(e)}")
-            raise typer.Exit(code=1)
+            return
 
         # Create directory if it doesn't exist
         hotkey_dir.mkdir(parents=True, exist_ok=True)
@@ -656,13 +675,13 @@ def regen_hotkey(
 
     except ValueError as e:
         typer.echo(f"Error: {str(e)}")
-        raise typer.Exit(code=1)
+        return
     except RuntimeError as e:
         typer.echo(f"Error: {str(e)}")
-        raise typer.Exit(code=1)
+        return
     except Exception as e:
         typer.echo(f"An unexpected error occurred: {str(e)}")
-        raise typer.Exit(code=1)
+        return
 
 
 @app.command()
@@ -683,11 +702,11 @@ def balance(
 
     if not name and not ss58_address:
         typer.echo("Error: Either --wallet.name or --ss58-address must be specified")
-        raise typer.Exit(code=1)
+        return
 
     if name and ss58_address:
         typer.echo("Error: Cannot specify both --wallet.name and --ss58-address")
-        raise typer.Exit(code=1)
+        return
 
     try:
         # If wallet name is provided, get the SS58 address from the wallet
@@ -696,7 +715,7 @@ def balance(
 
             if not coldkey_pub_path.exists():
                 typer.echo(f"Error: Wallet '{name}' not found at {coldkey_pub_path}")
-                raise typer.Exit(code=1)
+                return
 
             try:
                 with open(coldkey_pub_path, "r") as f:
@@ -706,10 +725,10 @@ def balance(
                         typer.echo(
                             f"Error: Could not find SS58 address in wallet '{name}'"
                         )
-                        raise typer.Exit(code=1)
+                        return
             except Exception as e:
                 typer.echo(f"Error reading wallet file: {str(e)}")
-                raise typer.Exit(code=1)
+                return
 
         # TODO: Implement actual balance checking using the network
         # For now, just show a placeholder message
@@ -723,7 +742,7 @@ def balance(
 
     except Exception as e:
         typer.echo(f"An error occurred: {str(e)}")
-        raise typer.Exit(code=1)
+        return
 
 
 # Remove other wallet commands for now, focusing on 'create'

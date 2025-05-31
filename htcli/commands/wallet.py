@@ -58,10 +58,17 @@ def create(
     if password is None:
         if not hotkey:
             prompt_name = name
-            password = getpass.getpass(f"Enter password for wallet '{prompt_name}': ")
-            if not password:
-                typer.echo("Error: Password cannot be empty.")
-                return
+            password = getpass.getpass(
+                f"Enter password for wallet '{prompt_name}' (press Enter for unencrypted wallet): "
+            )
+            # Allow empty password
+            if password == "":
+                password = None
+                typer.echo(
+                    typer.style(
+                        "⚠️  Creating unencrypted wallet", fg=typer.colors.YELLOW
+                    )
+                )
 
     try:
         coldkey_ss58 = None
@@ -85,7 +92,7 @@ def create(
             )
             typer.echo(f"📍 Coldkey Address: {coldkey_ss58}")
             typer.echo(
-                f"📁 Coldkey Private Key Path: {private_key_file_path} {'(password-protected)' if password else ''}"
+                f"📁 Coldkey Private Key Path: {private_key_file_path} {'(encrypted)' if password else '(unencrypted)'}"
             )
             typer.echo(f"📄 Coldkey Public Key Path: {private_key_file_path}.pub")
             typer.echo(
@@ -541,7 +548,7 @@ def regen_coldkey(
         )
         typer.echo(f"📍 Coldkey Address: {coldkey_ss58}")
         typer.echo(
-            f"📁 Coldkey Private Key Path: {private_key_file_path} {'(password-protected)' if password else ''}"
+            f"📁 Coldkey Private Key Path: {private_key_file_path} {'(encrypted)' if password else '(unencrypted)'}"
         )
         typer.echo(f"📄 Coldkey Public Key Path: {private_key_file_path}.pub")
         typer.echo(

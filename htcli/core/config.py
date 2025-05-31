@@ -1,5 +1,4 @@
 import typer
-import os
 from htcli.core.constants import (
     DEFAULT_WALLET_PATH,
     DEFAULT_RPC_URL,

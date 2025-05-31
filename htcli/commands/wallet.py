@@ -1,14 +1,15 @@
 import typer
-import os
 from pathlib import Path
 import json
-from substrateinterface.base import Keypair, KeypairType
+from substrateinterface.base import Keypair
 import logging
 from htcli.utils.wallet import create_wallet
-from htcli.utils.wallet_utils import (
+from htcli.utils.helpers import (
     read_wallet_data_for_verification,
     deobfuscate_bytes,
 )
+
+
 from htcli.core.config import wallet_config
 from htcli.core.constants import COLDKEY_FILE_NAME, HOTKEYS_DIR_NAME
 import getpass

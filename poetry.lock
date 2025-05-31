@@ -160,6 +160,17 @@ test = ["certifi", "cryptography-vectors (==43.0.3)", "pretend", "pytest (>=6.2.
 test-randomorder = ["pytest-randomly"]
 
 [[package]]
+name = "logging"
+version = "0.4.9.6"
+description = "A logging module for Python"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "logging-0.4.9.6.tar.gz", hash = "sha256:26f6b50773f085042d301085bd1bf5d9f3735704db9f37c1ce6d8b85c38f2417"},
+]
+
+[[package]]
 name = "markdown-it-py"
 version = "3.0.0"
 description = "Python port of markdown-it. Markdown parsing, done right!"
@@ -197,6 +208,18 @@ files = [
 ]
 
 [[package]]
+name = "mnemonic"
+version = "0.21"
+description = "Implementation of Bitcoin BIP-0039"
+optional = false
+python-versions = ">=3.8.1"
+groups = ["main"]
+files = [
+    {file = "mnemonic-0.21-py3-none-any.whl", hash = "sha256:72dc9de16ec5ef47287237b9b6943da11647a03fe7cf1f139fc3d7c4a7439288"},
+    {file = "mnemonic-0.21.tar.gz", hash = "sha256:1fe496356820984f45559b1540c80ff10de448368929b9c60a2b55744cc88acf"},
+]
+
+[[package]]
 name = "multihash"
 version = "0.1.1"
 description = "multihash implementation in Python"
@@ -205,6 +228,18 @@ python-versions = "*"
 groups = ["main"]
 files = [
     {file = "multihash-0.1.1.tar.gz", hash = "sha256:65d31ad24eeae0bb1ed016464afba26e269bd1c1f8af056fe4ed2a76b2e85ccb"},
+]
+
+[[package]]
+name = "pathlib"
+version = "1.0.1"
+description = "Object-oriented filesystem paths"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "pathlib-1.0.1-py3-none-any.whl", hash = "sha256:f35f95ab8b0f59e6d354090350b44a80a80635d22efdedfa84c7ad1cf0a74147"},
+    {file = "pathlib-1.0.1.tar.gz", hash = "sha256:6940718dfc3eff4258203ad5021090933e5c04707d5ca8cc9e73c94a7894ea9f"},
 ]
 
 [[package]]
@@ -301,6 +336,21 @@ files = [
 ]
 
 [[package]]
+name = "substrateinterface"
+version = "1.0.0"
+description = "Library for interfacing with a Substrate node"
+optional = false
+python-versions = ">=3.6, <4"
+groups = ["main"]
+files = [
+    {file = "substrateinterface-1.0.0-py3-none-any.whl", hash = "sha256:1998ddf51a2396aeedc0761e186bd23b252582ae85d437f83f12d1f898a3188c"},
+    {file = "substrateinterface-1.0.0.tar.gz", hash = "sha256:4a680528a7fcbea0632dfa2147a74029056c337466dd0803815955ece454634b"},
+]
+
+[package.extras]
+test = ["coverage", "pytest"]
+
+[[package]]
 name = "typer"
 version = "0.15.3"
 description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
@@ -333,4 +383,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<4"
-content-hash = "64d9d1e518ee56cf64f274e067960fa10b933f76db56e3a2f62d70c5db4b4f5b"
+content-hash = "57182e49fdff4472cda324ad8c833cebbf2ed770023e23861a2cc12d75332a34"

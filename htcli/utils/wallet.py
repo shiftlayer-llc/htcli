@@ -1,9 +1,7 @@
 import os
 from pathlib import Path
 from substrateinterface import Keypair
-from substrateinterface.base import KeypairType
 import json
-from mnemonic import Mnemonic  # Keep import for generate_mnemonic
 
 
 def obfuscate_bytes(data: bytes, key: str) -> bytes:

@@ -1,8 +1,6 @@
 import typer
 from pathlib import Path
 import json
-
-# from substrateinterface import Keypair
 import logging
 from htcli.utils.wallet import create_wallet
 from htcli.utils.helpers import (
@@ -368,23 +366,22 @@ def list(name: str = wallet_config.name, path: str = wallet_config.path):
 @app.command()
 def remove(
     name: str = wallet_config.name,
-    all: bool = wallet_config.remove_all,
+    all: bool = wallet_config.all,
     path: str = wallet_config.path,
     force: bool = wallet_config.force,
 ):
     """
     Remove a specific wallet or all wallets. Requires confirmation unless --force is used.
     """
-    # Prompt for path if not provided
-    if not path:
-        path = typer.prompt(
-            "Enter wallet path", default=wallet_config.default_wallet_path
-        )
-        if not path:
-            typer.echo("Error: Wallet path cannot be empty.")
-            return
+    if not name and not all:
+        typer.echo("Error: Either --wallet.nam or --all must be specified")
+        raise typer.Exit(code=1)
 
-    base_path = path
+    if name and all:
+        typer.echo("Error: Cannot specify both --wallet.name and --all")
+        raise typer.Exit(code=1)
+
+    base_path = path or wallet_config.default_wallet_path
     base_wallet_dir = Path(base_path)
 
     if not base_wallet_dir.exists():

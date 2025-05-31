@@ -12,10 +12,10 @@ dependencies = [
     "multihash (>=0.1.0)",
     "protobuf (==5.29.0)",
     "six (>=1.16.0)",
-    "substrateinterface (>=1.0.0,<2.0.0)",
     "mnemonic (>=0.21,<0.22)",
     "pathlib (>=1.0.1,<2.0.0)",
     "logging (>=0.4.9.6,<0.5.0.0)",
+    "substrate-interface (>=1.7.11,<2.0.0)",
 ]
 
 [project.urls]

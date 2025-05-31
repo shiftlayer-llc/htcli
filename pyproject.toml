@@ -12,7 +12,6 @@ dependencies = [
     "multihash (>=0.1.0)",
     "protobuf (==5.29.0)",
     "six (>=1.16.0)",
-    "hivemind @ git+https://github.com/hayotensor/hypermind.git@9975c772aeb6fb0f5caa2133ddf4275ad6b6f9f7",
 ]
 
 [project.urls]

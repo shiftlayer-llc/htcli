@@ -1,17 +1,24 @@
 import typer
 import os
+from htcli.core.constants import (
+    DEFAULT_WALLET_PATH,
+    DEFAULT_RPC_URL,
+    DEFAULT_CHAIN_ENV,
+    DEFAULT_SUBNET_ID,
+    DEFAULT_SUBNET_NAME,
+)
 
 
 class chain_config:
     rpc_url = typer.Option(
-        "http://localhost:8000",
+        DEFAULT_RPC_URL,
         "--chain.rpc_url",
         "--rpc_url",
         "--chain.url",
         help="RPC URL for the chain",
     )
     env = typer.Option(
-        "local",
+        DEFAULT_CHAIN_ENV,
         "--chain.env",
         "--env",
         help="Environment for the chain (local/testnet/mainnet)",
@@ -23,14 +30,14 @@ class chain_config:
 
 class subnet_config:
     id = typer.Option(
-        0,
+        DEFAULT_SUBNET_ID,
         "--subnet.id",
         "--subnet_id",
         "--netuid",
         help="Unique ID for the subnetwork",
     )
     name = typer.Option(
-        "default",
+        DEFAULT_SUBNET_NAME,
         "--subnet.name",
         "--subnet_name",
         help="Name of the subnetwork",
@@ -39,7 +46,7 @@ class subnet_config:
 
 class wallet_config:
     path = typer.Option(
-        os.path.expanduser("~/.hypertensor/wallets"),
+        DEFAULT_WALLET_PATH,
         "--wallet.path",
         "--wallet_path",
         help="Path to the wallets directory",
@@ -76,35 +83,10 @@ class wallet_config:
         "--mnemonic",
         help='Mnemonic phrase to regenerate the coldkey (must be in quotes, e.g. --mnemonic "word1 word2 word3 ...")'
     )
-    list_wallet_name = typer.Option(
-        None,
-        "--wallet.name",
-        help="Name of the wallet to list"
-    )
-    remove_wallet_name = typer.Option(
-        None,
-        "--wallet.name",
-        help="Name of the wallet to remove"
-    )
-    balance_wallet_name = typer.Option(
-        None,
-        "--wallet.name",
-        help="Name of the wallet to check balance"
-    )
-    regen_wallet_name = typer.Option(
-        ...,
-        "--wallet.name",
-        help="Name of the wallet to regenerate"
-    )
-    remove_force = typer.Option(
+    force = typer.Option(
         False,
         "--force",
-        help="Skip confirmation prompt"
-    )
-    regen_force = typer.Option(
-        False,
-        "--force",
-        help="Overwrite existing wallet if it exists"
+        help="Skip confirmation prompt or overwrite existing wallet"
     )
 
     def __repr__(self):

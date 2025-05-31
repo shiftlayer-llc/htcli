@@ -37,7 +37,7 @@ def create(
     hotkey: str = typer.Option(None, "--wallet.hotkey", help="Name of the hotkey wallet")
 ):
     """
-    Create a new wallet with cryptographic keys (coldkey and optional hotkey) following the Bittensor structure.
+    Create a new wallet with cryptographic keys (coldkey and optional hotkey) 
     Generates a new keypair, saves password-obfuscated private key bytes to a file, and public key info to a .pub file.
     """
     base_path = path or wallet_config.default_wallet_path
@@ -140,33 +140,13 @@ def create(
             if not hotkey and password is not None: # Verify coldkey if created with password
                 # original_coldkey_private_key is returned by create_wallet when save_as_json=False
                 deobfuscated_bytes = read_wallet_data_for_verification(Path(private_key_file_path), is_json=False, password=deobfuscation_password)
-                #print(f"original_coldkey_private_key={original_coldkey_private_key}")
-                #print(f"deobfuscated_byates = {deobfuscated_bytes}")
-                # Need to get original_coldkey_private_key again if not returned by create_wallet
-                # Temporarily recreate keypair to get original private key for verification
                 temp_keypair = Keypair.create_from_mnemonic(Keypair.generate_mnemonic(), ss58_format=42)
-                original_coldkey_private_key = temp_keypair.private_key # This is not the correct original key!
-                # The original private key is generated *inside* create_wallet. 
-                # We need create_wallet to return it for verification, even with save_as_json=False.
-                # Let's revert create_wallet to return original key for both formats for verification purposes.
+                original_coldkey_private_key = temp_keypair.private_key 
 
                 typer.echo(typer.style("Verification skipped for now due to complexity of retrieving original key with different save formats.", fg=typer.colors.YELLOW))
-                # if deobfuscated_bytes == original_coldkey_private_key:
-                #     typer.echo(typer.style("✅ Coldkey private key obfuscation/de-obfuscation verified.", fg=typer.colors.GREEN))
-                # else:
-                #     typer.echo(typer.style("❌ Coldkey private key obfuscation/de-obfuscation failed verification.", fg=typer.colors.RED))
-
-            # If hotkey was created with password, verify hotkey
             if hotkey and password is not None:
-                # original_hotkey_private_key is returned by create_wallet when save_as_json=True
                 deobfuscated_bytes = read_wallet_data_for_verification(Path(hotkey_private_key_file_path), is_json=True, password=deobfuscation_password)
-                # Need original_hotkey_private_key which is returned by create_wallet (need to adjust create_wallet return value again)
                 typer.echo(typer.style("Verification skipped for now due to complexity of retrieving original key with different save formats.", fg=typer.colors.YELLOW))
-                # if deobfuscated_bytes == original_hotkey_private_key:
-                #     typer.echo(typer.style("✅ Hotkey private key obfuscation/de-obfuscation verified.", fg=typer.colors.GREEN))
-                # else:
-                #     typer.echo(typer.style("❌ Hotkey private key obfuscation/de-obfuscation failed verification.", fg=typer.colors.RED))
-
         except Exception as e:
             typer.echo(f"Warning: Could not perform obfuscation verification - {str(e)}")
 
@@ -203,7 +183,7 @@ def create(
 
 @app.command()
 def list(
-    name: str = wallet_config.list_wallet_name,
+    name: str = wallet_config.name,
     path: str = wallet_config.path
 ):
     """
@@ -314,10 +294,10 @@ def list(
 
 @app.command()
 def remove(
-    name: str = wallet_config.remove_wallet_name,
+    name: str = wallet_config.name,
     all: bool = wallet_config.remove_all,
     path: str = wallet_config.path,
-    force: bool = wallet_config.remove_force
+    force: bool = wallet_config.force
 ):
     """
     Remove a specific wallet or all wallets. Requires confirmation unless --force is used.
@@ -402,11 +382,11 @@ def remove(
 
 @app.command()
 def regen_coldkey(
-    name: str = wallet_config.regen_wallet_name,
+    name: str = wallet_config.name,
     mnemonic: str = wallet_config.regen_mnemonic,
     password: str = wallet_config.password,
     path: str = wallet_config.path,
-    force: bool = wallet_config.regen_force
+    force: bool = wallet_config.force
 ):
     """
     Regenerate a coldkey wallet from a mnemonic phrase. This will create a new coldkey with the same keys as the original.
@@ -476,7 +456,7 @@ def regen_coldkey(
 
 @app.command()
 def balance(
-    name: str = wallet_config.balance_wallet_name,
+    name: str = wallet_config.name,
     ss58_address: str = wallet_config.balance_ss58,
     path: str = wallet_config.path
 ):

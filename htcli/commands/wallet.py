@@ -5,24 +5,7 @@ import json
 from substrateinterface.base import Keypair, KeypairType
 import logging
 from htcli.utils.wallet import create_wallet
-from htcli.config.wallet import (
-    DEFAULT_WALLET_PATH,
-    WALLET_NAME_OPTION,
-    WALLET_PASSWORD_OPTION,
-    WALLET_HOTKEY_OPTION,
-    WALLET_PATH_OPTION,
-    BALANCE_WALLET_NAME_OPTION,
-    BALANCE_SS58_OPTION,
-    LIST_WALLET_NAME_OPTION,
-    REMOVE_WALLET_NAME_OPTION,
-    REMOVE_ALL_OPTION,
-    REMOVE_FORCE_OPTION,
-    REGEN_WALLET_NAME_OPTION,
-    REGEN_MNEMONIC_OPTION,
-    REGEN_FORCE_OPTION,
-    COLDKEY_FILE_NAME,
-    HOTKEYS_DIR_NAME
-)
+from htcli.core.config import wallet_config
 import getpass
 
 # Configure logging
@@ -31,6 +14,10 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Constants for file names
+COLDKEY_FILE_NAME = "coldkey"
+HOTKEYS_DIR_NAME = "hotkeys"
 
 app = typer.Typer(name="wallet", help="Wallet commands")
 
@@ -44,16 +31,16 @@ def info():
 
 @app.command()
 def create(
-    name: str = WALLET_NAME_OPTION,
-    password: str = WALLET_PASSWORD_OPTION,
-    path: str = WALLET_PATH_OPTION,
-    hotkey: str = WALLET_HOTKEY_OPTION
+    name: str = wallet_config.name,
+    password: str = wallet_config.password,
+    path: str = wallet_config.path,
+    hotkey: str = typer.Option(None, "--wallet.hotkey", help="Name of the hotkey wallet")
 ):
     """
     Create a new wallet with cryptographic keys (coldkey and optional hotkey) following the Bittensor structure.
     Generates a new keypair, saves password-obfuscated private key bytes to a file, and public key info to a .pub file.
     """
-    base_path = path or DEFAULT_WALLET_PATH
+    base_path = path or wallet_config.default_wallet_path
     base_wallet_dir = Path(base_path)
 
     if password is None:
@@ -216,14 +203,14 @@ def create(
 
 @app.command()
 def list(
-    name: str = LIST_WALLET_NAME_OPTION,
-    path: str = WALLET_PATH_OPTION
+    name: str = wallet_config.list_wallet_name,
+    path: str = wallet_config.path
 ):
     """
     List wallet information. If --wallet.name is provided, shows details for that specific wallet.
     Otherwise, lists all available wallets.
     """
-    base_path = path or DEFAULT_WALLET_PATH
+    base_path = path or wallet_config.default_wallet_path
     base_wallet_dir = Path(base_path)
 
     if not base_wallet_dir.exists():
@@ -327,10 +314,10 @@ def list(
 
 @app.command()
 def remove(
-    name: str = REMOVE_WALLET_NAME_OPTION,
-    all: bool = REMOVE_ALL_OPTION,
-    path: str = WALLET_PATH_OPTION,
-    force: bool = REMOVE_FORCE_OPTION
+    name: str = wallet_config.remove_wallet_name,
+    all: bool = wallet_config.remove_all,
+    path: str = wallet_config.path,
+    force: bool = wallet_config.remove_force
 ):
     """
     Remove a specific wallet or all wallets. Requires confirmation unless --force is used.
@@ -343,7 +330,7 @@ def remove(
         typer.echo("Error: Cannot specify both --wallet.name and --all")
         raise typer.Exit(code=1)
 
-    base_path = path or DEFAULT_WALLET_PATH
+    base_path = path or wallet_config.default_wallet_path
     base_wallet_dir = Path(base_path)
 
     if not base_wallet_dir.exists():
@@ -415,11 +402,11 @@ def remove(
 
 @app.command()
 def regen_coldkey(
-    name: str = REGEN_WALLET_NAME_OPTION,
-    mnemonic: str = REGEN_MNEMONIC_OPTION,
-    password: str = WALLET_PASSWORD_OPTION,
-    path: str = WALLET_PATH_OPTION,
-    force: bool = REGEN_FORCE_OPTION
+    name: str = wallet_config.regen_wallet_name,
+    mnemonic: str = wallet_config.regen_mnemonic,
+    password: str = wallet_config.password,
+    path: str = wallet_config.path,
+    force: bool = wallet_config.regen_force
 ):
     """
     Regenerate a coldkey wallet from a mnemonic phrase. This will create a new coldkey with the same keys as the original.
@@ -427,7 +414,7 @@ def regen_coldkey(
     Example:
         htcli wallet regen-coldkey --wallet.name mywallet --mnemonic "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12"
     """
-    base_path = path or DEFAULT_WALLET_PATH
+    base_path = path or wallet_config.default_wallet_path
     base_wallet_dir = Path(base_path)
 
     # Create base directory if it doesn't exist
@@ -489,9 +476,9 @@ def regen_coldkey(
 
 @app.command()
 def balance(
-    name: str = BALANCE_WALLET_NAME_OPTION,
-    ss58_address: str = BALANCE_SS58_OPTION,
-    path: str = WALLET_PATH_OPTION
+    name: str = wallet_config.balance_wallet_name,
+    ss58_address: str = wallet_config.balance_ss58,
+    path: str = wallet_config.path
 ):
     """
     Check the balance of a wallet using either the wallet name or SS58 address.
@@ -511,7 +498,7 @@ def balance(
     try:
         # If wallet name is provided, get the SS58 address from the wallet
         if name:
-            base_path = path or DEFAULT_WALLET_PATH
+            base_path = path or wallet_config.default_wallet_path
             base_wallet_dir = Path(base_path)
             coldkey_pub_path = base_wallet_dir / name / "coldkey.pub"
 

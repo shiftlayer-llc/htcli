@@ -62,11 +62,55 @@ class wallet_config:
         "--wallet_mnemonic",
         help="Mnemonic for the wallet",
     )
-    key_type = typer.Option(
-        "ed25519",
-        "--wallet.key-type",
-        "--wallet_key_type",
-        help="Key type (ed25519 or rsa)",
+    hotkey = typer.Option(
+        None,
+        "--wallet.hotkey",
+        help="Name of the hotkey wallet"
+    )
+    balance_wallet_name = typer.Option(
+        None,
+        "--wallet.name",
+        help="Name of the wallet to check balance"
+    )
+    balance_ss58 = typer.Option(
+        None,
+        "--ss58-address",
+        help="SS58 address to check balance"
+    )
+    list_wallet_name = typer.Option(
+        None,
+        "--wallet.name",
+        help="Name of the wallet to list (if not provided, lists all wallets)"
+    )
+    remove_wallet_name = typer.Option(
+        None,
+        "--wallet.name",
+        help="Name of the wallet to remove"
+    )
+    remove_all = typer.Option(
+        False,
+        "--all",
+        help="Remove all wallets"
+    )
+    remove_force = typer.Option(
+        False,
+        "--force",
+        help="Skip confirmation prompt"
+    )
+    regen_wallet_name = typer.Option(
+        ...,
+        "--wallet.name",
+        help="Name of the wallet to regenerate"
+    )
+    regen_mnemonic = typer.Option(
+        ...,
+        "--mnemonic",
+        help='Mnemonic phrase to regenerate the coldkey (must be in quotes, e.g. --mnemonic "word1 word2 word3 ...")'
+    )
+    regen_force = typer.Option(
+        False,
+        "--force",
+        help="Overwrite existing wallet if it exists"
     )
 
     def __repr__(self):

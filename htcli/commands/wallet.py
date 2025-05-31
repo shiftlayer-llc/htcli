@@ -1,7 +1,8 @@
 import typer
 from pathlib import Path
 import json
-from substrateinterface.base import Keypair
+
+# from substrateinterface import Keypair
 import logging
 from htcli.utils.wallet import create_wallet
 from htcli.utils.helpers import (
@@ -45,6 +46,13 @@ def create(
     """
     base_path = path or wallet_config.default_wallet_path
     base_wallet_dir = Path(base_path)
+
+    # Prompt for wallet name if not provided
+    if not name:
+        name = typer.prompt("Enter wallet name")
+        if not name:
+            typer.echo("Error: Wallet name cannot be empty.")
+            raise typer.Exit(code=1)
 
     if password is None:
         if not hotkey:
@@ -395,7 +403,7 @@ def remove(
                     )
                 ):
                     typer.echo("Operation cancelled")
-                    raise typer.Exit(code=1)
+                    return
 
             # Remove all wallets
             for wallet_dir in wallet_dirs:
@@ -435,7 +443,7 @@ def remove(
                     )
                 ):
                     typer.echo("Operation cancelled")
-                    raise typer.Exit(code=1)
+                    return
 
             # Remove the wallet
             try:

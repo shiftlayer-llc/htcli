@@ -320,7 +320,7 @@ def list(name: str = wallet_config.name, path: str = wallet_config.path):
             # Check for hotkeys
             hotkeys_dir = wallet_dir / HOTKEYS_DIR_NAME
             if hotkeys_dir.exists():
-                hotkey_files = list(hotkeys_dir.glob("*"))
+                hotkey_files = [f for f in hotkeys_dir.iterdir() if f.is_file()]
                 if hotkey_files:
                     typer.echo(typer.style(f"\nHotkeys for {name}:", bold=True))
                     typer.echo("=======================")
@@ -328,16 +328,17 @@ def list(name: str = wallet_config.name, path: str = wallet_config.path):
                         try:
                             with open(hotkey_file, "r") as f:
                                 hotkey_data = json.load(f)
-                                typer.echo(f"📍 Hotkey: {hotkey_file.name}")
+                                hotkey_file_name = hotkey_file.name.replace(".json", "")
+                                typer.echo(f"📍 Hotkey: {hotkey_file_name}")
                                 typer.echo(
-                                    f"  Address: {hotkey_data.get('ss58Address', 'Unknown')}"
+                                    f"  - Address: {hotkey_data.get('ss58Address', 'Unknown')}"
                                 )
                                 typer.echo(
-                                    f"  Path: {hotkey_file} {'(password-protected)' if hotkey_file.stat().st_mode & 0o600 else ''}"
+                                    f"  - Path: {hotkey_file} {'(password-protected)' if hotkey_file.stat().st_mode & 0o600 else ''}"
                                 )
                         except Exception as e:
                             typer.echo(
-                                f"Error reading hotkey {hotkey_file.name}: {str(e)}"
+                                f"Error reading hotkey {hotkey_file_name}: {str(e)}"
                             )
 
         else:
@@ -378,9 +379,10 @@ def list(name: str = wallet_config.name, path: str = wallet_config.path):
                     for hotkey_file in hotkey_files:
                         try:
                             with open(hotkey_file, "r") as f:
+                                hotkey_file_name = hotkey_file.name.replace(".json", "")
                                 hotkey_data = json.load(f)
                                 hotkey_addresses.append(
-                                    hotkey_data.get("ss58Address", "Unknown")
+                                    f"{hotkey_file_name}: {hotkey_data.get('ss58Address', 'Unknown')}"
                                 )
                         except Exception:
                             pass
@@ -390,7 +392,7 @@ def list(name: str = wallet_config.name, path: str = wallet_config.path):
                 if hotkey_count > 0:
                     typer.echo(f"  🔑 Hotkeys ({hotkey_count}):")
                     for addr in hotkey_addresses:
-                        typer.echo(f"    • {addr}")
+                        typer.echo(f"\t• {addr}")
                 else:
                     typer.echo(f"  🔑 Hotkeys: (No hotkeys)")
 

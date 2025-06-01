@@ -7,7 +7,7 @@ from htcli.utils.helpers import (
     read_wallet_data_for_verification,
     deobfuscate_bytes,
 )
-
+from substrateinterface import Keypair
 
 from htcli.core.config import wallet_config
 from htcli.core.constants import COLDKEY_FILE_NAME, HOTKEYS_DIR_NAME
@@ -61,7 +61,9 @@ def create(
     coldkey_file_name = COLDKEY_FILE_NAME
 
     # Check if wallet already exists
-    if coldkey_dir.exists():
+    if (
+        coldkey_dir.exists() and not hotkey
+    ):  # if hotkey is provided, we don't need to check if the wallet already exists (will check later)
         if not force:
             typer.echo(f"Error: Wallet '{name}' already exists at {coldkey_dir}")
             typer.echo(
@@ -76,7 +78,7 @@ def create(
             )
 
     if password is None:
-        if not hotkey:
+        if not hotkey:  # if hotkey is provided, we don't need to prompt for password
             prompt_name = name
             while True:
                 password = getpass.getpass(
@@ -190,16 +192,16 @@ def create(
             )
 
         if hotkey and coldkey_ss58 is None:
-            coldkey_pub_path = base_wallet_dir / name / "coldkey.pub"
+            coldkey_pub_path = base_wallet_dir / name / f"{COLDKEY_FILE_NAME}.pub"
             if coldkey_pub_path.exists():
                 try:
                     with open(coldkey_pub_path, "r") as f:
                         pub_data = json.load(f)
                         coldkey_ss58 = pub_data.get("ss58Address", "Unknown")
                 except Exception:
-                    coldkey_ss58 = "Unknown (Error reading coldkey.pub)"
+                    coldkey_ss58 = f"Unknown (Error reading {COLDKEY_FILE_NAME}.pub)"
             else:
-                coldkey_ss58 = "Unknown (coldkey.pub not found)"
+                coldkey_ss58 = f"Unknown ({COLDKEY_FILE_NAME}.pub not found)"
 
         # --- Verification of Obfuscation/De-obfuscation ---
         try:
@@ -213,28 +215,25 @@ def create(
                     password=password,
                 )
                 temp_keypair = Keypair.create_from_mnemonic(
-                    Keypair.generate_mnemonic(), ss58_format=42
+                    coldkey_mnemonic, ss58_format=42
                 )
                 original_coldkey_private_key = temp_keypair.private_key
 
-                typer.echo(
-                    typer.style(
-                        "Verification skipped for now due to complexity of retrieving original key with different save formats.",
-                        fg=typer.colors.YELLOW,
+                # check if the original_coldkey_private_key is the same as the deobfuscated_bytes
+                if original_coldkey_private_key == deobfuscated_bytes:
+                    typer.echo(
+                        typer.style(
+                            "✅ Coldkey verification successful",
+                            fg=typer.colors.GREEN,
+                        )
                     )
-                )
-            if hotkey and password is not None:
-                deobfuscated_bytes = read_wallet_data_for_verification(
-                    Path(hotkey_private_key_file_path),
-                    is_json=True,
-                    password=password,
-                )
-                typer.echo(
-                    typer.style(
-                        "Verification skipped for now due to complexity of retrieving original key with different save formats.",
-                        fg=typer.colors.YELLOW,
+                else:
+                    typer.echo(
+                        typer.style(
+                            "❌ Coldkey verification failed (original key != deobfuscated bytes)",
+                            fg=typer.colors.RED,
+                        )
                     )
-                )
         except Exception as e:
             typer.echo(
                 f"Warning: Could not perform obfuscation verification - {str(e)}"
@@ -244,16 +243,16 @@ def create(
         # If only hotkey was created, we need to get the coldkey address for the summary.
         if hotkey and coldkey_ss58 is None:
             # Try to read coldkey.pub to get the address
-            coldkey_pub_path = base_wallet_dir / name / "coldkey.pub"
+            coldkey_pub_path = base_wallet_dir / name / f"{COLDKEY_FILE_NAME}.pub"
             if coldkey_pub_path.exists():
                 try:
                     with open(coldkey_pub_path, "r") as f:
                         pub_data = json.load(f)
                         coldkey_ss58 = pub_data.get("ss58Address", "Unknown")
                 except Exception:
-                    coldkey_ss58 = "Unknown (Error reading coldkey.pub)"
+                    coldkey_ss58 = f"Unknown (Error reading {COLDKEY_FILE_NAME}.pub)"
             else:
-                coldkey_ss58 = "Unknown (coldkey.pub not found)"
+                coldkey_ss58 = f"Unknown ({COLDKEY_FILE_NAME}.pub not found)"
 
         typer.echo(typer.style("\nWallet Creation Summary:", bold=True))
         typer.echo("=======================")
@@ -299,8 +298,8 @@ def list(name: str = wallet_config.name, path: str = wallet_config.path):
                 return
 
             # Check for coldkey
-            coldkey_path = wallet_dir / "coldkey"
-            coldkey_pub_path = wallet_dir / "coldkey.pub"
+            coldkey_path = wallet_dir / COLDKEY_FILE_NAME
+            coldkey_pub_path = wallet_dir / f"{COLDKEY_FILE_NAME}.pub"
 
             if coldkey_path.exists():
                 typer.echo(typer.style(f"\nColdkey Wallet: {name}", bold=True))
@@ -319,7 +318,7 @@ def list(name: str = wallet_config.name, path: str = wallet_config.path):
                     typer.echo(f"Error reading coldkey info: {str(e)}")
 
             # Check for hotkeys
-            hotkeys_dir = wallet_dir / "hotkeys"
+            hotkeys_dir = wallet_dir / HOTKEYS_DIR_NAME
             if hotkeys_dir.exists():
                 hotkey_files = list(hotkeys_dir.glob("*"))
                 if hotkey_files:
@@ -355,9 +354,9 @@ def list(name: str = wallet_config.name, path: str = wallet_config.path):
 
             for wallet_dir in wallet_dirs:
                 wallet_name = wallet_dir.name
-                coldkey_path = wallet_dir / "coldkey"
-                coldkey_pub_path = wallet_dir / "coldkey.pub"
-                hotkeys_dir = wallet_dir / "hotkeys"
+                coldkey_path = wallet_dir / COLDKEY_FILE_NAME
+                coldkey_pub_path = wallet_dir / f"{COLDKEY_FILE_NAME}.pub"
+                hotkeys_dir = wallet_dir / HOTKEYS_DIR_NAME
 
                 # Get coldkey address if available
                 coldkey_address = "Unknown"
@@ -487,7 +486,7 @@ def remove(
             typer.echo(f"📁 {name}")
 
             # Check for hotkeys
-            hotkeys_dir = wallet_dir / "hotkeys"
+            hotkeys_dir = wallet_dir / HOTKEYS_DIR_NAME
             if hotkeys_dir.exists():
                 hotkey_count = len([f for f in hotkeys_dir.iterdir() if f.is_file()])
                 typer.echo(f"  🔑 Has {hotkey_count} hotkeys")
@@ -518,7 +517,7 @@ def remove(
 
 
 @app.command()
-def regen_coldkey(
+def restore_coldkey(
     name: str = wallet_config.name,
     mnemonic: str = wallet_config.mnemonic,
     password: str = wallet_config.password,
@@ -526,10 +525,10 @@ def regen_coldkey(
     force: bool = wallet_config.force,
 ):
     """
-    Regenerate a coldkey wallet from a mnemonic phrase. This will create a new coldkey with the same keys as the original.
+    Restore a coldkey wallet from a mnemonic phrase. This will create a new coldkey with the same keys as the original.
 
     Example:
-        htcli wallet regen-coldkey --wallet.name mywallet --mnemonic "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12"
+        htcli wallet restore-coldkey --wallet.name <wallet_name> --mnemonic "<mnemonic_phrase>"
     """
     base_path = path or wallet_config.default_wallet_path
     base_wallet_dir = Path(base_path)
@@ -639,7 +638,7 @@ def regen_coldkey(
 
 
 @app.command()
-def regen_hotkey(
+def restore_hotkey(
     name: str = wallet_config.name,
     hotkey: str = wallet_config.hotkey,
     mnemonic: str = wallet_config.mnemonic,
@@ -647,10 +646,10 @@ def regen_hotkey(
     force: bool = wallet_config.force,
 ):
     """
-    Regenerate a hotkey wallet from a mnemonic phrase. This will create a new hotkey with the same keys as the original.
+    Restore a hotkey wallet from a mnemonic phrase. This will create a new hotkey with the same keys as the original.
 
     Example:
-        htcli wallet regen-hotkey --wallet.name mywallet --wallet.hotkey myhotkey --wallet.path /path/to/wallets --mnemonic "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12"
+        htcli wallet restore-hotkey --wallet.name <wallet_name> --wallet.hotkey <hotkey_name> --wallet.path <wallet_path> --mnemonic "<mnemonic_phrase>"
     """
     # Prompt for path if not provided
     if not path:
@@ -764,8 +763,8 @@ def balance(
     Check the balance of a wallet using either the wallet name or SS58 address.
 
     Examples:
-        htcli wallet balance --wallet.name mywallet
-        htcli wallet balance --ss58-address 5DaTcPcom7o9wRYdCB9qkfkobPREmgXcyRhE1qPXb7UDeXkY
+        htcli wallet balance --wallet.name <wallet_name>
+        htcli wallet balance --ss58-address <ss58_address>
     """
     base_path = path or wallet_config.default_wallet_path
     base_wallet_dir = Path(base_path)
@@ -781,7 +780,7 @@ def balance(
     try:
         # If wallet name is provided, get the SS58 address from the wallet
         if name:
-            coldkey_pub_path = base_wallet_dir / name / "coldkey.pub"
+            coldkey_pub_path = base_wallet_dir / name / f"{COLDKEY_FILE_NAME}.pub"
 
             if not coldkey_pub_path.exists():
                 typer.echo(f"Error: Wallet '{name}' not found at {coldkey_pub_path}")
@@ -813,16 +812,3 @@ def balance(
     except Exception as e:
         typer.echo(f"An error occurred: {str(e)}")
         return
-
-
-# Remove other wallet commands for now, focusing on 'create'
-# @app.command()
-# def list(...): pass
-# @app.command()
-# def remove(...): pass
-# @app.command()
-# def recover(...): pass
-# @app.command()
-# def reveal(...): pass # This command would need significant changes to handle raw key files
-# @app.command()
-# def balance(...): pass

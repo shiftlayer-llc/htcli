@@ -66,7 +66,10 @@ class wallet_config:
         None, "--wallet.hotkey", "--wallet-hotkey", help="Name of the hotkey wallet"
     )
     ss58_address = typer.Option(
-        None, "--ss58-address", help="SS58 address to check balance"
+        None,
+        "--wallet.ss58-address",
+        "--ss58-address",
+        help="SS58 address to check balance",
     )
     all = typer.Option(
         False, "--all", help="Indicates to <all wallets>, <whole balance>, ...."
@@ -74,7 +77,9 @@ class wallet_config:
     mnemonic = typer.Option(
         None,
         "--mnemonic",
-        help='Mnemonic phrase to regenerate the wallet (must be in quotes, e.g. --mnemonic "word1 word2 word3 ...")',
+        "--wallet.mnemonic",
+        "--wallet-mnemonic",
+        help='Mnemonic phrase of the wallet (must be in quotes, e.g. --mnemonic "word1 word2 word3 ...")',
     )
     force = typer.Option(
         False, "--force", help="Skip confirmation prompt or overwrite existing wallet"

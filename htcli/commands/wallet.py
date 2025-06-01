@@ -12,6 +12,7 @@ from htcli.utils.helpers import (
 from htcli.core.config import wallet_config
 from htcli.core.constants import COLDKEY_FILE_NAME, HOTKEYS_DIR_NAME
 import getpass
+import shutil
 
 # Configure logging
 logging.basicConfig(
@@ -40,6 +41,7 @@ def create(
     password: str = wallet_config.password,
     path: str = wallet_config.path,
     hotkey: str = wallet_config.hotkey,
+    force: bool = wallet_config.force,
 ):
     """
     Create a new wallet with cryptographic keys (coldkey and optional hotkey) following the Bittensor structure.
@@ -55,28 +57,56 @@ def create(
             typer.echo("Error: Wallet name cannot be empty.")
             return
 
+    coldkey_dir = base_wallet_dir / name
+    coldkey_file_name = COLDKEY_FILE_NAME
+
+    # Check if wallet already exists
+    if coldkey_dir.exists():
+        if not force:
+            typer.echo(f"Error: Wallet '{name}' already exists at {coldkey_dir}")
+            typer.echo(
+                "Use --force to overwrite existing wallet or choose another wallet name"
+            )
+            return
+        else:
+            # remove the wallet
+            shutil.rmtree(coldkey_dir)
+            typer.echo(
+                f"✅ Successfully removed already existing wallet (by --force)'{name}' at {coldkey_dir}"
+            )
+
     if password is None:
         if not hotkey:
             prompt_name = name
-            password = getpass.getpass(
-                f"Enter password for wallet '{prompt_name}' (press Enter for unencrypted wallet): "
-            )
-            # Allow empty password
-            if password == "":
-                password = None
-                typer.echo(
-                    typer.style(
-                        "⚠️  Creating unencrypted wallet", fg=typer.colors.YELLOW
-                    )
+            while True:
+                password = getpass.getpass(
+                    f"Enter password for wallet '{prompt_name}' (press Enter for unencrypted wallet): "
                 )
+                if password == "":
+                    password = None
+                    typer.echo(
+                        typer.style(
+                            "⚠️  Creating unencrypted wallet", fg=typer.colors.YELLOW
+                        )
+                    )
+                    break
+                confirm_password = getpass.getpass(
+                    f"Confirm password for wallet '{prompt_name}': "
+                )
+                if password == confirm_password:
+                    break
+                else:
+                    typer.echo(
+                        typer.style(
+                            "❌ Passwords do not match. Please try again.",
+                            fg=typer.colors.RED,
+                        )
+                    )
 
     try:
         coldkey_ss58 = None
 
         if not hotkey:
-            coldkey_dir = base_wallet_dir / name
-            coldkey_file_name = COLDKEY_FILE_NAME
-
             private_key_file_path, coldkey_ss58, coldkey_mnemonic = create_wallet(
                 name=coldkey_file_name,
                 wallet_dir=coldkey_dir,
@@ -363,7 +393,7 @@ def list(name: str = wallet_config.name, path: str = wallet_config.path):
                     for addr in hotkey_addresses:
                         typer.echo(f"    • {addr}")
                 else:
-                    typer.echo(f"  🔑 Hotkeys: {hotkey_count}")
+                    typer.echo(f"  🔑 Hotkeys: (No hotkeys)")
 
     except Exception as e:
         typer.echo(f"An error occurred while listing wallets: {str(e)}")
@@ -381,8 +411,14 @@ def remove(
     Remove a specific wallet or all wallets. Requires confirmation unless --force is used.
     """
     if not name and not all:
-        typer.echo("Error: Either --wallet.nam or --all must be specified")
-        raise typer.Exit(code=1)
+        if not all:
+            # prompt for wallet name
+            name = typer.prompt("Enter wallet name")
+            if not name:
+                typer.echo("Error: Wallet name cannot be empty.")
+                raise typer.Exit(code=1)
+        else:
+            raise typer.Exit(code=1)
 
     if name and all:
         typer.echo("Error: Cannot specify both --wallet.name and --all")
@@ -423,8 +459,6 @@ def remove(
             # Remove all wallets
             for wallet_dir in wallet_dirs:
                 try:
-                    import shutil
-
                     shutil.rmtree(wallet_dir)
                     typer.echo(f"✅ Removed wallet: {wallet_dir.name}")
                 except Exception as e:
@@ -503,6 +537,20 @@ def regen_coldkey(
     # Create base directory if it doesn't exist
     base_wallet_dir.mkdir(parents=True, exist_ok=True)
 
+    # Prompt for wallet name if not provided
+    if not name:
+        name = typer.prompt("Enter wallet name")
+        if not name:
+            typer.echo("Error: Wallet name cannot be empty.")
+            return
+
+    # prompt for mnemonic if not provided
+    if not mnemonic:
+        mnemonic = typer.prompt(f"Enter mnemonic phrase for {name}")
+        if not mnemonic:
+            typer.echo("Error: Mnemonic phrase cannot be empty.")
+            return
+
     # Determine coldkey directory and file name
     coldkey_dir = base_wallet_dir / name
     coldkey_file_name = COLDKEY_FILE_NAME
@@ -510,23 +558,39 @@ def regen_coldkey(
     # Check if wallet already exists
     if coldkey_dir.exists() and not force:
         typer.echo(f"Error: Wallet '{name}' already exists at {coldkey_dir}")
-        typer.echo("Use --force to overwrite existing wallet")
+        typer.echo(
+            "Use --force to overwrite existing wallet or choose another wallet name"
+        )
         return
 
     try:
         # Prompt for password if not provided
         if password is None:
-            password = getpass.getpass(f"Enter password for wallet '{name}': ")
-            if not password:
-                typer.echo("Error: Password cannot be empty.")
-                return
-
-        # Create keypair from mnemonic
-        try:
-            keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42)
-        except Exception as e:
-            typer.echo(f"Error: Invalid mnemonic phrase - {str(e)}")
-            return
+            prompt_name = name
+            while True:
+                password = getpass.getpass(
+                    f"Enter password for wallet '{prompt_name}' (press Enter for unencrypted wallet): "
+                )
+                confirm_password = getpass.getpass(
+                    f"Confirm password for wallet '{prompt_name}': "
+                )
+                if password == confirm_password:
+                    if password == "":
+                        password = None
+                        typer.echo(
+                            typer.style(
+                                "⚠️  Regenerating unencrypted wallet",
+                                fg=typer.colors.YELLOW,
+                            )
+                        )
+                    break
+                else:
+                    typer.echo(
+                        typer.style(
+                            "❌ Passwords do not match. Please try again.",
+                            fg=typer.colors.RED,
+                        )
+                    )
 
         # Create directory if it doesn't exist
         coldkey_dir.mkdir(parents=True, exist_ok=True)
@@ -640,7 +704,9 @@ def regen_hotkey(
     hotkey_path = hotkey_dir / hotkey_file_name
     if hotkey_path.exists() and not force:
         typer.echo(f"Error: Hotkey '{hotkey}' already exists at {hotkey_path}")
-        typer.echo("Use --force to overwrite existing hotkey")
+        typer.echo(
+            "Use --force to overwrite existing hotkey or choose another hotkey name"
+        )
         return
 
     try:

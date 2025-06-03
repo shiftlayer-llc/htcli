@@ -1,10 +1,14 @@
+import typer
 from typing import Any, Optional
 from substrateinterface import SubstrateInterface, Keypair, ExtrinsicReceipt
 from substrateinterface.exceptions import SubstrateRequestException
 from tenacity import retry, stop_after_attempt, wait_exponential, wait_fixed
 from htcli.hypertensor.substrate.config import BLOCK_SECS
 from tenacity import RetryCallState
-
+from concurrent.futures import ThreadPoolExecutor
+from decimal import Decimal
+from rich.console import Console
+console = Console()
 retry_counter = 0
 
 def increment_counter(retry_state: RetryCallState):
@@ -133,64 +137,126 @@ def attest(
 
   return submit_extrinsic()
 
+def check_balance(substrate: SubstrateInterface, call, keypair: Keypair) -> bool:
+    """
+    Check if the account has enough balance to pay the transaction fee
+    and ask the user to confirm the transaction.
+
+    :param substrate: Substrate interface
+    :param call: Composed call object
+    :param keypair: Keypair of the sender
+    :return: True if the user confirms to proceed, False otherwise
+    """
+
+    # Get estimated fee
+    payment_info = substrate.get_payment_info(call=call, keypair=keypair)
+    fee_planck = int(payment_info['partialFee'])
+    fee_token = Decimal(fee_planck) / Decimal(10**12)
+    console.print(f"[yellow]Estimated transaction fee: {fee_token:.6f} tokens[/yellow]")
+
+    # Get account balance
+    account_info = substrate.query("System", "Account", [keypair.ss58_address])
+    free_balance = int(account_info.value['data']['free'])
+    free_balance_token = Decimal(free_balance) / Decimal(10**12)
+
+    if free_balance < fee_planck:
+        raise ValueError(f"❌ Insufficient balance ({free_balance_token:.6f}) tokens to cover the fee ({fee_token:.6f}) tokens.")
+    else:
+        projected_balance = free_balance_token - fee_token
+        console.print(f"[green]✅ Sufficient balance. Your balance will be approximately {projected_balance:.6f} tokens after the transaction.[/green]")
+
+    # Ask for user confirmation
+    confirm = typer.confirm("Do you want to proceed with the registration?")
+    return confirm
 def register_subnet(
-  substrate: SubstrateInterface,
-  keypair: Keypair,
-  path: str,
-  memory_mb: int,
-  registration_blocks: int,
-  entry_interval: int,
-  max_node_registration_epochs: int,
-  node_registration_interval: int,
-  node_activation_interval: int,
-  node_queue_period: int,
-  max_node_penalties: int,
-  coldkey_whitelist: set
+    substrate: SubstrateInterface,
+    keypair: Keypair,
+    path: str,
+    max_node_registration_epochs: int,
+    node_registration_interval: int,
+    node_activation_interval: int,
+    node_queue_period: int,
+    max_node_penalties: int,
+    coldkey_whitelist: set[str]
 ) -> ExtrinsicReceipt:
+    """
+    Registers a new subnet on the blockchain.
+
+    :param substrate: Substrate interface instance connected to the chain.
+    :param keypair: Keypair of the caller (must be authorized to register a subnet).
+    :param path: Model path to be downloaded by subnet participants.
+    :param max_node_registration_epochs: Number of epochs allowed for node registration.
+    :param node_registration_interval: Block interval between node registrations.
+    :param node_activation_interval: Block interval for node activation.
+    :param node_queue_period: Block window for queued node participation.
+    :param max_node_penalties: Maximum number of penalties before node ejection.
+    :param coldkey_whitelist: Set of SS58 coldkey addresses allowed to participate.
+    :return: ExtrinsicReceipt containing the result of the transaction.
+    """
+
+    # Compose the call payload
+    call = substrate.compose_call(
+        call_module='Network',
+        call_function='register_subnet',
+        call_params={
+            'subnet_data': {
+                'path': path,
+                'max_node_registration_epochs': max_node_registration_epochs,
+                'node_registration_interval': node_registration_interval,
+                'node_activation_interval': node_activation_interval,
+                'node_queue_period': node_queue_period,
+                'max_node_penalties': max_node_penalties,
+                'coldkey_whitelist': list(coldkey_whitelist)
+            }
+        }
+    )
+
+
+
+    # Check if the call can be paid
+    check_balance(substrate, call, keypair)
+
+    # Create the signed extrinsic
+    extrinsic = substrate.create_signed_extrinsic(call=call, keypair=keypair)
+    @retry(wait=wait_fixed(BLOCK_SECS + 1), stop=stop_after_attempt(4))
+    def submit_extrinsic() -> ExtrinsicReceipt:
+        try:
+            with substrate as _substrate:
+                receipt = _substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+                return receipt
+        except SubstrateRequestException as e:
+            print(f"[Retry] Failed to submit extrinsic: {e}")
+            raise
+
+    with console.status("[bold green]Registering subnet...[/bold green]", spinner="dots"):
+      return submit_extrinsic()
+
+def get_subnets_list(substrate: SubstrateInterface):
   """
-  Register subnet node and stake
+  Get a list of all registered subnets with their data.
 
   :param substrate: interface to blockchain
-  :param keypair: keypair of extrinsic caller. Must be a subnet_node in the subnet
-  :param path: path to download the model
-  :param memory_mb: memory requirements to host entire model one time
-  :param registration_blocks: blocks to keep subnet in registration period
-  :param entry_interval: blocks required between each subnet node entry
+  :return: list of (subnet_id, subnet_data)
   """
-
-  # compose call
-  call = substrate.compose_call(
-    call_module='Network',
-    call_function='register_subnet',
-    call_params={
-      'subnet_data': {
-        'path': path,
-        'memory_mb': memory_mb,
-        'registration_blocks': registration_blocks,
-        'entry_interval': entry_interval,
-        'max_node_registration_epochs': max_node_registration_epochs,
-        'node_registration_interval': node_registration_interval,
-        'node_activation_interval': node_activation_interval,
-        'node_queue_period': node_queue_period,
-        'max_node_penalties': max_node_penalties,
-        'coldkey_whitelist': coldkey_whitelist
-      }
-    }
-  )
-
-  # create signed extrinsic
-  extrinsic = substrate.create_signed_extrinsic(call=call, keypair=keypair)
-
   @retry(wait=wait_fixed(BLOCK_SECS+1), stop=stop_after_attempt(4))
-  def submit_extrinsic():
+  def query_all():
     try:
       with substrate as _substrate:
-        receipt = _substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
-        return receipt
+        max_subnets = int(str(_substrate.query('Network', 'MaxSubnets')))
+        subnets = []
+        for subnet_id in range(max_subnets):
+          result = _substrate.query('Network', 'SubnetsData', [subnet_id])
+          if result.value is not None:  # Means the subnet exists
+            total_active_nodes = _substrate.query('Network', 'TotalActiveSubnetNodes', [subnet_id])
+            subnet_owner = _substrate.query('Network', 'SubnetOwner', [subnet_id])
+            result.value["total_active_nodes"] = total_active_nodes.value if total_active_nodes else 0
+            result.value["subnet_owner"] = subnet_owner.value if subnet_owner else None
+            subnets.append(result.value)
+        return subnets
     except SubstrateRequestException as e:
-      print("Failed to send: {}".format(e))
-
-  return submit_extrinsic()
+      print(f"Failed to get subnets list: {e}")
+      raise
+  return query_all()
 
 def activate_subnet(
   substrate: SubstrateInterface,
@@ -1537,3 +1603,99 @@ def get_reward_result_event(
       print("Failed to get rpc request: {}".format(e))
 
   return make_event_query()
+
+
+def get_subnet_info(
+  substrate: SubstrateInterface,
+  subnet_id: int
+):
+  """
+  Query subnet info by subnet ID
+  :param SubstrateInterface: substrate interface from blockchain url
+  :param subnet_id: subnet ID
+  :returns: subnet info
+  """
+  return_data = {}
+  try:
+    with substrate as _substrate:
+      subnet_meatainfo = _substrate.query('Network', 'SubnetsData', [subnet_id])
+      return_data["meta"] = subnet_meatainfo.value
+      subnet_nodes_data = _substrate.rpc_request(
+        method='network_getSubnetNodes',
+        params=[
+          subnet_id
+        ]
+      )
+      total_active_nodes = _substrate.query('Network', 'TotalActiveSubnetNodes', [subnet_id])
+      subnet_owner = _substrate.query('Network', 'SubnetOwner', [subnet_id])
+
+
+
+      return_data['meta']['owner'] = subnet_owner.value
+      return_data['meta']['total_active_nodes'] = total_active_nodes.value
+      return_data["nodes"] = subnet_nodes_data
+      return_data["is_success"] = True
+      return_data["error_message"] = None
+
+
+      return return_data
+  except SubstrateRequestException as e:
+    print("Failed to get rpc request: {}".format(e))
+    return None
+
+
+
+# def get_subnet_info(
+#   substrate: SubstrateInterface,
+#   subnet_id: int
+# ):
+#   """
+#   Concurrently query subnet metadata, owner, total active nodes, and node list,
+#   with retry logic applied to each query.
+#   """
+#   return_data = {"is_success": False, "error_message": None}
+
+#   try:
+#     with substrate as _substrate:
+
+#       @retry(wait=wait_fixed(BLOCK_SECS + 1), stop=stop_after_attempt(4))
+#       def get_meta():
+#         return _substrate.query('Network', 'SubnetsData', [subnet_id]).value
+
+#       @retry(wait=wait_fixed(BLOCK_SECS + 1), stop=stop_after_attempt(4))
+#       def get_owner():
+#         return _substrate.query('Network', 'SubnetOwner', [subnet_id]).value
+
+#       @retry(wait=wait_fixed(BLOCK_SECS + 1), stop=stop_after_attempt(4))
+#       def get_total_active_nodes():
+#         return _substrate.query('Network', 'TotalActiveSubnetNodes', [subnet_id]).value
+
+#       @retry(wait=wait_fixed(BLOCK_SECS + 1), stop=stop_after_attempt(4))
+#       def get_nodes():
+#         return _substrate.rpc_request(
+#           method='network_getSubnetNodes',
+#           params=[subnet_id]
+#         )
+
+#       with ThreadPoolExecutor() as executor:
+#         futures = {
+#           "meta": executor.submit(get_meta),
+#           "owner": executor.submit(get_owner),
+#           "total_active_nodes": executor.submit(get_total_active_nodes),
+#           "nodes": executor.submit(get_nodes)
+#         }
+
+#         results = {key: future.result() for key, future in futures.items()}
+
+#       # Combine results
+#       results["meta"]["owner"] = results["owner"]
+#       results["meta"]["total_active_nodes"] = results["total_active_nodes"]
+
+#       return_data["meta"] = results["meta"]
+#       return_data["nodes"] = results["nodes"]
+#       return_data["is_success"] = True
+
+#   except Exception as e:
+#     return_data["error_message"] = f"Failed to get subnet info: {e}"
+
+#   return return_data

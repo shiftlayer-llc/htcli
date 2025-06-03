@@ -2,7 +2,11 @@ import typer
 from htcli.core.config import subnet_config, chain_config, wallet_config, options_config
 from htcli.hypertensor.substrate.config import SubstrateConfigCustom, SubstrateConfigwithKeypair
 from typing import Optional, List
+from rich.console import Console
+from rich.table import Table
+from substrateinterface import SubstrateInterface
 
+console = Console()
 from htcli.hypertensor.substrate.chain_functions import (
     get_max_subnet_entry_interval,
     get_max_subnet_registration_blocks,
@@ -10,6 +14,9 @@ from htcli.hypertensor.substrate.chain_functions import (
     register_subnet,
     activate_subnet,
     remove_subnet,
+    get_subnets_list,
+    get_subnet_info
+
 )
 
 from pathlib import Path
@@ -20,9 +27,8 @@ load_dotenv(os.path.join(Path.cwd(), ".env"))
 
 app = typer.Typer(name="subnet", help="Subnet commands")
 
-subnet_cfg = subnet_config()
-wallet_cfg = wallet_config()
-options_cfg = options_config()
+# subnet_config = subnet_config()
+# wallet_config = wallet_config()
 
 PHRASE = os.getenv("PHRASE")
 
@@ -39,29 +45,147 @@ def get_rpc_url(rpc_network: str):
     else:
         raise ValueError(f"Unknown network: {rpc_network}")
 
+
 @app.command()
 def register(
     rpc_url: str = chain_config.rpc_url,
     rpc_network: str = chain_config.rpc_network,
-    name: str = wallet_cfg.name,
+    name: str = wallet_config.name,
     path: str = subnet_config.path,
-    memory_mb: int = subnet_config.memory_mb,
-    registration_blocks: int = options_cfg.registration_blocks,
-    entry_interval: int = options_cfg.entry_interval,
-    max_node_registration_epochs: int = 10,
-    node_registration_interval: int = 10,
-    node_activation_interval: int = 10,
-    node_queue_period: int = 10,
-    max_node_penalties: int = 10,
-    coldkey_whitelist: Optional[List[str]] = typer.Option(
-        None,
-        "--subnet.coldkey_whitelist",
-        "--coldkey_whitelist",
-        help="List of coldkeys to whitelist",
-    )
+    # memory_mb: int = subnet_config.memory_mb, 
+    # registration_blocks: int = options_cfg.registration_blocks, 
+    # entry_interval: int = options_cfg.entry_interval, 
+    max_node_registration_epochs: int = 1000, # The maximum number of epochs a node can stay registered without being validated or promoted.
+    node_registration_interval: int = 100, # How frequently (in blocks) new nodes can be registered to the subnet.
+    node_activation_interval: int = 100, # How frequently (in blocks) registered nodes are activated into the network for participation.
+    node_queue_period: int = 10, # How many epochs a node spends in the Queue class (a waiting area) before being considered for consensus.
+    max_node_penalties: int = 5, # Maximum number of penalties a node can receive before being kicked from the subnet.
+    coldkey_whitelist: Optional[List[str]] = subnet_config.coldkey_whitelist,  # List of coldkeys to whitelist for the subnet
 ):
     """
     Register a new subnet
+    """
+
+    if rpc_url:
+        rpc = rpc_url
+        typer.echo(f"Connecting to {rpc}")
+    else:
+        if rpc_network:
+            rpc = get_rpc_url(rpc_network)
+            typer.echo(f"Connecting to {rpc_network} ({rpc})")
+        else:
+            rpc = os.getenv("RPC_URL_MAINNET")
+    
+    substrate = SubstrateConfigwithKeypair(name, rpc)
+    
+    # if registration_blocks == 0:
+    #     registration_blocks = int(
+    #         str(get_max_subnet_registration_blocks(substrate.interface))
+    #     )
+    # else:
+    #     min_registration_blocks = int(
+    #         str(get_min_subnet_registration_blocks(substrate.interface))
+    #     )
+    #     assert (
+    #         registration_blocks >= min_registration_blocks
+    #     ), f"Registration blocks must be >= {min_registration_blocks}. "
+
+    #     max_registration_blocks = int(
+    #         str(get_max_subnet_registration_blocks(substrate.interface))
+    #     )
+    #     assert (
+    #         registration_blocks <= max_registration_blocks
+    #     ), f"Registration blocks must be <= {max_registration_blocks}. "
+
+    # if entry_interval != 0:
+    #     max_entry_interval = get_max_subnet_entry_interval(substrate.interface)
+    #     assert (
+    #         entry_interval <= max_entry_interval
+    #     ), f"Entry interval blocks must be <= {max_entry_interval}. "
+
+    if coldkey_whitelist is None:
+        coldkey_whitelist = [
+            "0x64d24a7d9588413f790a80122ca1664f5b0ac53055974476b65706f5e480da6e",
+            "0xfa8180d137b00905c369bcd5ea808a63654b754413327f6e894b19f61d931561"
+        ]    
+
+
+    try:
+        
+        receipt = register_subnet(
+            substrate.interface,
+            substrate.keypair,
+            path,
+            max_node_registration_epochs,
+            node_registration_interval,
+            node_activation_interval,
+            node_queue_period,
+            max_node_penalties,
+            coldkey_whitelist
+        )
+
+        if receipt is None:
+            console.log("[red]No receipt returned. Please check the transaction status.[/red]")
+        else:
+            console.print(f"[blue]Extrinsic Hash: {receipt.extrinsic_hash}[/blue]")
+            console.print(f"[blue]Block Hash: {receipt.block_hash}[/blue]")
+            console.print("[green]✅ Subnet registered successfully![/green]")
+
+    except Exception as e:
+        console.log(f"[red]❌ Failed to register subnet: {str(e)}[/red]")
+        typer.echo(f"Error: {str(e)}")
+
+
+@app.command()
+def info(    
+    rpc_url: str = chain_config.rpc_url,
+    rpc_network: str = chain_config.rpc_network,
+    subnet_id: int = subnet_config.id,
+    # wallet_name: str = wallet_config.name,
+):
+    """
+    Get the info of the subnet
+    """
+
+    if rpc_url:
+        rpc = rpc_url
+        typer.echo(f"Connecting to {rpc}")
+    else:
+        if rpc_network:
+            rpc = get_rpc_url(rpc_network)
+            typer.echo(f"Connecting to {rpc_network} ({rpc})")
+        else:
+            rpc = os.getenv("RPC_URL_MAINNET")
+    
+    substrate_interface = SubstrateInterface(url=rpc)
+
+    try:
+        with console.status(f"[bold green]Getting info of subnet {subnet_id}...[/bold green]", spinner="dots"):
+            receipt = get_subnet_info(
+                substrate_interface, subnet_id
+            )
+        if receipt["is_success"] is True:
+            console.print(f"[blue]Subnet ID: {receipt['meta']['id']}[/blue]")
+            console.print(f"[blue]Path: {receipt['meta']['path']}[/blue]")
+            console.print(f"[blue]State: {receipt['meta']['state']}[/blue]")
+            console.print(f"[blue]Total Active Nodes: {receipt['meta']['total_active_nodes']}[/blue]")
+            console.print(f"[blue]Subnet Owner: {receipt['meta']['owner']}[/blue]")
+        else:
+            console.log(f"[red]Error Message: {receipt['error_message']}[/red]")
+            return
+    except Exception as e:
+        typer.echo(f"Error: {e}")
+
+
+@app.command()
+def activate(
+    rpc_url: str = chain_config.rpc_url,
+    rpc_network: str = chain_config.rpc_network,
+    name: str = wallet_config.name,
+    subnet_id: int = subnet_config.id,
+):
+    """
+    Activate a registered subnet
     """
     if rpc_url:
         rpc = rpc_url
@@ -72,78 +196,113 @@ def register(
             typer.echo(f"Connecting to {rpc_network} ({rpc})")
     
     substrate = SubstrateConfigwithKeypair(name, rpc)
-    
-    if registration_blocks == 0:
-        registration_blocks = int(
-            str(get_max_subnet_registration_blocks(substrate.interface))
-        )
-    else:
-        min_registration_blocks = int(
-            str(get_min_subnet_registration_blocks(substrate.interface))
-        )
-        assert (
-            registration_blocks >= min_registration_blocks
-        ), f"Registration blocks must be >= {min_registration_blocks}. "
 
-        max_registration_blocks = int(
-            str(get_max_subnet_registration_blocks(substrate.interface))
-        )
-        assert (
-            registration_blocks <= max_registration_blocks
-        ), f"Registration blocks must be <= {max_registration_blocks}. "
-
-    if entry_interval != 0:
-        max_entry_interval = get_max_subnet_entry_interval(substrate.interface)
-        assert (
-            entry_interval <= max_entry_interval
-        ), f"Entry interval blocks must be <= {max_entry_interval}. "
-
-    print(f"Registering subnet at registration block - {registration_blocks}, entry interval - {entry_interval}")
-    if coldkey_whitelist is None:
-        coldkey_whitelist = []
     try:
-        receipt = register_subnet(
-            substrate.interface,
-            substrate.keypair,
-            path,
-            memory_mb,
-            registration_blocks,
-            entry_interval,
-            max_node_registration_epochs,
-            node_registration_interval,
-            node_activation_interval,
-            node_queue_period,
-            max_node_penalties,
-            coldkey_whitelist
-        )
-        print(receipt)
-    #     if receipt.is_success:
-    #         typer.echo("✅ Success, triggered events:")
-    #         for event in receipt.triggered_events:
-    #             typer.echo(f"* {event.value}")
-    #     else:
-    #         typer.echo("⚠️ Extrinsic Failed: ", receipt.error_message)
+        with console.status(f"[bold green]Activating subnet {subnet_id}...[/bold green]", spinner="dots"):
+            receipt = activate_subnet(
+                substrate.interface,
+                substrate.keypair,
+                subnet_id,
+            )
+        if receipt.is_success == False:
+            console.log(f"[red]Error Message: {receipt.error_message}[/red]")
+        else:
+            console.log("[green]Subnet activated successfully![/green]")
     except Exception as e:
         typer.echo("Error: ", e)
-    # typer.echo(f"Registering new subnet...")
+
 
 
 @app.command()
-def info(    
-    subnet_id: int = subnet_cfg.id,
-    wallet_name: str = wallet_cfg.name,
+def list(
+    rpc_url: str = chain_config.rpc_url,
+    rpc_network: str = chain_config.rpc_network,
+    name: str = wallet_config.name,
 ):
     """
-    Get the info of the subnet
+    List all registered subnets
     """
-    typer.echo(f"Getting info of the subnet {subnet_id}...")
+    if rpc_url:
+        rpc = rpc_url
+        typer.echo(f"Connecting to {rpc}")
+    else:
+        if rpc_network:
+            rpc = get_rpc_url(rpc_network)
+            typer.echo(f"Connecting to {rpc_network} ({rpc})")
+        else:
+            rpc = get_rpc_url("main")
+            typer.echo(f"Connecting to main ({rpc})")
     
-    substrate = SubstrateConfigwithKeypair(wallet_name, "ws://127.0.0.1:9944")
+    substrate_interface = SubstrateInterface(url=rpc)
+
 
     try:
-        receipt = get_max_subnet_entry_interval(
-            substrate.interface,
-        )
-        typer.echo(f"✅ Success, {receipt}")
+        with console.status("[bold green]Listing all registered subnets...[/bold green]", spinner="dots"):
+            receipt = get_subnets_list(
+                substrate_interface,
+            )
+
+        print_subnets_table(receipt)
     except Exception as e:
-        typer.echo(f"Error: {e}")
+        typer.echo("Error: ", e)
+
+@app.command()
+def remove(
+    rpc_url: str = chain_config.rpc_url,
+    rpc_network: str = chain_config.rpc_network,
+    name: str = wallet_config.name,
+    subnet_id: int = subnet_config.id,
+):
+    """
+    Remove a subnet
+    """
+    if rpc_url:
+        rpc = rpc_url
+        typer.echo(f"Connecting to {rpc}")
+    else:
+        if rpc_network:
+            rpc = get_rpc_url(rpc_network)
+            typer.echo(f"Connecting to {rpc_network} ({rpc})")
+        else:
+            rpc = get_rpc_url("main")
+            typer.echo(f"Connecting to main ({rpc})")
+
+    substrate = SubstrateConfigwithKeypair(name, rpc)
+
+    try:
+        with console.status(f"[bold green]Removing subnet {subnet_id}...[/bold green]", spinner="dots"):
+            receipt = remove_subnet(
+                substrate.interface,
+                substrate.keypair,
+                subnet_id,
+            )
+        console.log(f"[blue]Extrinsic Hash: {receipt.extrinsic_hash} [/blue]")
+        console.log(f"[blue]Block Hash: {receipt.block_hash} [/blue]", )
+        if receipt.is_success == False:
+
+            console.log(f"[red]Error Message: {receipt.error_message}[/red]")
+        else:
+            console.log("[green]Subnet registered successfully![/green]")
+    except Exception as e:
+        typer.echo("Error: ", e)
+
+def print_subnets_table(receipt):
+    table = Table(title="Registered Subnets")
+
+    table.add_column("ID", justify="center", style="cyan", no_wrap=True)
+    table.add_column("Path", style="magenta")
+    table.add_column("State", style="green")
+    table.add_column("Active Nodes", justify="center", style="yellow")
+    table.add_column("Owner", style="white")
+
+    for subnet in receipt:
+        table.add_row(
+            str(subnet["id"]),
+            subnet["path"] or "-",
+            subnet["state"],
+            str(subnet["total_active_nodes"]),
+            subnet["subnet_owner"]
+        )
+
+    console = Console()
+    console.print(table)

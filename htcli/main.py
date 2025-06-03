@@ -3,7 +3,7 @@ import typer
 
 # Import the command modules for chain, subnet, and wallet functionalities
 # These modules contain the specific commands related to each functionality
-from htcli.commands import chain, subnet, wallet
+from htcli.commands import chain, subnet, wallet, node
 
 # Create a Typer application instance named 'app'
 # This instance will serve as the main entry point for the CLI tool
@@ -23,5 +23,8 @@ app.add_typer(wallet.app, name="wallet", help="Wallet commands")
 
 # Check if the script is being run directly (not imported as a module)
 # If true, execute the Typer application to start the CLI
+
+app.add_typer(node.app, name="node", help="Node commands")
+
 if __name__ == "__main__":
     app()

@@ -4,7 +4,10 @@ from pathlib import Path
 import os
 
 # Generate keypair
-keypair = Keypair.create_from_mnemonic(Keypair.generate_mnemonic(), ss58_format=42)
+mnemonic = Keypair.generate_mnemonic()
+print("Generated mnemonic:", mnemonic)
+keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42)
+# keypair = Keypair.create_from_uri('//CHARLIE')
 
 # Get private key bytes
 private_bytes = keypair.private_key
@@ -16,7 +19,7 @@ pub_data = {
     "publicKey": "0x" + keypair.public_key.hex()
 }
 
-wallet_dir = Path(os.path.expanduser("~/.hypertensor/wallets/test"))
+wallet_dir = Path(os.path.expanduser("~/.hypertensor/wallets/node3"))
 wallet_dir.mkdir(parents=True, exist_ok=True)
 wallet_path = wallet_dir / "coldkey.pub"
 

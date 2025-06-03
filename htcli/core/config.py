@@ -1,6 +1,6 @@
 import typer
 import os
-
+from typing import Optional, List
 
 class chain_config:
     rpc_url = typer.Option(
@@ -11,10 +11,10 @@ class chain_config:
         help="RPC URL for the chain",
     )
     rpc_network = typer.Option(
-        "mainnet",
+        "main",
         "--chain.rpc_network",
         "--rpc_network",
-        help="Environment for the chain (local/testnet/mainnet)",
+        help="Environment for the chain (local/test/main)",
     )
 
     def __repr__(self):
@@ -49,6 +49,12 @@ class subnet_config:
         "--subnet_memory_mb",
         "--memory_mb",
         help="Memory requirements to host entire model one time",
+    )
+    coldkey_whitelist: Optional[List[str]] = typer.Option(
+        None,
+        "--subnet.coldkey_whitelist",
+        "--coldkey_whitelist",
+        help="List of coldkeys to whitelist",
     )
 
 

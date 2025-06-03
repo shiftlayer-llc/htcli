@@ -1,11 +1,11 @@
 import typer
 from htcli.core.constants import (
-    DEFAULT_WALLET_PATH,
     DEFAULT_RPC_URL,
     DEFAULT_CHAIN_ENV,
-    DEFAULT_SUBNET_ID,
-    DEFAULT_SUBNET_NAME,
 )
+from pathlib import Path
+from .config.wallet import wallet_config
+from .config.subnet import subnet_config
 
 
 class chain_config:
@@ -25,71 +25,6 @@ class chain_config:
 
     def __repr__(self):
         return f"chain_config(rpc_url={self.rpc_url}, env={self.env})"
-
-
-class subnet_config:
-    id = typer.Option(
-        DEFAULT_SUBNET_ID,
-        "--subnet.id",
-        "--subnet-id",
-        "--netuid",
-        help="Unique ID for the subnetwork",
-    )
-    name = typer.Option(
-        DEFAULT_SUBNET_NAME,
-        "--subnet.name",
-        "--subnet-name",
-        help="Name of the subnetwork",
-    )
-
-
-class wallet_config:
-    path = typer.Option(
-        DEFAULT_WALLET_PATH,
-        "--wallet.path",
-        "--wallet-path",
-        help="Path to the wallets directory",
-    )
-    name = typer.Option(
-        None,
-        "--wallet.name",
-        "--wallet-name",
-        help="Name of the wallet",
-    )
-    password = typer.Option(
-        None,
-        "--wallet.password",
-        "--wallet-password",
-        help="Password for the wallet",
-    )
-    hotkey = typer.Option(
-        None, "--wallet.hotkey", "--wallet-hotkey", help="Name of the hotkey wallet"
-    )
-    ss58_address = typer.Option(
-        None,
-        "--wallet.ss58-address",
-        "--ss58-address",
-        help="SS58 address to check balance",
-    )
-    all = typer.Option(
-        False, "--all", help="Indicates to <all wallets>, <whole balance>, ...."
-    )
-    mnemonic = typer.Option(
-        None,
-        "--mnemonic",
-        "--wallet.mnemonic",
-        "--wallet-mnemonic",
-        help='Mnemonic phrase of the wallet (must be in quotes, e.g. --mnemonic "word1 word2 word3 ...")',
-    )
-    force = typer.Option(
-        False, "--force", help="Skip confirmation prompt or overwrite existing wallet"
-    )
-
-    def __repr__(self):
-        return f"wallet_config(wallet_path={self.path}, name={self.name}"
-
-    def __str__(self):
-        return f"wallet_config(wallet_path={self.path}, name={self.name}"
 
 
 class htcli_config:

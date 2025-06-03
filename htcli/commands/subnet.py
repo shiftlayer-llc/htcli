@@ -1,5 +1,5 @@
 import typer
-from htcli.core.config import subnet_config
+from htcli.core.config.subnet import subnet_config
 
 app = typer.Typer(name="subnet", help="Subnet commands")
 

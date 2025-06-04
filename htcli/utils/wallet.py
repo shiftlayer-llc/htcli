@@ -4,7 +4,6 @@ from substrateinterface import Keypair
 import json
 from enum import Enum
 import hashlib
-import base58
 import logging
 
 # Configure logging
@@ -118,7 +117,7 @@ def decrypt_data(encrypted_data: bytes, password: str) -> bytes:
 def create_wallet(
     name: str,  # This will be the file name
     wallet_dir: Path,  # Accept the full target directory path
-    is_hotkey: bool,  # True for hotkey, False for coldkey
+    is_hotkey: bool = False,  # True for hotkey, False for coldkey
     password: str = None,  # Password for encryption
     owner_address: str = None,  # Required for owned hotkeys
     mnemonic: str = None,  # Optional mnemonic for regeneration

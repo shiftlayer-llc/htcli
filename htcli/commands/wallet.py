@@ -44,6 +44,7 @@ def create(
     name: str = wallet_config.name,
     password: str = wallet_config.password,
     path: str = wallet_config.path,
+    force: bool = wallet_config.force,
 ):
     """
     Create a new wallet.
@@ -101,6 +102,7 @@ def create(
             wallet_dir=wallet_dir,
             is_hotkey=False,  # Always create as coldkey
             password=password,
+            force=force,
         )
 
         # Print success message

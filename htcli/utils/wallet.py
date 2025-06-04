@@ -120,7 +120,8 @@ def create_wallet(
     is_hotkey: bool = False,  # True for hotkey, False for coldkey
     password: str = None,  # Password for encryption
     owner_address: str = None,  # Required for owned hotkeys
-    mnemonic: str = None,  # Optional mnemonic for regeneration
+    mnemonic: str = None,  # Optional mnemonic for regeneration,
+    force: bool = False,  # Skip confirmation prompt or overwrite existing wallet
 ) -> tuple[str, str, str]:  # Return main wallet file path, ss58_address, and mnemonic
     """
     Create a Hypertensor-compatible wallet in the specified directory.
@@ -144,9 +145,18 @@ def create_wallet(
 
     # Check if wallet file already exists
     if main_wallet_file_path.exists():
-        raise ValueError(
-            f"Wallet file '{name}' already exists in {wallet_dir}. Remove existing file or use a different name."
-        )
+        if not force:
+            raise ValueError(
+                f"Wallet file '{name}' already exists in {wallet_dir}. Use --force to overwrite existing file or choose another name."
+            )
+        else:
+            # Remove existing file
+            logger.info(
+                f"Wallet file '{name}' already exists in {wallet_dir}. Overwriting existing file."
+            )  # Add to logging
+            logger.info(f"Removing existing file '{name}'...")  # Add to logging
+            main_wallet_file_path.unlink()
+            logger.info(f"Removed existing file '{name}'.")  # Add to logging
 
     # Validate owner_address for owned hotkeys
     if is_hotkey and owner_address:

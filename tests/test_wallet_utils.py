@@ -82,6 +82,20 @@ def test_create_wallet_duplicate(tmp_path):
         wallet.create_wallet(name=name, wallet_dir=wallet_dir, is_hotkey=False)
 
 
+def test_create_wallet_force(tmp_path):
+    name = "dupwallet"
+    wallet_dir = tmp_path
+    wallet.create_wallet(name=name, wallet_dir=wallet_dir, force=True)
+    # Create second wallet with same name - should overwrite first one
+    new_wallet_path, new_ss58_address, new_mnemonic = wallet.create_wallet(
+        name=name, wallet_dir=wallet_dir, force=True
+    )
+    # Verify the wallet was created and has different address than first one
+    assert os.path.exists(new_wallet_path)
+    keypair = wallet.import_wallet(name, wallet_dir)
+    assert keypair.ss58_address == new_ss58_address
+
+
 # Test import_wallet with wrong password
 def test_import_wallet_wrong_password(tmp_path):
     name = "wrongpasswallet"

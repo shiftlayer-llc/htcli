@@ -1,26 +1,50 @@
 import typer
+<<<<<<< HEAD
 import os
 from typing import Optional, List
 
 class chain_config:
     rpc_url = typer.Option(
         None,
+=======
+from htcli.core.constants import (
+    DEFAULT_RPC_URL,
+    DEFAULT_CHAIN_ENV,
+)
+from pathlib import Path
+from .config.wallet import wallet_config
+from .config.subnet import subnet_config
+
+
+class chain_config:
+    rpc_url = typer.Option(
+        DEFAULT_RPC_URL,
+>>>>>>> 113a8c3053cc0048fc8d8e672cf906e0a8404328
         "--chain.rpc_url",
         "--rpc_url",
         "--chain.url",
         help="RPC URL for the chain",
     )
+<<<<<<< HEAD
     rpc_network = typer.Option(
         "main",
         "--chain.rpc_network",
         "--rpc_network",
         help="Environment for the chain (local/test/main)",
+=======
+    env = typer.Option(
+        DEFAULT_CHAIN_ENV,
+        "--chain.env",
+        "--env",
+        help="Environment for the chain (local/testnet/mainnet)",
+>>>>>>> 113a8c3053cc0048fc8d8e672cf906e0a8404328
     )
 
     def __repr__(self):
         return f"chain_config(rpc_url={self.rpc_url}, env={self.env})"
 
 
+<<<<<<< HEAD
 class subnet_config:
     id = typer.Option(
         0,
@@ -106,6 +130,8 @@ class options_config:
         help="blocks required between each subnet node entry",
     )
 
+=======
+>>>>>>> 113a8c3053cc0048fc8d8e672cf906e0a8404328
 class htcli_config:
     def __init__(
         self, chain: chain_config, subnet: subnet_config, wallet: wallet_config

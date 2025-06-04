@@ -1,17 +1,23 @@
 import typer
-import os
+from htcli.core.constants import (
+    DEFAULT_RPC_URL,
+    DEFAULT_CHAIN_ENV,
+)
+from pathlib import Path
+from .config.wallet import wallet_config
+from .config.subnet import subnet_config
 
 
 class chain_config:
     rpc_url = typer.Option(
-        "http://localhost:8000",
+        DEFAULT_RPC_URL,
         "--chain.rpc_url",
         "--rpc_url",
         "--chain.url",
         help="RPC URL for the chain",
     )
     env = typer.Option(
-        "local",
+        DEFAULT_CHAIN_ENV,
         "--chain.env",
         "--env",
         help="Environment for the chain (local/testnet/mainnet)",
@@ -19,55 +25,6 @@ class chain_config:
 
     def __repr__(self):
         return f"chain_config(rpc_url={self.rpc_url}, env={self.env})"
-
-
-class subnet_config:
-    id = typer.Option(
-        0,
-        "--subnet.id",
-        "--subnet_id",
-        "--netuid",
-        help="Unique ID for the subnetwork",
-    )
-    name = typer.Option(
-        "default",
-        "--subnet.name",
-        "--subnet_name",
-        help="Name of the subnetwork",
-    )
-
-
-class wallet_config:
-    path = typer.Option(
-        os.path.expanduser("~/.hypertensor/wallets"),
-        "--wallet.path",
-        "--wallet_path",
-        help="Path to the wallets directory",
-    )
-    name = typer.Option(
-        None,
-        "--wallet.name",
-        "--wallet_name",
-        help="Name of the wallet",
-    )
-    password = typer.Option(
-        None,
-        "--wallet.password",
-        "--wallet_password",
-        help="Password for the wallet",
-    )
-    mnemonic = typer.Option(
-        None,
-        "--wallet.mnemonic",
-        "--wallet_mnemonic",
-        help="Mnemonic for the wallet",
-    )
-
-    def __repr__(self):
-        return f"wallet_config(wallet_path={self.path}, name={self.name}"
-
-    def __str__(self):
-        return f"wallet_config(wallet_path={self.path}, name={self.name}"
 
 
 class htcli_config:

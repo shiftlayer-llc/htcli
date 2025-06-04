@@ -1,5 +1,10 @@
 {
     "cSpell.words": [
-        "htcli"
+        "COLDKEY",
+        "htcli",
+        "Keypair",
+        "levelname",
+        "subprocess",
+        "substrateinterface"
     ]
 }

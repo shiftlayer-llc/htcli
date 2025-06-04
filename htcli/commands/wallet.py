@@ -10,11 +10,6 @@ from htcli.utils.helpers import (
 from substrateinterface import Keypair
 
 from htcli.core.config.wallet import wallet_config
-from htcli.core.constants import (
-    COLDKEY_FILE_NAME,
-    HOTKEYS_DIR_NAME,
-    DEFAULT_WALLET_PATH,
-)
 import getpass
 
 # Configure logging

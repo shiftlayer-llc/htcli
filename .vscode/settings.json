@@ -4,6 +4,7 @@
         "htcli",
         "Keypair",
         "levelname",
+        "subprocess",
         "substrateinterface"
     ]
 }

@@ -16,7 +16,6 @@ from htcli.core.constants import (
     DEFAULT_WALLET_PATH,
 )
 import getpass
-import shutil
 
 # Configure logging
 logging.basicConfig(

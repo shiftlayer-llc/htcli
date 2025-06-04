@@ -19,7 +19,7 @@ pub_data = {
     "publicKey": "0x" + keypair.public_key.hex()
 }
 
-wallet_dir = Path(os.path.expanduser("~/.hypertensor/wallets/node3"))
+wallet_dir = Path(os.path.expanduser("~/.hypertensor/wallets/hotkey"))
 wallet_dir.mkdir(parents=True, exist_ok=True)
 wallet_path = wallet_dir / "coldkey.pub"
 

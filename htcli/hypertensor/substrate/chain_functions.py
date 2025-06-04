@@ -210,12 +210,8 @@ def register_subnet(
             }
         }
     )
-
-
-
     # Check if the call can be paid
     check_balance(substrate, call, keypair)
-
     # Create the signed extrinsic
     extrinsic = substrate.create_signed_extrinsic(call=call, keypair=keypair)
     @retry(wait=wait_fixed(BLOCK_SECS + 1), stop=stop_after_attempt(4))
@@ -242,9 +238,9 @@ def get_subnets_list(substrate: SubstrateInterface):
   def query_all():
     try:
       with substrate as _substrate:
-        max_subnets = int(str(_substrate.query('Network', 'MaxSubnets')))
+        max_subnets = int(str(_substrate.query('Network', 'TotalSubnetUids')))
         subnets = []
-        for subnet_id in range(max_subnets):
+        for subnet_id in range(max_subnets + 1):
           result = _substrate.query('Network', 'SubnetsData', [subnet_id])
           if result.value is not None:  # Means the subnet exists
             total_active_nodes = _substrate.query('Network', 'TotalActiveSubnetNodes', [subnet_id])

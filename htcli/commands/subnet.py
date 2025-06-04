@@ -52,9 +52,6 @@ def register(
     rpc_network: str = chain_config.rpc_network,
     name: str = wallet_config.name,
     path: str = subnet_config.path,
-    # memory_mb: int = subnet_config.memory_mb, 
-    # registration_blocks: int = options_cfg.registration_blocks, 
-    # entry_interval: int = options_cfg.entry_interval, 
     max_node_registration_epochs: int = 1000, # The maximum number of epochs a node can stay registered without being validated or promoted.
     node_registration_interval: int = 100, # How frequently (in blocks) new nodes can be registered to the subnet.
     node_activation_interval: int = 100, # How frequently (in blocks) registered nodes are activated into the network for participation.
@@ -77,39 +74,12 @@ def register(
             rpc = os.getenv("RPC_URL_MAINNET")
     
     substrate = SubstrateConfigwithKeypair(name, rpc)
-    
-    # if registration_blocks == 0:
-    #     registration_blocks = int(
-    #         str(get_max_subnet_registration_blocks(substrate.interface))
-    #     )
-    # else:
-    #     min_registration_blocks = int(
-    #         str(get_min_subnet_registration_blocks(substrate.interface))
-    #     )
-    #     assert (
-    #         registration_blocks >= min_registration_blocks
-    #     ), f"Registration blocks must be >= {min_registration_blocks}. "
-
-    #     max_registration_blocks = int(
-    #         str(get_max_subnet_registration_blocks(substrate.interface))
-    #     )
-    #     assert (
-    #         registration_blocks <= max_registration_blocks
-    #     ), f"Registration blocks must be <= {max_registration_blocks}. "
-
-    # if entry_interval != 0:
-    #     max_entry_interval = get_max_subnet_entry_interval(substrate.interface)
-    #     assert (
-    #         entry_interval <= max_entry_interval
-    #     ), f"Entry interval blocks must be <= {max_entry_interval}. "
 
     if coldkey_whitelist is None:
         coldkey_whitelist = [
             "0x64d24a7d9588413f790a80122ca1664f5b0ac53055974476b65706f5e480da6e",
             "0xfa8180d137b00905c369bcd5ea808a63654b754413327f6e894b19f61d931561"
         ]    
-
-
     try:
         
         receipt = register_subnet(

@@ -179,18 +179,38 @@ def list(name: str = wallet_config.name, path: str = wallet_config.path):
             typer.echo(
                 typer.style(f"\nAvailable Wallets ({len(wallet_files)}):", bold=True)
             )
-            typer.echo("=======================")
+            # Create table headers
+            headers = ["Wallet", "Address"]
+            rows = []
+            max_wallet_len = len("Wallet")  # Initialize with header length
+            max_address_len = len("Address")  # Initialize with header length
+
+            # Collect data and calculate column widths
             for wallet_file in wallet_files:
                 wallet_name = wallet_file.stem
+                max_wallet_len = max(max_wallet_len, len(wallet_name))
                 try:
                     with open(wallet_file, "r") as f:
                         wallet_data = json.load(f)
-                    typer.echo(f"📁 Wallet: {wallet_name}")
-                    typer.echo(
-                        f"  📍 Address: {wallet_data.get('ss58Address', 'Unknown')}"
-                    )
+                    address = wallet_data.get("ss58Address", "Unknown")
+                    max_address_len = max(max_address_len, len(address))
+                    rows.append([wallet_name, address])
                 except Exception as e:
-                    typer.echo(f"  ❌ Error reading wallet info: {str(e)}")
+                    rows.append([wallet_name, f"Error: {str(e)}"])
+
+            # Print table header
+            header = f"| {'Wallet'.ljust(max_wallet_len)} | {'Address'.ljust(max_address_len)} |"
+            separator = f"|{'-' * (max_wallet_len + 2)}|{'-' * (max_address_len + 2)}|"
+            typer.echo(separator)
+            typer.echo(header)
+            typer.echo(separator)
+
+            # Print table rows
+            for row in rows:
+                typer.echo(
+                    f"| {row[0].ljust(max_wallet_len)} | {row[1].ljust(max_address_len)} |"
+                )
+            typer.echo(separator)
 
     except Exception as e:
         typer.echo(f"An error occurred while listing wallets: {str(e)}")
@@ -232,7 +252,8 @@ def remove(
     try:
         if all:
             # List all wallets to be removed
-            wallet_files = list(base_wallet_dir.glob("*.key"))
+            # Convert glob iterator to list and sort for consistent ordering
+            wallet_files = sorted(base_wallet_dir.glob("*.key"))
             if not wallet_files:
                 typer.echo("No wallets found to remove")
                 return

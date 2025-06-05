@@ -21,6 +21,10 @@ app.add_typer(subnet.app, name="subnet", help="Subnet commands")
 # The 'wallet.app' is a Typer instance that contains commands related to wallet operations
 app.add_typer(wallet.app, name="wallet", help="Wallet commands")
 
+# Add the 'node' command group to the main Typer application
+# The 'node.app' is a Typer instance that contains commands related to node operations
+app.add_typer(node.app, name="node", help="Node commands")
+
 # Check if the script is being run directly (not imported as a module)
 # If true, execute the Typer application to start the CLI
 

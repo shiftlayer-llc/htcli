@@ -1,10 +1,10 @@
+import json
 import os
 from pathlib import Path
-from substrateinterface import Keypair
-import json
 from enum import Enum
 import hashlib
 import logging
+from substrateinterface import Keypair
 
 # Configure logging
 logging.basicConfig(
@@ -75,43 +75,62 @@ def get_account_id(public_key: bytes) -> str:
 
 def encrypt_data(data: bytes, password: str) -> bytes:
     """
-    Encrypt data using XOR with the password.
+    Encrypt data using XOR with the password and add a password hash for validation.
 
     Args:
         data: The data to encrypt
         password: The password to use for encryption
 
     Returns:
-        bytes: The encrypted data
+        bytes: The encrypted data with password hash
     """
+    # For empty password, return data as is (unencrypted)
     if not password:
         return data
+
+    # Generate password hash for validation
+    password_hash = hashlib.sha256(password.encode()).digest()
+
+    # Encrypt the data
     key_bytes = password.encode("utf-8")
     encrypted = bytes(data[i] ^ key_bytes[i % len(key_bytes)] for i in range(len(data)))
-    logger.info(f"Original private key: 0x{data.hex()}")
-    logger.info(f"Encrypted private key: 0x{encrypted.hex()}")
-    # Test decryption
-    decrypted = bytes(
-        encrypted[i] ^ key_bytes[i % len(key_bytes)] for i in range(len(encrypted))
-    )
-    logger.info(f"Decrypted private key: 0x{decrypted.hex()}")
-    return encrypted
+
+    # Combine password hash and encrypted data
+    return password_hash + encrypted
 
 
 def decrypt_data(encrypted_data: bytes, password: str) -> bytes:
     """
     Decrypt data that was encrypted with XOR using the password.
+    Also validates the password using the stored hash.
 
     Args:
-        encrypted_data: The encrypted data
+        encrypted_data: The encrypted data with password hash
         password: The password used for encryption
 
     Returns:
         bytes: The decrypted data
+
+    Raises:
+        RuntimeError: If the password is incorrect
     """
     if not password:
         return encrypted_data
-    return encrypt_data(encrypted_data, password)  # XOR is symmetric
+
+    # Extract password hash and encrypted data
+    stored_hash = encrypted_data[:32]  # First 32 bytes are the hash
+    encrypted = encrypted_data[32:]  # Rest is the encrypted data
+
+    # Verify password
+    password_hash = hashlib.sha256(password.encode()).digest()
+    if password_hash != stored_hash:
+        raise RuntimeError("Invalid password")
+
+    # Decrypt the data
+    key_bytes = password.encode("utf-8")
+    return bytes(
+        encrypted[i] ^ key_bytes[i % len(key_bytes)] for i in range(len(encrypted))
+    )
 
 
 def create_wallet(
@@ -181,13 +200,15 @@ def create_wallet(
         "accountId": account_id,  # 32-byte blake2b hash of public key
         "publicKey": account_id,  # Same as accountId
         "ss58Address": keypair.ss58_address,
+        "isEncrypted": password
+        is not None,  # Add flag to indicate if wallet is encrypted
     }
 
     # Add owner address for owned hotkeys
     if is_hotkey and owner_address:
         wallet_data["owner"] = owner_address
 
-    # Encrypt private key if password is provided
+    # Store private key
     if password:
         encrypted_private_key = encrypt_data(keypair.private_key, password)
         wallet_data["privateKey"] = "0x" + encrypted_private_key.hex()
@@ -242,18 +263,55 @@ def import_wallet(name: str, wallet_dir: Path, password: str = None) -> Keypair:
     except ValueError:
         raise ValueError("Invalid wallet file: private key is not valid hex")
 
-    # Decrypt private key if password is provided
-    if password:
-        try:
-            private_key_bytes = decrypt_data(private_key_bytes, password)
-        except Exception as e:
-            raise RuntimeError(f"Failed to decrypt private key: {str(e)}")
+    # Check if wallet is encrypted
+    is_encrypted = wallet_data.get("isEncrypted")
+    if is_encrypted is None:
+        is_encrypted = len(private_key_bytes) != 32
 
-    # Create keypair from private key
+    # For unencrypted wallets
+    if not is_encrypted:
+        if password:
+            raise RuntimeError("Invalid password: This wallet is not encrypted")
+        try:
+            return Keypair.create_from_private_key(private_key_bytes, ss58_format=42)
+        except Exception as e:
+            raise RuntimeError(f"Failed to create keypair: {str(e)}")
+
+    # For encrypted wallets
+    if not password:
+        raise RuntimeError(
+            "Invalid password: Wallet is encrypted but no password provided"
+        )
+
+    try:
+        private_key_bytes = decrypt_data(private_key_bytes, password)
+        if not is_valid_private_key(private_key_bytes):
+            raise RuntimeError("Invalid password: Failed to decrypt private key")
+    except Exception as e:
+        raise RuntimeError("Invalid password: Failed to decrypt private key")
+
     try:
         return Keypair.create_from_private_key(private_key_bytes, ss58_format=42)
     except Exception as e:
         raise RuntimeError(f"Failed to create keypair: {str(e)}")
+
+
+def is_valid_private_key(private_key_bytes: bytes) -> bool:
+    """
+    Validate if the decrypted private key is valid.
+
+    Args:
+        private_key_bytes (bytes): The decrypted private key bytes
+
+    Returns:
+        bool: True if the private key is valid, False otherwise
+    """
+    try:
+        # Try to create a keypair with the private key
+        Keypair.create_from_private_key(private_key_bytes, ss58_format=42)
+        return True
+    except Exception:
+        return False
 
 
 if __name__ == "__main__":

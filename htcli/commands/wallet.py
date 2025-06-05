@@ -484,11 +484,8 @@ def balance(
 
 @app.command(name="import")
 def import_wallet_cmd(
-    name: str = typer.Option(..., help="Name of the wallet to import"),
-    password: str = typer.Option(
-        None,
-        help="Password for the wallet (if encrypted)",
-    ),
+    name: str = wallet_config.name,
+    password: str = wallet_config.password,
     path: str = wallet_config.path,
 ):
     """
@@ -497,13 +494,23 @@ def import_wallet_cmd(
     Examples:
         # Import an encrypted wallet
         htcli wallet import --name mywallet --password mypassword
+        htcli wallet import --wallet.name mywallet --wallet.password mypassword
+        htcli wallet import --wallet-name mywallet --wallet-password mypassword
 
         # Import an unencrypted wallet
         htcli wallet import --name mywallet
     """
     try:
         # Use absolute path for wallet directory
-        wallet_dir = Path(DEFAULT_WALLET_PATH).expanduser().resolve()
+        wallet_dir = Path(path or DEFAULT_WALLET_PATH).expanduser().resolve()
+
+        # Prompt for wallet name if not provided
+        if not name:
+            name = typer.prompt("Enter wallet name")
+            if not name:
+                typer.echo("Error: Wallet name cannot be empty.")
+                raise typer.Exit(code=1)
+
         wallet_path = wallet_dir / f"{name}.key"
 
         # Check if wallet exists before asking for password
@@ -512,24 +519,60 @@ def import_wallet_cmd(
 
         # Now that we know the wallet exists, prompt for password if not provided
         if password is None:
-            password = getpass.getpass(
-                f"Enter password for wallet '{name}' (press Enter for unencrypted wallet): "
-            )
+            password = getpass.getpass(f"Enter password for wallet '{name}': ")
             if password == "":
                 password = None
 
-        # Load the wallet
-        keypair = import_wallet(name, wallet_dir, password)
+        try:
+            # Load the wallet
+            keypair = import_wallet(name, wallet_dir, password)
 
-        typer.echo(f"✅ Successfully imported wallet '{name}'")
-        typer.echo(f"📍 Address: {keypair.ss58_address}")
-        typer.echo(f"🔑 Public Key: 0x{keypair.public_key.hex()}")
-        typer.echo(f"🔒 Private Key: 0x{keypair.private_key.hex()}")
+            typer.echo(f"✅ Successfully imported wallet '{name}'")
+            typer.echo(f"📍 Address: {keypair.ss58_address}")
+            typer.echo(f"🔑 Public Key: 0x{keypair.public_key.hex()}")
+            typer.echo(f"🔒 Private Key: 0x{keypair.private_key.hex()}")
 
-        return keypair
-    except ValueError as e:
-        raise typer.BadParameter(str(e))
-    except RuntimeError as e:
-        raise typer.BadParameter(str(e))
+            return keypair
+        except ValueError as e:
+            if "Invalid secret key" in str(e):
+                typer.echo(
+                    typer.style(
+                        "❌ Error: Wrong Password - Failed to import wallet",
+                        fg=typer.colors.RED,
+                    )
+                )
+            else:
+                typer.echo(
+                    typer.style(
+                        f"❌ Error: {str(e)}",
+                        fg=typer.colors.RED,
+                    )
+                )
+            raise typer.Exit(code=1)
+        except Exception as e:
+            typer.echo(
+                typer.style(
+                    f"❌ Error: Failed to import wallet - {str(e)}",
+                    fg=typer.colors.RED,
+                )
+            )
+            raise typer.Exit(code=1)
+
+    except typer.BadParameter as e:
+        typer.echo(
+            typer.style(
+                f"❌ Error: {str(e)}",
+                fg=typer.colors.RED,
+            )
+        )
+        raise typer.Exit(code=1)
     except Exception as e:
-        raise typer.Exit(str(e))
+        if not str(e):  # Skip empty error messages
+            raise typer.Exit(code=1)
+        typer.echo(
+            typer.style(
+                f"❌ Error: Failed to import wallet - {str(e)}",
+                fg=typer.colors.RED,
+            )
+        )
+        raise typer.Exit(code=1)

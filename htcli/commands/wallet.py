@@ -576,3 +576,99 @@ def import_wallet_cmd(
             )
         )
         raise typer.Exit(code=1)
+
+
+@app.command()
+def show(
+    name: str = wallet_config.name,
+    password: str = wallet_config.password,
+    path: str = wallet_config.path,
+):
+    """
+    Show detailed information about a specific wallet.
+
+    Examples:
+        # Show wallet details
+        htcli wallet show --name mywallet
+        htcli wallet show --wallet.name mywallet --wallet.password mypassword
+        htcli wallet show --wallet-name mywallet --wallet-password mypassword
+    """
+    if not name:
+        name = typer.prompt("Enter wallet name")
+        if not name:
+            typer.echo("Error: Wallet name cannot be empty.")
+            raise typer.Exit(code=1)
+
+    # Prompt for password if not provided
+    if password is None:
+        password = getpass.getpass(f"Enter password for wallet '{name}': ")
+        if password == "":
+            password = None
+
+    base_path = path or wallet_config.default_wallet_path
+    base_wallet_dir = Path(base_path).expanduser().resolve()
+
+    if not base_wallet_dir.exists():
+        typer.echo(f"No wallets found at {base_wallet_dir}")
+        return
+
+    try:
+        # Show specific wallet
+        wallet_file = base_wallet_dir / f"{name}.key"
+        if not wallet_file.exists():
+            typer.echo(
+                typer.style(
+                    f"❌ Wallet '{name}' not found at {wallet_file}",
+                    fg=typer.colors.RED,
+                )
+            )
+            return
+
+        try:
+            with open(wallet_file, "r") as f:
+                wallet_data = json.load(f)
+
+            typer.echo(typer.style(f"\nWallet Details: {name}", bold=True))
+            typer.echo("=======================")
+            typer.echo(f"📁 Name: {name}")
+            typer.echo(f"📂 Path: {wallet_file}")
+            typer.echo(f"📍 Address: {wallet_data.get('ss58Address', 'Unknown')}")
+            typer.echo(f"🔑 Public Key: {wallet_data.get('publicKey', 'Unknown')}")
+            typer.echo(f"📝 Account ID: {wallet_data.get('accountId', 'Unknown')}")
+
+            if wallet_data.get("isHotkey") and wallet_data.get("owner"):
+                typer.echo(f"👤 Owner: {wallet_data.get('owner', 'Unknown')}")
+
+            # Get decrypted private key using import_wallet
+            try:
+                keypair = import_wallet(name, base_wallet_dir, password)
+                typer.echo(f"🔒 Private Key: 0x{keypair.private_key.hex()}")
+            except ValueError as e:
+                if "Invalid secret key" in str(e):
+                    typer.echo(
+                        typer.style(
+                            "❌ Error: Wrong Password - Failed to decrypt private key",
+                            fg=typer.colors.RED,
+                        )
+                    )
+                else:
+                    typer.echo(
+                        typer.style(
+                            f"❌ Error: {str(e)}",
+                            fg=typer.colors.RED,
+                        )
+                    )
+            except Exception as e:
+                typer.echo(
+                    typer.style(
+                        f"❌ Error: Failed to show private key - {str(e)}",
+                        fg=typer.colors.RED,
+                    )
+                )
+
+        except Exception as e:
+            typer.echo(f"Error reading wallet info: {str(e)}")
+
+    except Exception as e:
+        typer.echo(f"An error occurred while showing wallet: {str(e)}")
+        return

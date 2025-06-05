@@ -12,6 +12,7 @@ from substrateinterface import Keypair
 from htcli.core.config.wallet import wallet_config
 import getpass
 from htcli.core.constants import DEFAULT_WALLET_PATH
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,

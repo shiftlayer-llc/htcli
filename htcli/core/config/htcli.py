@@ -2,6 +2,7 @@ from .chain import chain_config
 from .subnet import subnet_config
 from .wallet import wallet_config
 
+
 class htcli_config:
     def __init__(
         self, chain: chain_config, subnet: subnet_config, wallet: wallet_config

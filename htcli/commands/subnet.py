@@ -13,7 +13,7 @@ from htcli.utils.chain_functions import (
     activate_subnet,
     remove_subnet,
     get_subnets_list,
-    get_subnet_info
+    get_subnet_info,
 )
 
 from htcli.utils.subnet import (
@@ -21,11 +21,12 @@ from htcli.utils.subnet import (
     check_name,
     check_path,
     check_wallet_path,
-    check_password
+    check_password,
 )
 
 console = Console()
 app = typer.Typer(name="subnet", help="Subnet commands")
+
 
 @app.command()
 def register(
@@ -35,12 +36,14 @@ def register(
     wallet_path: str = wallet_config.path,
     path: str = subnet_config.path,
     wallet_password: str = wallet_config.password,
-    max_node_registration_epochs: int = subnet_config.max_node_registration_epochs, # The maximum number of epochs a node can stay registered without being validated or promoted.
-    node_registration_interval: int = subnet_config.node_registration_interval, # How frequently (in blocks) new nodes can be registered to the subnet.
-    node_activation_interval: int = subnet_config.node_activation_interval, # How frequently (in blocks) registered nodes are activated into the network for participation.
-    node_queue_period: int = subnet_config.node_queue_period, # How many epochs a node spends in the Queue class (a waiting area) before being considered for consensus.
-    max_node_penalties: int = subnet_config.max_node_penalties, # Maximum number of penalties a node can receive before being kicked from the subnet.
-    coldkey_whitelist: Optional[List[str]] = subnet_config.coldkey_whitelist,  # List of coldkeys to whitelist for the subnet
+    max_node_registration_epochs: int = subnet_config.max_node_registration_epochs,  # The maximum number of epochs a node can stay registered without being validated or promoted.
+    node_registration_interval: int = subnet_config.node_registration_interval,  # How frequently (in blocks) new nodes can be registered to the subnet.
+    node_activation_interval: int = subnet_config.node_activation_interval,  # How frequently (in blocks) registered nodes are activated into the network for participation.
+    node_queue_period: int = subnet_config.node_queue_period,  # How many epochs a node spends in the Queue class (a waiting area) before being considered for consensus.
+    max_node_penalties: int = subnet_config.max_node_penalties,  # Maximum number of penalties a node can receive before being kicked from the subnet.
+    coldkey_whitelist: Optional[
+        List[str]
+    ] = subnet_config.coldkey_whitelist,  # List of coldkeys to whitelist for the subnet
 ):
     """
     Register a new subnet
@@ -65,7 +68,7 @@ def register(
 
     substrate = SubstrateConfigwithKeypair(name, rpc, wallet_path, wallet_password)
     try:
-        
+
         receipt = register_subnet(
             substrate.interface,
             substrate.keypair,
@@ -75,10 +78,12 @@ def register(
             node_activation_interval,
             node_queue_period,
             max_node_penalties,
-            coldkey_whitelist
+            coldkey_whitelist,
         )
         if receipt is None:
-            console.log("[red]No receipt returned. Please check the transaction status.[/red]")
+            console.log(
+                "[red]No receipt returned. Please check the transaction status.[/red]"
+            )
         else:
             console.print(f"[blue]Extrinsic Hash: {receipt.extrinsic_hash}[/blue]")
             console.print(f"[blue]Block Hash: {receipt.block_hash}[/blue]")
@@ -89,7 +94,7 @@ def register(
 
 
 @app.command()
-def info(    
+def info(
     rpc_url: str = chain_config.rpc_url,
     rpc_network: str = chain_config.env,
     subnet_id: int = subnet_config.id,
@@ -101,21 +106,25 @@ def info(
     typer.echo(f"Connecting to {rpc}")
     substrate_interface = SubstrateInterface(url=rpc)
     try:
-        with console.status(f"[bold green]Getting info of subnet {subnet_id}...[/bold green]", spinner="dots"):
-            receipt = get_subnet_info(
-                substrate_interface, subnet_id
-            )
+        with console.status(
+            f"[bold green]Getting info of subnet {subnet_id}...[/bold green]",
+            spinner="dots",
+        ):
+            receipt = get_subnet_info(substrate_interface, subnet_id)
         if receipt["is_success"] is True:
             console.print(f"[blue]Subnet ID: {receipt['meta']['id']}[/blue]")
             console.print(f"[blue]Path: {receipt['meta']['path']}[/blue]")
             console.print(f"[blue]State: {receipt['meta']['state']}[/blue]")
-            console.print(f"[blue]Total Active Nodes: {receipt['meta']['total_active_nodes']}[/blue]")
+            console.print(
+                f"[blue]Total Active Nodes: {receipt['meta']['total_active_nodes']}[/blue]"
+            )
             console.print(f"[blue]Subnet Owner: {receipt['meta']['owner']}[/blue]")
         else:
             console.log(f"[red]Error Message: {receipt['error_message']}[/red]")
             return
     except Exception as e:
         typer.echo(f"Error: {e}")
+
 
 @app.command()
 def activate(
@@ -132,7 +141,9 @@ def activate(
     name = check_name(name)
     substrate = SubstrateConfigwithKeypair(name, rpc)
     try:
-        with console.status(f"[bold green]Activating subnet {subnet_id}...[/bold green]", spinner="dots"):
+        with console.status(
+            f"[bold green]Activating subnet {subnet_id}...[/bold green]", spinner="dots"
+        ):
             receipt = activate_subnet(
                 substrate.interface,
                 substrate.keypair,
@@ -144,6 +155,7 @@ def activate(
             console.log("[green]Subnet activated successfully![/green]")
     except Exception as e:
         typer.echo("Error: ", e)
+
 
 @app.command()
 def list(
@@ -157,13 +169,16 @@ def list(
     typer.echo(f"Connecting to {rpc}")
     substrate_interface = SubstrateInterface(url=rpc)
     try:
-        with console.status("[bold green]Listing all registered subnets...[/bold green]", spinner="dots"):
+        with console.status(
+            "[bold green]Listing all registered subnets...[/bold green]", spinner="dots"
+        ):
             receipt = get_subnets_list(
                 substrate_interface,
             )
         print_subnets_table(receipt)
     except Exception as e:
         typer.echo("Error: ", e)
+
 
 @app.command()
 def remove(
@@ -179,21 +194,24 @@ def remove(
     typer.echo(f"Connecting to {rpc}")
     substrate = SubstrateConfigwithKeypair(name, rpc)
     try:
-        with console.status(f"[bold green]Removing subnet {subnet_id}...[/bold green]", spinner="dots"):
+        with console.status(
+            f"[bold green]Removing subnet {subnet_id}...[/bold green]", spinner="dots"
+        ):
             receipt = remove_subnet(
                 substrate.interface,
                 substrate.keypair,
                 subnet_id,
             )
         console.log(f"[blue]Extrinsic Hash: {receipt.extrinsic_hash} [/blue]")
-        console.log(f"[blue]Block Hash: {receipt.block_hash} [/blue]", )
+        console.log(
+            f"[blue]Block Hash: {receipt.block_hash} [/blue]",
+        )
         if receipt.is_success == False:
             console.log(f"[red]Error Message: {receipt.error_message}[/red]")
         else:
             console.log("[green]Subnet registered successfully![/green]")
     except Exception as e:
         typer.echo("Error: ", e)
-
 
 
 def print_subnets_table(receipt):
@@ -213,7 +231,7 @@ def print_subnets_table(receipt):
             subnet["path"] or "-",
             subnet["state"],
             str(subnet["total_active_nodes"]),
-            subnet["subnet_owner"]
+            subnet["subnet_owner"],
         )
 
     console = Console()

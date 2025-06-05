@@ -10,6 +10,7 @@ from htcli.core.constants import (
 )
 from typing import Optional, List
 
+
 class subnet_config:
     id = typer.Option(
         None,
@@ -64,3 +65,28 @@ class subnet_config:
         "--max-node-penalties",
         help="Maximum number of penalties a node can receive before being kicked from the subnet",
     )
+
+    def __repr__(self):
+        return f"subnet_config(id={self.id}, path={self.path}, coldkey_whitelist={self.coldkey_whitelist}, max_node_registration_epochs={self.max_node_registration_epochs}, node_registration_interval={self.node_registration_interval}, node_activation_interval={self.node_activation_interval}, node_queue_period={self.node_queue_period}, max_node_penalties={self.max_node_penalties})"
+
+    def __str__(self):
+        return f"subnet_config(id={self.id}, path={self.path}, coldkey_whitelist={self.coldkey_whitelist}, max_node_registration_epochs={self.max_node_registration_epochs}, node_registration_interval={self.node_registration_interval}, node_activation_interval={self.node_activation_interval}, node_queue_period={self.node_queue_period}, max_node_penalties={self.max_node_penalties})"
+
+    def __hash__(self):
+        return hash(
+            (
+                self.id,
+                self.path,
+                self.coldkey_whitelist,
+                self.max_node_registration_epochs,
+                self.node_registration_interval,
+                self.node_activation_interval,
+                self.node_queue_period,
+                self.max_node_penalties,
+            )
+        )
+
+    def __eq__(self, other):
+        if not isinstance(other, subnet_config):
+            return False
+        return self.__hash__() == other.__hash__()

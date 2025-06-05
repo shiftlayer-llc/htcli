@@ -1,10 +1,10 @@
+import json
 import os
 from pathlib import Path
-from substrateinterface import Keypair
-import json
 from enum import Enum
 import hashlib
 import logging
+from substrateinterface import Keypair
 
 # Configure logging
 logging.basicConfig(

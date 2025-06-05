@@ -6,7 +6,11 @@ class wallet_config:
     """Wallet configuration options."""
 
     name = typer.Option(
-        None, "--name", "--wallet.name", "--wallet-name", help="Name of the wallet"
+        None,
+        "--name",
+        "--wallet.name",
+        "--wallet-name",
+        help="Name of the wallet",
     )
     password = typer.Option(
         None,
@@ -44,10 +48,14 @@ class wallet_config:
         help="Hotkey name for owned hotkey",
     )
     force = typer.Option(
-        False, "--force", help="Skip confirmation prompt or overwrite existing wallet"
+        False,
+        "--force",
+        help="Skip confirmation prompt or overwrite existing wallet",
     )
     all = typer.Option(
-        False, "--all", help="Indicates to <all wallets>, <whole balance>, ...."
+        False,
+        "--all",
+        help="Indicates to <all wallets>, <whole balance>, ....",
     )
     mnemonic = typer.Option(
         None,
@@ -62,6 +70,7 @@ class wallet_config:
         "--wallet.ss58-address",
         help="SS58 address to check balance",
     )
+    default_wallet_path = DEFAULT_WALLET_PATH
 
     def __repr__(self):
         return f"wallet_config(wallet_path={self.path}, name={self.name}"

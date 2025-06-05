@@ -177,7 +177,7 @@ def list(name: str = wallet_config.name, path: str = wallet_config.path):
                 return
 
             typer.echo(
-                typer.style(f"Available Wallets ({len(wallet_files)}):", bold=True)
+                typer.style(f"\nAvailable Wallets ({len(wallet_files)}):", bold=True)
             )
             # Create table headers
             headers = ["Wallet", "Address"]

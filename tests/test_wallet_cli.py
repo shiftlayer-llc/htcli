@@ -283,3 +283,76 @@ def test_wallet_cli_restore(tmp_path):
     new_ss58_address_start_index = result.stdout.index("📍 Address:") + 11
     new_ss58_address = result.stdout[new_ss58_address_start_index:].split()[0]
     assert ss58_address == new_ss58_address
+
+
+def test_wallet_cli_show(tmp_path):
+    # Create a wallet first
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "htcli.main",
+            "wallet",
+            "create",
+            "--name",
+            "cli_test_wallet_show",
+            "--path",
+            str(tmp_path),
+            "--password",
+            "password",
+            "--force",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "Created wallet" in result.stdout
+
+    def test_wallet_cli_show_with_correct_password():
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "htcli.main",
+                "wallet",
+                "show",
+                "--name",
+                "cli_test_wallet_show",
+                "--path",
+                str(tmp_path),
+                "--password",
+                "password",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0
+        assert "Address" in result.stdout
+        assert "cli_test_wallet_show" in result.stdout
+        assert "Private Key" in result.stdout
+
+    def test_wallet_cli_show_with_wrong_password():
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "htcli.main",
+                "wallet",
+                "show",
+                "--name",
+                "cli_test_wallet_show",
+                "--path",
+                str(tmp_path),
+                "--password",
+                "wrong_password",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0
+        assert "Address" in result.stdout
+        assert "cli_test_wallet_show" in result.stdout
+        assert "Error: Failed to show private key" in result.stdout
+
+    test_wallet_cli_show_with_correct_password()
+    test_wallet_cli_show_with_wrong_password()

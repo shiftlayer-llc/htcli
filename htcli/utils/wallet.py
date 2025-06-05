@@ -264,21 +264,12 @@ def import_wallet(name: str, wallet_dir: Path, password: str = None) -> Keypair:
         raise ValueError("Invalid wallet file: private key is not valid hex")
 
     # Check if wallet is encrypted
-    # First try the isEncrypted flag (for newer wallets)
     is_encrypted = wallet_data.get("isEncrypted")
-
-    # If flag is not present (older wallets), try to detect by attempting to create keypair
     if is_encrypted is None:
-        try:
-            # Try to create keypair directly - if it works, wallet is unencrypted
-            return Keypair.create_from_private_key(private_key_bytes, ss58_format=42)
-        except Exception:
-            # If it fails, wallet is likely encrypted
-            is_encrypted = True
+        is_encrypted = len(private_key_bytes) != 32
 
     # For unencrypted wallets
     if not is_encrypted:
-        # Reject if password is provided for unencrypted wallet
         if password:
             raise RuntimeError("Invalid password: This wallet is not encrypted")
         try:
@@ -286,22 +277,19 @@ def import_wallet(name: str, wallet_dir: Path, password: str = None) -> Keypair:
         except Exception as e:
             raise RuntimeError(f"Failed to create keypair: {str(e)}")
 
-    # For encrypted wallets, require password
+    # For encrypted wallets
     if not password:
         raise RuntimeError(
             "Invalid password: Wallet is encrypted but no password provided"
         )
 
-    # Decrypt the private key
     try:
         private_key_bytes = decrypt_data(private_key_bytes, password)
-        # Validate the decrypted private key
         if not is_valid_private_key(private_key_bytes):
             raise RuntimeError("Invalid password: Failed to decrypt private key")
     except Exception as e:
         raise RuntimeError("Invalid password: Failed to decrypt private key")
 
-    # Create keypair from decrypted private key
     try:
         return Keypair.create_from_private_key(private_key_bytes, ss58_format=42)
     except Exception as e:

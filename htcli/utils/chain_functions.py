@@ -3,7 +3,7 @@ from typing import Any, Optional
 from substrateinterface import SubstrateInterface, Keypair, ExtrinsicReceipt
 from substrateinterface.exceptions import SubstrateRequestException
 from tenacity import retry, stop_after_attempt, wait_exponential, wait_fixed
-from htcli.hypertensor.substrate.config import BLOCK_SECS
+from htcli.core.constants import BLOCK_SECS
 from tenacity import RetryCallState
 from concurrent.futures import ThreadPoolExecutor
 from decimal import Decimal
@@ -17,7 +17,6 @@ def increment_counter(retry_state: RetryCallState):
     print(f"Retry {retry_counter}: {retry_state}")
 
 def get_block_number(substrate: SubstrateInterface):
-  # @retry(wait=wait_exponential(multiplier=1, min=4, max=10), stop=stop_after_attempt(4))
   @retry(wait=wait_fixed(BLOCK_SECS+1), stop=stop_after_attempt(4))
   def make_query():
     try:
@@ -62,7 +61,6 @@ def validate(
     }
   )
 
-  # @retry(wait=wait_exponential(multiplier=1, min=4, max=10), stop=stop_after_attempt(4), after=increment_counter)
   @retry(wait=wait_fixed(BLOCK_SECS+1), stop=stop_after_attempt(4), after=increment_counter)
   def submit_extrinsic():
     try:
@@ -111,7 +109,6 @@ def attest(
     }
   )
 
-  # @retry(wait=wait_exponential(multiplier=1, min=4, max=10), stop=stop_after_attempt(4), after=increment_counter)
   @retry(wait=wait_fixed(BLOCK_SECS+1), stop=stop_after_attempt(4), after=increment_counter)
   def submit_extrinsic():
     try:
@@ -1639,59 +1636,3 @@ def get_subnet_info(
     print("Failed to get rpc request: {}".format(e))
     return None
 
-
-
-# def get_subnet_info(
-#   substrate: SubstrateInterface,
-#   subnet_id: int
-# ):
-#   """
-#   Concurrently query subnet metadata, owner, total active nodes, and node list,
-#   with retry logic applied to each query.
-#   """
-#   return_data = {"is_success": False, "error_message": None}
-
-#   try:
-#     with substrate as _substrate:
-
-#       @retry(wait=wait_fixed(BLOCK_SECS + 1), stop=stop_after_attempt(4))
-#       def get_meta():
-#         return _substrate.query('Network', 'SubnetsData', [subnet_id]).value
-
-#       @retry(wait=wait_fixed(BLOCK_SECS + 1), stop=stop_after_attempt(4))
-#       def get_owner():
-#         return _substrate.query('Network', 'SubnetOwner', [subnet_id]).value
-
-#       @retry(wait=wait_fixed(BLOCK_SECS + 1), stop=stop_after_attempt(4))
-#       def get_total_active_nodes():
-#         return _substrate.query('Network', 'TotalActiveSubnetNodes', [subnet_id]).value
-
-#       @retry(wait=wait_fixed(BLOCK_SECS + 1), stop=stop_after_attempt(4))
-#       def get_nodes():
-#         return _substrate.rpc_request(
-#           method='network_getSubnetNodes',
-#           params=[subnet_id]
-#         )
-
-#       with ThreadPoolExecutor() as executor:
-#         futures = {
-#           "meta": executor.submit(get_meta),
-#           "owner": executor.submit(get_owner),
-#           "total_active_nodes": executor.submit(get_total_active_nodes),
-#           "nodes": executor.submit(get_nodes)
-#         }
-
-#         results = {key: future.result() for key, future in futures.items()}
-
-#       # Combine results
-#       results["meta"]["owner"] = results["owner"]
-#       results["meta"]["total_active_nodes"] = results["total_active_nodes"]
-
-#       return_data["meta"] = results["meta"]
-#       return_data["nodes"] = results["nodes"]
-#       return_data["is_success"] = True
-
-#   except Exception as e:
-#     return_data["error_message"] = f"Failed to get subnet info: {e}"
-
-#   return return_data

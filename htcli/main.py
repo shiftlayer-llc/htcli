@@ -24,7 +24,6 @@ app.add_typer(wallet.app, name="wallet", help="Wallet commands")
 # Check if the script is being run directly (not imported as a module)
 # If true, execute the Typer application to start the CLI
 
-app.add_typer(node.app, name="node", help="Node commands")
 
 if __name__ == "__main__":
     app()

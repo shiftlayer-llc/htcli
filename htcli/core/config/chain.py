@@ -8,8 +8,8 @@ from htcli.core.constants import (
 class chain_config:
     rpc_url = typer.Option(
         None,
-        "--chain.rpc_url",
-        "--rpc_url",
+        "--chain.rpc-url",
+        "--rpc-url",
         "--chain.url",
         help="RPC URL for the chain",
     )

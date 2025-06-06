@@ -7,13 +7,6 @@ from substrateinterface import SubstrateInterface, Keypair
 from htcli.utils.wallet import import_wallet
 
 
-class SubstrateConfigCustom:
-    def __init__(self, phrase, url):
-        self.url = url
-        self.interface: SubstrateInterface = SubstrateInterface(url=url)
-        self.keypair = Keypair.create_from_uri(phrase)
-
-
 class SubstrateConfigwithKeypair:
     def __init__(self, name, url, wallet_dir, password):
         self.url = url

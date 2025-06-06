@@ -1,30 +1,6 @@
-import typer
-from htcli.core.constants import (
-    DEFAULT_RPC_URL,
-    DEFAULT_CHAIN_ENV,
-)
-from pathlib import Path
-from .config.wallet import wallet_config
-from .config.subnet import subnet_config
-
-
-class chain_config:
-    rpc_url = typer.Option(
-        DEFAULT_RPC_URL,
-        "--chain.rpc_url",
-        "--rpc_url",
-        "--chain.url",
-        help="RPC URL for the chain",
-    )
-    env = typer.Option(
-        DEFAULT_CHAIN_ENV,
-        "--chain.env",
-        "--env",
-        help="Environment for the chain (local/testnet/mainnet)",
-    )
-
-    def __repr__(self):
-        return f"chain_config(rpc_url={self.rpc_url}, env={self.env})"
+from .chain import chain_config
+from .subnet import subnet_config
+from .wallet import wallet_config
 
 
 class htcli_config:

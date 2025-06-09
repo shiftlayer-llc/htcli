@@ -8,7 +8,7 @@ from rich.console import Console
 from rich.table import Table
 from substrateinterface import SubstrateInterface
 from pathlib import Path
-from htcli.utils.chain_functions import (
+from htcli.utils.chain import (
     register_subnet,
     activate_subnet,
     remove_subnet,
@@ -26,7 +26,6 @@ from htcli.core.constants import (
 
 console = Console()
 app = typer.Typer(name="subnet", help="Subnet commands")
-
 
 
 def get_rpc(rpc_url, rpc_network):
@@ -70,8 +69,6 @@ def check_password(wallet_password: str):
     if not wallet_password:
         wallet_password = typer.prompt("Enter wallet password", hide_input=True)
     return wallet_password
-
-
 
 
 @app.command()

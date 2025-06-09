@@ -8,7 +8,7 @@ from rich.console import Console
 from rich.table import Table
 from substrateinterface import SubstrateInterface
 from pathlib import Path
-from htcli.utils.chain import (
+from htcli.utils.subnet import (
     register_subnet,
     activate_subnet,
     remove_subnet,

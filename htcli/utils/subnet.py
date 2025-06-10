@@ -69,7 +69,7 @@ def register_subnet(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print(f"[Retry] Failed to submit extrinsic: {e}")
+            console.print(f"[Retry] Failed to submit extrinsic: {e}")
             raise
 
     with console.status(
@@ -112,7 +112,7 @@ def get_subnets_list(substrate: SubstrateInterface):
                         subnets.append(result.value)
                 return subnets
         except SubstrateRequestException as e:
-            print(f"Failed to get subnets list: {e}")
+            console.print(f"Failed to get subnets list: {e}")
             raise
 
     return query_all()
@@ -157,7 +157,7 @@ def activate_subnet(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -196,7 +196,7 @@ def remove_subnet(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -228,5 +228,5 @@ def get_subnet_info(substrate: SubstrateInterface, subnet_id: int):
 
             return return_data
     except SubstrateRequestException as e:
-        print("Failed to get rpc request: {}".format(e))
+        console.print("Failed to get rpc request: {}".format(e))
         return None

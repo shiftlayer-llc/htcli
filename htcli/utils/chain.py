@@ -14,7 +14,7 @@ retry_counter = 0
 def increment_counter(retry_state: RetryCallState):
     global retry_counter
     retry_counter += 1
-    print(f"Retry {retry_counter}: {retry_state}")
+    console.print(f"Retry {retry_counter}: {retry_state}")
 
 
 def get_block_number(substrate: SubstrateInterface):
@@ -26,7 +26,7 @@ def get_block_number(substrate: SubstrateInterface):
                 block_number = _substrate.get_block_number(block_hash)
                 return block_number
         except SubstrateRequestException as e:
-            print("Failed to get query request: {}".format(e))
+            console.print("Failed to get query request: {}".format(e))
 
     return make_query()
 
@@ -83,15 +83,15 @@ def validate(
                     extrinsic, wait_for_inclusion=True
                 )
                 if receipt.is_success:
-                    print("✅ Success, triggered events:")
+                    console.print("✅ Success, triggered events:")
                     for event in receipt.triggered_events:
-                        print(f"* {event.value}")
+                        console.print(f"* {event.value}")
                 else:
-                    print("⚠️ Extrinsic Failed: ", receipt.error_message)
+                    console.print("⚠️ Extrinsic Failed: ", receipt.error_message)
 
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -137,15 +137,15 @@ def attest(substrate: SubstrateInterface, keypair: Keypair, subnet_id: int):
                 )
 
                 if receipt.is_success:
-                    print("✅ Success, triggered events:")
+                    console.print("✅ Success, triggered events:")
                     for event in receipt.triggered_events:
-                        print(f"* {event.value}")
+                        console.print(f"* {event.value}")
                 else:
-                    print("⚠️ Extrinsic Failed: ", receipt.error_message)
+                    console.print("⚠️ Extrinsic Failed: ", receipt.error_message)
 
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -178,7 +178,7 @@ def get_subnet_nodes(
                 )
                 return subnet_nodes_data
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_rpc_request()
 
@@ -204,7 +204,7 @@ def get_subnet_nodes_included(
                 )
             return subnet_nodes_data
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_rpc_request()
 
@@ -230,7 +230,7 @@ def get_subnet_nodes_submittable(
                 )
                 return subnet_nodes_data
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_rpc_request()
 
@@ -253,7 +253,7 @@ async def get_consensus_data(substrate: SubstrateInterface, subnet_id: int, epoc
                 )
                 return subnet_nodes_data
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_rpc_request()
 
@@ -279,7 +279,7 @@ def is_subnet_node_by_peer_id(
                 )
                 return is_subnet_node
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_rpc_request()
 
@@ -306,7 +306,7 @@ def get_minimum_subnet_nodes(
                 )
                 return subnet_nodes_data
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_rpc_request()
 
@@ -333,7 +333,7 @@ def get_minimum_delegate_stake(
                 )
                 return subnet_nodes_data
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_rpc_request()
 
@@ -360,7 +360,7 @@ def get_subnet_node_info(
                 )
                 return subnet_nodes_data
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_rpc_request()
 
@@ -425,7 +425,7 @@ def add_subnet_node(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -490,7 +490,7 @@ def register_subnet_node(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -537,7 +537,7 @@ def activate_subnet_node(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -584,7 +584,7 @@ def deactivate_subnet_node(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -631,7 +631,7 @@ def remove_subnet_node(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -682,7 +682,7 @@ def add_to_stake(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -731,7 +731,7 @@ def remove_stake(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -771,7 +771,7 @@ def claim_stake_unbondings(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -818,7 +818,7 @@ def add_to_delegate_stake(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -868,7 +868,7 @@ def transfer_delegate_stake(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -915,7 +915,7 @@ def remove_delegate_stake(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -964,7 +964,7 @@ def increase_delegate_stake(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -1011,7 +1011,7 @@ def update_coldkey(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -1058,7 +1058,7 @@ def update_hotkey(
                 )
                 return receipt
         except SubstrateRequestException as e:
-            print("Failed to send: {}".format(e))
+            console.print("Failed to send: {}".format(e))
 
     return submit_extrinsic()
 
@@ -1086,7 +1086,7 @@ def get_hotkey_subnet_node_id(
                 )
                 return result
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1109,7 +1109,7 @@ def get_hotkey_owner(
                 result = _substrate.query("Network", "HotkeyOwner", [hotkey])
                 return result.value["data"]["free"]
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1136,7 +1136,7 @@ def get_subnet_node_id_hotkey(
                 )
                 return result.value["data"]["free"]
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1157,7 +1157,7 @@ def get_balance(substrate: SubstrateInterface, address: str):
                 result = _substrate.query("System", "Account", [address])
                 return result.value["data"]["free"]
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1183,7 +1183,7 @@ def get_subnet_stake_balance(
                 )
                 return result
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1204,7 +1204,7 @@ def get_subnet_id_by_path(substrate: SubstrateInterface, path: str):
                 result = _substrate.query("Network", "SubnetPaths", [path])
                 return result
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1225,7 +1225,7 @@ def get_subnet_data(substrate: SubstrateInterface, id: int):
                 result = _substrate.query("Network", "SubnetsData", [id])
                 return result
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1245,7 +1245,7 @@ def get_max_subnets(substrate: SubstrateInterface):
                 result = _substrate.query("Network", "MaxSubnets")
                 return result
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1265,7 +1265,7 @@ def get_min_subnet_nodes(substrate: SubstrateInterface):
                 result = _substrate.query("Network", "MinSubnetNodes")
                 return result
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1285,7 +1285,7 @@ def get_min_stake_balance(substrate: SubstrateInterface):
                 result = _substrate.query("Network", "MinStakeBalance")
                 return result
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1305,7 +1305,7 @@ def get_max_subnet_nodes(substrate: SubstrateInterface):
                 result = _substrate.query("Network", "MaxSubnetNodes")
                 return result
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1325,7 +1325,7 @@ def get_tx_rate_limit(substrate: SubstrateInterface):
                 result = _substrate.query("Network", "TxRateLimit")
                 return result
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1345,7 +1345,7 @@ def get_epoch_length(substrate: SubstrateInterface):
                 result = _substrate.get_constant("Network", "EpochLength")
                 return result
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1369,7 +1369,7 @@ def get_rewards_validator(substrate: SubstrateInterface, subnet_id: int, epoch: 
                 )
                 return result
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1394,7 +1394,7 @@ def get_rewards_submission(substrate: SubstrateInterface, subnet_id: int, epoch:
                 )
                 return result
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1414,7 +1414,7 @@ def get_min_subnet_registration_blocks(substrate: SubstrateInterface):
                 result = _substrate.query("Network", "MinSubnetRegistrationBlocks")
                 return result
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1433,7 +1433,7 @@ def get_max_subnet_registration_blocks(substrate: SubstrateInterface):
                 result = _substrate.query("Network", "MaxSubnetRegistrationBlocks")
                 return result
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1452,7 +1452,7 @@ def get_max_subnet_entry_interval(substrate: SubstrateInterface):
                 result = _substrate.query("Network", "MaxSubnetEntryInterval")
                 return result
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_query()
 
@@ -1493,7 +1493,7 @@ def get_reward_result_event(
                             break
                 return data
         except SubstrateRequestException as e:
-            print("Failed to get rpc request: {}".format(e))
+            console.print("Failed to get rpc request: {}".format(e))
 
     return make_event_query()
 

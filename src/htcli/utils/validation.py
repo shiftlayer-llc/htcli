@@ -1,0 +1,281 @@
+"""
+Input validation utility functions for the Hypertensor CLI.
+"""
+
+import re
+from typing import Optional, Union
+from pathlib import Path
+
+
+def validate_address(address: str) -> bool:
+    """Validate SS58 address format."""
+    # Basic SS58 validation - should be 42-48 characters and start with a number
+    if not address or len(address) < 42 or len(address) > 48:
+        return False
+
+    # Should start with a number (5 for mainnet, 0 for testnet)
+    if not address[0].isdigit():
+        return False
+
+    # Should contain only alphanumeric characters
+    if not re.match(r'^[1-9A-HJ-NP-Za-km-z]+$', address):
+        return False
+
+    return True
+
+
+def validate_amount(amount: Union[str, float, int]) -> bool:
+    """Validate amount format."""
+    try:
+        if isinstance(amount, str):
+            amount = float(amount)
+        elif isinstance(amount, int):
+            amount = float(amount)
+
+        if amount <= 0:
+            return False
+
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
+def validate_subnet_id(subnet_id: Union[str, int]) -> bool:
+    """Validate subnet ID format."""
+    try:
+        if isinstance(subnet_id, str):
+            subnet_id = int(subnet_id)
+
+        if subnet_id <= 0:
+            return False
+
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
+def validate_node_id(node_id: Union[str, int]) -> bool:
+    """Validate node ID format."""
+    try:
+        if isinstance(node_id, str):
+            node_id = int(node_id)
+
+        if node_id <= 0:
+            return False
+
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
+def validate_peer_id(peer_id: str) -> bool:
+    """Validate peer ID format (MultiHash)."""
+    # Basic MultiHash validation
+    if not peer_id or len(peer_id) < 10:
+        return False
+
+    # Should start with Qm (base58btc multihash)
+    if not peer_id.startswith('Qm'):
+        return False
+
+    # Should contain only base58 characters
+    if not re.match(r'^[1-9A-HJ-NP-Za-km-z]+$', peer_id):
+        return False
+
+    return True
+
+
+def validate_key_type(key_type: str) -> bool:
+    """Validate key type."""
+    valid_types = ["sr25519", "ed25519"]
+    return key_type.lower() in valid_types
+
+
+def validate_password(password: Optional[str]) -> bool:
+    """Validate password strength."""
+    if password is None:
+        return True  # Allow empty passwords
+
+    if len(password) < 8:
+        return False
+
+    # Should contain at least one letter and one number
+    if not re.search(r'[a-zA-Z]', password) or not re.search(r'\d', password):
+        return False
+
+    return True
+
+
+def validate_file_path(file_path: str) -> bool:
+    """Validate file path."""
+    try:
+        path = Path(file_path)
+        return True
+    except Exception:
+        return False
+
+
+def validate_rpc_url(url: str) -> bool:
+    """Validate RPC URL format."""
+    # Basic URL validation
+    if not url:
+        return False
+
+    # Should start with ws:// or wss:// or http:// or https://
+    if not re.match(r'^(ws|wss|http|https)://', url):
+        return False
+
+    return True
+
+
+def validate_vote_type(vote: str) -> bool:
+    """Validate vote type."""
+    valid_votes = ["yay", "nay"]
+    return vote.lower() in valid_votes
+
+
+def validate_proposal_data(data: str) -> bool:
+    """Validate proposal data."""
+    if not data or len(data.strip()) == 0:
+        return False
+
+    # Basic length validation
+    if len(data) > 10000:  # 10KB limit
+        return False
+
+    return True
+
+
+def validate_validation_data(data: str) -> bool:
+    """Validate validation data."""
+    if not data or len(data.strip()) == 0:
+        return False
+
+    # Basic length validation
+    if len(data) > 100000:  # 100KB limit
+        return False
+
+    return True
+
+
+def validate_memory_mb(memory_mb: int) -> bool:
+    """Validate memory requirement in MB."""
+    if memory_mb <= 0 or memory_mb > 100000:  # 100GB limit
+        return False
+
+    return True
+
+
+def validate_registration_blocks(blocks: int) -> bool:
+    """Validate registration period in blocks."""
+    if blocks <= 0 or blocks > 1000000:  # 1M blocks limit
+        return False
+
+    return True
+
+
+def validate_entry_interval(interval: int) -> bool:
+    """Validate entry interval in blocks."""
+    if interval <= 0 or interval > 100000:  # 100K blocks limit
+        return False
+
+    return True
+
+
+def validate_subnet_path(path: str) -> bool:
+    """Validate subnet path/name."""
+    if not path or len(path.strip()) == 0:
+        return False
+
+    # Should be alphanumeric with hyphens and underscores
+    if not re.match(r'^[a-zA-Z0-9_-]+$', path):
+        return False
+
+    # Length validation
+    if len(path) > 100:
+        return False
+
+    return True
+
+
+def validate_wallet_name(name: str) -> bool:
+    """Validate wallet name."""
+    if not name or len(name.strip()) == 0:
+        return False
+
+    # Should be alphanumeric with hyphens and underscores
+    if not re.match(r'^[a-zA-Z0-9_-]+$', name):
+        return False
+
+    # Length validation
+    if len(name) > 50:
+        return False
+
+    return True
+
+
+def validate_private_key(private_key: str) -> bool:
+    """Validate private key format."""
+    if not private_key or len(private_key.strip()) == 0:
+        return False
+
+    # Should be hex string
+    if not re.match(r'^[0-9a-fA-F]+$', private_key):
+        return False
+
+    # Length validation (32 bytes = 64 hex characters)
+    if len(private_key) != 64:
+        return False
+
+    return True
+
+
+def validate_mnemonic(mnemonic: str) -> bool:
+    """Validate mnemonic phrase."""
+    if not mnemonic or len(mnemonic.strip()) == 0:
+        return False
+
+    # Split into words
+    words = mnemonic.strip().split()
+
+    # Should have 12, 15, 18, 21, or 24 words
+    if len(words) not in [12, 15, 18, 21, 24]:
+        return False
+
+    # All words should be lowercase
+    for word in words:
+        if not word.islower() or not word.isalpha():
+            return False
+
+    return True
+
+
+def validate_block_number(block_number: Optional[Union[str, int]]) -> bool:
+    """Validate block number."""
+    if block_number is None:
+        return True  # Allow None for latest block
+
+    try:
+        if isinstance(block_number, str):
+            block_number = int(block_number)
+
+        if block_number < 0:
+            return False
+
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
+def validate_limit(limit: Union[str, int]) -> bool:
+    """Validate limit parameter."""
+    try:
+        if isinstance(limit, str):
+            limit = int(limit)
+
+        if limit <= 0 or limit > 1000:
+            return False
+
+        return True
+    except (ValueError, TypeError):
+        return False

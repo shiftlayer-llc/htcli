@@ -52,3 +52,7 @@ class htcli_config:
             and self.subnet == other.subnet
             and self.wallet == other.wallet
         )
+
+
+# Create instances for easy importing
+chain_config_instance = chain_config()

@@ -15,6 +15,7 @@ from htcli.core.constants import (
     COLDKEY_FILE_NAME,
     HOTKEYS_DIR_NAME,
     DEFAULT_WALLET_PATH,
+    DEFAULT_RPC_URL,
 )
 import getpass
 
@@ -693,3 +694,280 @@ def show(
     except Exception as e:
         typer.echo(f"An error occurred while showing wallet: {str(e)}")
         return
+
+
+@app.command()
+def transfer(
+    to_address: str = typer.Option(..., "--to", "-t", help="Destination address"),
+    amount: float = typer.Option(..., "--amount", "-a", help="Amount of TENSOR to transfer"),
+    name: str = wallet_config.name,
+    password: str = wallet_config.password,
+    path: str = wallet_config.path,
+    rpc_url: str = typer.Option(DEFAULT_RPC_URL, "--rpc-url", help="RPC URL for the chain"),
+    env: str = typer.Option("local", "--env", help="Environment (local/testnet/mainnet)"),
+    force: bool = typer.Option(False, "--force", help="Skip confirmation")
+):
+    """
+    Transfer TENSOR tokens to another address.
+
+    Examples:
+        htcli wallet transfer --to 5xxx... --amount 100 --name mywallet
+        htcli wallet transfer --to 5xxx... --amount 100 --name mywallet --env testnet
+    """
+    try:
+        # Validate destination address
+        if not to_address.startswith("5"):
+            typer.echo(typer.style("❌ Invalid destination address format", fg=typer.colors.RED))
+            raise typer.Exit(1)
+
+        # Prompt for wallet name if not provided
+        if not name:
+            name = typer.prompt("Enter wallet name")
+            if not name:
+                name = "default"
+
+        # Prompt for password if not provided
+        if password is None:
+            password = getpass.getpass(f"Enter password for wallet '{name}': ")
+
+        # Get wallet path
+        base_path = path or DEFAULT_WALLET_PATH
+        base_wallet_dir = Path(base_path).expanduser().resolve()
+
+        # Load wallet
+        try:
+            keypair = import_wallet(name, base_wallet_dir, password=password)
+            typer.echo(f"✅ Loaded wallet: {name}")
+            typer.echo(f"📍 Address: {keypair.ss58_address}")
+        except Exception as e:
+            typer.echo(typer.style(f"❌ Error loading wallet: {str(e)}", fg=typer.colors.RED))
+            raise typer.Exit(1)
+
+        # Display transfer information
+        typer.echo(typer.style("💸 Transfer Details", bold=True))
+        typer.echo(f"From: {keypair.ss58_address}")
+        typer.echo(f"To: {to_address}")
+        typer.echo(f"Amount: {amount} TENSOR")
+        typer.echo(f"Environment: {env}")
+
+        if not force:
+            confirm = typer.confirm(f"Transfer {amount} TENSOR to {to_address}?")
+            if not confirm:
+                typer.echo("Transfer cancelled")
+                return
+
+        # Note: This is a placeholder - actual implementation requires:
+        # 1. Connecting to the Hypertensor chain using substrate-interface
+        # 2. Creating and signing the transfer transaction
+        # 3. Submitting the transaction to the chain
+        # 4. Waiting for transaction confirmation
+
+        typer.echo("Note: Transfer requires blockchain integration and transaction signing")
+        typer.echo("This feature needs to be implemented with proper transaction submission")
+
+    except Exception as e:
+        typer.echo(typer.style(f"❌ Error during transfer: {str(e)}", fg=typer.colors.RED))
+        raise typer.Exit(1)
+
+
+@app.command()
+def history(
+    name: str = wallet_config.name,
+    password: str = wallet_config.password,
+    path: str = wallet_config.path,
+    limit: int = typer.Option(10, "--limit", "-l", help="Maximum number of transactions to show"),
+    rpc_url: str = typer.Option(DEFAULT_RPC_URL, "--rpc-url", help="RPC URL for the chain"),
+    env: str = typer.Option("local", "--env", help="Environment (local/testnet/mainnet)")
+):
+    """
+    Show transaction history for a wallet.
+
+    Examples:
+        htcli wallet history --name mywallet
+        htcli wallet history --name mywallet --limit 20
+    """
+    try:
+        # Prompt for wallet name if not provided
+        if not name:
+            name = typer.prompt("Enter wallet name")
+            if not name:
+                name = "default"
+
+        # Prompt for password if not provided
+        if password is None:
+            password = getpass.getpass(f"Enter password for wallet '{name}': ")
+
+        # Get wallet path
+        base_path = path or DEFAULT_WALLET_PATH
+        base_wallet_dir = Path(base_path).expanduser().resolve()
+
+        # Load wallet
+        try:
+            keypair = import_wallet(name, base_wallet_dir, password=password)
+            typer.echo(f"✅ Loaded wallet: {name}")
+            typer.echo(f"📍 Address: {keypair.ss58_address}")
+        except Exception as e:
+            typer.echo(typer.style(f"❌ Error loading wallet: {str(e)}", fg=typer.colors.RED))
+            raise typer.Exit(1)
+
+        typer.echo(typer.style("📜 Transaction History", bold=True))
+        typer.echo(f"Wallet: {name}")
+        typer.echo(f"Address: {keypair.ss58_address}")
+
+        # Note: This is a placeholder - actual implementation requires:
+        # 1. Connecting to the Hypertensor chain using substrate-interface
+        # 2. Querying transaction history for the wallet address
+        # 3. Formatting and displaying the results
+
+        typer.echo("Note: Transaction history requires blockchain integration")
+        typer.echo("This feature needs to be implemented with proper chain querying")
+
+    except Exception as e:
+        typer.echo(typer.style(f"❌ Error getting transaction history: {str(e)}", fg=typer.colors.RED))
+        raise typer.Exit(1)
+
+
+@app.command()
+def stake_wallet(
+    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID to stake on"),
+    amount: float = typer.Option(..., "--amount", "-a", help="Amount of TENSOR to stake"),
+    name: str = wallet_config.name,
+    password: str = wallet_config.password,
+    path: str = wallet_config.path,
+    rpc_url: str = typer.Option(DEFAULT_RPC_URL, "--rpc-url", help="RPC URL for the chain"),
+    env: str = typer.Option("local", "--env", help="Environment (local/testnet/mainnet)"),
+    force: bool = typer.Option(False, "--force", help="Skip confirmation")
+):
+    """
+    Stake TENSOR tokens from wallet on a subnet.
+
+    Examples:
+        htcli wallet stake --subnet-id 1 --amount 1000 --name mywallet
+        htcli wallet stake --subnet-id 1 --amount 1000 --name mywallet --env testnet
+    """
+    try:
+        # Prompt for wallet name if not provided
+        if not name:
+            name = typer.prompt("Enter wallet name")
+            if not name:
+                name = "default"
+
+        # Prompt for password if not provided
+        if password is None:
+            password = getpass.getpass(f"Enter password for wallet '{name}': ")
+
+        # Get wallet path
+        base_path = path or DEFAULT_WALLET_PATH
+        base_wallet_dir = Path(base_path).expanduser().resolve()
+
+        # Load wallet
+        try:
+            keypair = import_wallet(name, base_wallet_dir, password=password)
+            typer.echo(f"✅ Loaded wallet: {name}")
+            typer.echo(f"📍 Address: {keypair.ss58_address}")
+        except Exception as e:
+            typer.echo(typer.style(f"❌ Error loading wallet: {str(e)}", fg=typer.colors.RED))
+            raise typer.Exit(1)
+
+        # Display staking information
+        typer.echo(typer.style("💰 Staking Details", bold=True))
+        typer.echo(f"Wallet: {name}")
+        typer.echo(f"Address: {keypair.ss58_address}")
+        typer.echo(f"Subnet ID: {subnet_id}")
+        typer.echo(f"Amount: {amount} TENSOR")
+        typer.echo(f"Environment: {env}")
+
+        if not force:
+            confirm = typer.confirm(f"Stake {amount} TENSOR on subnet {subnet_id}?")
+            if not confirm:
+                typer.echo("Staking cancelled")
+                return
+
+        # Note: This is a placeholder - actual implementation requires:
+        # 1. Connecting to the Hypertensor chain using substrate-interface
+        # 2. Creating and signing the staking transaction
+        # 3. Submitting the transaction to the chain
+        # 4. Waiting for transaction confirmation
+
+        typer.echo("Note: Staking requires blockchain integration and transaction signing")
+        typer.echo("This feature needs to be implemented with proper transaction submission")
+
+    except Exception as e:
+        typer.echo(typer.style(f"❌ Error during staking: {str(e)}", fg=typer.colors.RED))
+        raise typer.Exit(1)
+
+
+@app.command()
+def delegate_wallet(
+    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
+    validator_address: str = typer.Option(..., "--validator", "-v", help="Validator address to delegate to"),
+    amount: float = typer.Option(..., "--amount", "-a", help="Amount of TENSOR to delegate"),
+    name: str = wallet_config.name,
+    password: str = wallet_config.password,
+    path: str = wallet_config.path,
+    rpc_url: str = typer.Option(DEFAULT_RPC_URL, "--rpc-url", help="RPC URL for the chain"),
+    env: str = typer.Option("local", "--env", help="Environment (local/testnet/mainnet)"),
+    force: bool = typer.Option(False, "--force", help="Skip confirmation")
+):
+    """
+    Delegate TENSOR tokens from wallet to a validator.
+
+    Examples:
+        htcli wallet delegate --subnet-id 1 --validator 5xxx... --amount 500 --name mywallet
+    """
+    try:
+        # Validate validator address
+        if not validator_address.startswith("5"):
+            typer.echo(typer.style("❌ Invalid validator address format", fg=typer.colors.RED))
+            raise typer.Exit(1)
+
+        # Prompt for wallet name if not provided
+        if not name:
+            name = typer.prompt("Enter wallet name")
+            if not name:
+                name = "default"
+
+        # Prompt for password if not provided
+        if password is None:
+            password = getpass.getpass(f"Enter password for wallet '{name}': ")
+
+        # Get wallet path
+        base_path = path or DEFAULT_WALLET_PATH
+        base_wallet_dir = Path(base_path).expanduser().resolve()
+
+        # Load wallet
+        try:
+            keypair = import_wallet(name, base_wallet_dir, password=password)
+            typer.echo(f"✅ Loaded wallet: {name}")
+            typer.echo(f"📍 Address: {keypair.ss58_address}")
+        except Exception as e:
+            typer.echo(typer.style(f"❌ Error loading wallet: {str(e)}", fg=typer.colors.RED))
+            raise typer.Exit(1)
+
+        # Display delegation information
+        typer.echo(typer.style("🎯 Delegation Details", bold=True))
+        typer.echo(f"Wallet: {name}")
+        typer.echo(f"Address: {keypair.ss58_address}")
+        typer.echo(f"Subnet ID: {subnet_id}")
+        typer.echo(f"Validator: {validator_address}")
+        typer.echo(f"Amount: {amount} TENSOR")
+        typer.echo(f"Environment: {env}")
+
+        if not force:
+            confirm = typer.confirm(f"Delegate {amount} TENSOR to {validator_address} on subnet {subnet_id}?")
+            if not confirm:
+                typer.echo("Delegation cancelled")
+                return
+
+        # Note: This is a placeholder - actual implementation requires:
+        # 1. Connecting to the Hypertensor chain using substrate-interface
+        # 2. Creating and signing the delegation transaction
+        # 3. Submitting the transaction to the chain
+        # 4. Waiting for transaction confirmation
+
+        typer.echo("Note: Delegation requires blockchain integration and transaction signing")
+        typer.echo("This feature needs to be implemented with proper transaction submission")
+
+    except Exception as e:
+        typer.echo(typer.style(f"❌ Error during delegation: {str(e)}", fg=typer.colors.RED))
+        raise typer.Exit(1)

@@ -1,25 +1,25 @@
 """
-Staking operations commands.
+Wallet staking operations.
 """
 
 import typer
 from rich.console import Console
 from typing import Optional
 from ...models.requests import StakeAddRequest, StakeRemoveRequest
-from ...utils.validation import validate_amount, validate_address
-from ...utils.formatting import print_success, print_error, create_stake_info_panel
+from ...utils.validation import validate_address, validate_amount
+from ...utils.formatting import print_success, print_error, format_stake_info
 from ...dependencies import get_client
 
-app = typer.Typer(name="staking", help="Staking operations")
+app = typer.Typer(name="stake", help="Staking operations")
 console = Console()
 
 
 @app.command()
 def add(
     subnet_id: int = typer.Argument(..., help="Subnet ID"),
-    node_id: int = typer.Argument(..., help="Subnet node ID"),
-    amount: str = typer.Argument(..., help="Stake amount"),
-    hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey account"),
+    node_id: int = typer.Argument(..., help="Node ID"),
+    amount: float = typer.Argument(..., help="Stake amount in TAO"),
+    hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey account address"),
     client = typer.Option(None, help="Client instance")
 ):
     """Add stake to a subnet node."""
@@ -28,28 +28,35 @@ def add(
         client = get_client()
 
     # Validate inputs
-    if not validate_amount(amount):
-        print_error("Invalid stake amount. Must be a positive number.")
-        raise typer.Exit(1)
-
     if not validate_address(hotkey):
         print_error("Invalid hotkey address format.")
         raise typer.Exit(1)
 
+    if not validate_amount(amount):
+        print_error("Invalid stake amount. Must be a positive number.")
+        raise typer.Exit(1)
+
     try:
-        # Convert amount to smallest unit
-        amount_int = int(float(amount) * 1e9)  # Assuming 9 decimal places
+        # Convert amount to smallest unit (assuming 12 decimals)
+        stake_amount = int(amount * 1e12)
 
         request = StakeAddRequest(
             subnet_id=subnet_id,
-            subnet_node_id=node_id,
+            node_id=node_id,
             hotkey=hotkey,
-            stake_to_be_added=amount_int
+            stake_to_be_added=stake_amount
         )
 
-        response = client.add_stake(request)
-        print_success(f"Added {amount} stake to subnet {subnet_id} successfully!")
-        console.print(f"Transaction: {response.transaction_hash}")
+        # Use the proper RPC method according to documentation
+        response = client.add_to_stake(request)
+
+        if response.success:
+            print_success(f"Added {amount} stake to subnet {subnet_id} successfully!")
+            if response.transaction_hash:
+                console.print(f"Transaction: {response.transaction_hash}")
+        else:
+            print_error(f"Failed to add stake: {response.message}")
+            raise typer.Exit(1)
     except Exception as e:
         print_error(f"Failed to add stake: {str(e)}")
         raise typer.Exit(1)
@@ -58,8 +65,8 @@ def add(
 @app.command()
 def remove(
     subnet_id: int = typer.Argument(..., help="Subnet ID"),
-    amount: str = typer.Argument(..., help="Stake amount to remove"),
-    hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey account"),
+    amount: float = typer.Argument(..., help="Stake amount to remove in TAO"),
+    hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey account address"),
     client = typer.Option(None, help="Client instance")
 ):
     """Remove stake from a subnet."""
@@ -68,26 +75,34 @@ def remove(
         client = get_client()
 
     # Validate inputs
-    if not validate_amount(amount):
-        print_error("Invalid stake amount. Must be a positive number.")
-        raise typer.Exit(1)
-
     if not validate_address(hotkey):
         print_error("Invalid hotkey address format.")
         raise typer.Exit(1)
 
+    if not validate_amount(amount):
+        print_error("Invalid stake amount. Must be a positive number.")
+        raise typer.Exit(1)
+
     try:
-        amount_int = int(float(amount) * 1e9)
+        # Convert amount to smallest unit (assuming 12 decimals)
+        stake_amount = int(amount * 1e12)
 
         request = StakeRemoveRequest(
             subnet_id=subnet_id,
             hotkey=hotkey,
-            stake_to_be_removed=amount_int
+            stake_to_be_removed=stake_amount
         )
 
+        # Use the proper RPC method according to documentation
         response = client.remove_stake(request)
-        print_success(f"Removed {amount} stake from subnet {subnet_id} successfully!")
-        console.print(f"Transaction: {response.transaction_hash}")
+
+        if response.success:
+            print_success(f"Removed {amount} stake from subnet {subnet_id} successfully!")
+            if response.transaction_hash:
+                console.print(f"Transaction: {response.transaction_hash}")
+        else:
+            print_error(f"Failed to remove stake: {response.message}")
+            raise typer.Exit(1)
     except Exception as e:
         print_error(f"Failed to remove stake: {str(e)}")
         raise typer.Exit(1)
@@ -96,23 +111,28 @@ def remove(
 @app.command()
 def info(
     subnet_id: int = typer.Argument(..., help="Subnet ID"),
-    hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey account"),
+    hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey account address"),
     client = typer.Option(None, help="Client instance")
 ):
-    """Get stake information."""
+    """Get stake information for an account."""
     # Get client if not provided
     if client is None:
         client = get_client()
 
+    # Validate inputs
+    if not validate_address(hotkey):
+        print_error("Invalid hotkey address format.")
+        raise typer.Exit(1)
+
     try:
-        response = client.get_stake_info(subnet_id, hotkey)
+        # Use the proper RPC method according to documentation
+        response = client.get_account_subnet_stake(hotkey, subnet_id)
 
-        if response.data:
-            panel = create_stake_info_panel(response.data, subnet_id, hotkey)
-            console.print(panel)
+        if response.success:
+            format_stake_info(response.data)
         else:
-            console.print(f"No stake found for hotkey {hotkey} in subnet {subnet_id}.")
-
+            print_error(f"Failed to get stake info: {response.message}")
+            raise typer.Exit(1)
     except Exception as e:
         print_error(f"Failed to get stake info: {str(e)}")
         raise typer.Exit(1)

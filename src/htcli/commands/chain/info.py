@@ -5,10 +5,10 @@ Chain information commands.
 import typer
 from rich.console import Console
 from typing import Optional
-from ...utils.formatting import print_error, create_network_stats_panel, create_account_info_panel, create_epoch_info_panel
+from ...utils.formatting import print_error, format_network_stats, format_account_info, format_epoch_info
 from ...dependencies import get_client
 
-app = typer.Typer(name="info", help="Chain information commands")
+app = typer.Typer(name="info", help="Chain information")
 console = Console()
 
 
@@ -22,14 +22,14 @@ def network(
         client = get_client()
 
     try:
+        # Use the proper RPC method according to documentation
         response = client.get_network_stats()
 
-        if response.data:
-            panel = create_network_stats_panel(response.data)
-            console.print(panel)
+        if response.success:
+            format_network_stats(response.data)
         else:
-            console.print("No network statistics available.")
-
+            print_error(f"Failed to get network stats: {response.message}")
+            raise typer.Exit(1)
     except Exception as e:
         print_error(f"Failed to get network stats: {str(e)}")
         raise typer.Exit(1)
@@ -46,14 +46,14 @@ def account(
         client = get_client()
 
     try:
-        response = client.get_account_info(address)
+        # Use the balance method instead of get_account_info
+        response = client.get_balance(address)
 
-        if response.data:
-            panel = create_account_info_panel(response.data, address)
-            console.print(panel)
+        if response.success:
+            format_account_info(response.data)
         else:
-            console.print(f"Account {address} not found.")
-
+            print_error(f"Failed to get account info: {response.message}")
+            raise typer.Exit(1)
     except Exception as e:
         print_error(f"Failed to get account info: {str(e)}")
         raise typer.Exit(1)
@@ -69,14 +69,14 @@ def epoch(
         client = get_client()
 
     try:
+        # Use the proper RPC method according to documentation
         response = client.get_current_epoch()
 
-        if response.data:
-            panel = create_epoch_info_panel(response.data)
-            console.print(panel)
+        if response.success:
+            format_epoch_info(response.data)
         else:
-            console.print("No epoch information available.")
-
+            print_error(f"Failed to get epoch info: {response.message}")
+            raise typer.Exit(1)
     except Exception as e:
         print_error(f"Failed to get epoch info: {str(e)}")
         raise typer.Exit(1)

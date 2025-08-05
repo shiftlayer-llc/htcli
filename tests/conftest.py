@@ -171,3 +171,20 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "slow: marks tests as slow running"
     )
+    config.addinivalue_line(
+        "markers", "network: marks tests as network tests"
+    )
+
+
+def pytest_collection_modifyitems(config, items):
+    """Automatically mark tests based on their location."""
+    for item in items:
+        # Mark unit tests
+        if "unit" in item.nodeid:
+            item.add_marker(pytest.mark.unit)
+        # Mark integration tests
+        if "integration" in item.nodeid:
+            item.add_marker(pytest.mark.integration)
+        # Mark network tests
+        if "network" in item.nodeid:
+            item.add_marker(pytest.mark.network)

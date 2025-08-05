@@ -21,6 +21,7 @@ dependencies = [
     "rich>=13.0.0",
     "pydantic>=2.0.0",
     "pyyaml>=6.0",
+    "psutil>=7.0.0",
 ]
 
 [project.urls]
@@ -35,13 +36,13 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build]
 include = [
-    "src/htcli/**/*.py",
+    "src/**/*.py",
     "README.md",
     "LICENSE",
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/htcli"]
+packages = ["src"]
 
 # uv specific configuration
 [tool.uv]

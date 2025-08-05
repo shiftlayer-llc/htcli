@@ -5,7 +5,7 @@ Subnet management commands.
 import typer
 from rich.console import Console
 from typing import Optional
-from ...utils.formatting import print_error, create_subnet_table
+from ...utils.formatting import print_success, print_error, format_subnet_list, format_subnet_info
 from ...dependencies import get_client
 
 app = typer.Typer(name="manage", help="Subnet management commands")
@@ -23,19 +23,14 @@ def list(
         client = get_client()
 
     try:
-        response = client.list_subnets(active_only=active_only)
+        # Use the proper RPC method according to documentation
+        response = client.get_subnets_data(active_only)
 
-        if response.data and response.data.get("subnets"):
-            table = create_subnet_table(response.data["subnets"])
-            console.print(table)
-
-            if response.data.get("total_count"):
-                console.print(f"\nTotal Subnets: {response.data['total_count']}")
-                if active_only and response.data.get("active_count"):
-                    console.print(f"Active Subnets: {response.data['active_count']}")
+        if response.success:
+            format_subnet_list(response.data.get("subnets", []))
         else:
-            console.print("No subnets found.")
-
+            print_error(f"Failed to list subnets: {response.message}")
+            raise typer.Exit(1)
     except Exception as e:
         print_error(f"Failed to list subnets: {str(e)}")
         raise typer.Exit(1)
@@ -52,25 +47,14 @@ def info(
         client = get_client()
 
     try:
-        response = client.get_subnet_info(subnet_id)
+        # Use the proper RPC method according to documentation
+        response = client.get_subnet_data(subnet_id)
 
-        if response.data:
-            from rich.panel import Panel
-            info_text = f"""
-Subnet ID: {subnet_id}
-Path: {response.data.get('path', 'N/A')}
-Status: {'Active' if response.data.get('activated', 0) > 0 else 'Inactive'}
-Registration Cost: {response.data.get('registration_cost', 'N/A')}
-Node Count: {response.data.get('node_count', 0)}
-Total Stake: {response.data.get('total_stake', 0)}
-Memory: {response.data.get('memory_mb', 0)} MB
-Registration Blocks: {response.data.get('registration_blocks', 0)}
-Entry Interval: {response.data.get('entry_interval', 0)}
-            """
-            console.print(Panel(info_text, title="Subnet Information"))
+        if response.success:
+            format_subnet_info(response.data.get("subnet_info", {}))
         else:
-            console.print(f"Subnet {subnet_id} not found.")
-
+            print_error(f"Failed to get subnet info: {response.message}")
+            raise typer.Exit(1)
     except Exception as e:
         print_error(f"Failed to get subnet info: {str(e)}")
         raise typer.Exit(1)

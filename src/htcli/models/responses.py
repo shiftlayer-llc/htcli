@@ -1,10 +1,10 @@
+#!/usr/bin/env python3
 """
-Pydantic models for response structures.
+Response models for Hypertensor CLI.
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
-
+from typing import Dict, Any, Optional, List
 
 class BaseResponse(BaseModel):
     """Base response model."""
@@ -12,103 +12,130 @@ class BaseResponse(BaseModel):
     message: str = Field(..., description="Response message")
     transaction_hash: Optional[str] = Field(None, description="Transaction hash")
     block_number: Optional[int] = Field(None, description="Block number")
+    data: Dict[str, Any] = Field(default_factory=dict, description="Response data")
 
-
+# Subnet responses
 class SubnetRegisterResponse(BaseResponse):
-    """Response model for subnet registration."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Registration data")
+    """Response for subnet registration."""
+    pass
 
+class SubnetActivateResponse(BaseResponse):
+    """Response for subnet activation."""
+    pass
 
 class SubnetInfoResponse(BaseResponse):
-    """Response model for subnet information."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Subnet information")
+    """Response for subnet information."""
+    pass
 
+class SubnetsListResponse(BaseResponse):
+    """Response for subnets list."""
+    pass
 
-class SubnetListResponse(BaseResponse):
-    """Response model for subnet list."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Subnet list data")
+class SubnetRemoveResponse(BaseResponse):
+    """Response for subnet removal."""
+    pass
 
-
+# Node responses
 class NodeAddResponse(BaseResponse):
-    """Response model for adding a node."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Node addition data")
+    """Response for node addition."""
+    pass
 
+class NodesListResponse(BaseResponse):
+    """Response for nodes list."""
+    pass
 
-class NodeListResponse(BaseResponse):
-    """Response model for node list."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Node list data")
+class NodeDeactivateResponse(BaseResponse):
+    """Response for node deactivation."""
+    pass
 
+class NodeRemoveResponse(BaseResponse):
+    """Response for node removal."""
+    pass
 
+# Staking responses
 class StakeAddResponse(BaseResponse):
-    """Response model for adding stake."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Stake addition data")
-
+    """Response for stake addition."""
+    pass
 
 class StakeRemoveResponse(BaseResponse):
-    """Response model for removing stake."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Stake removal data")
-
+    """Response for stake removal."""
+    pass
 
 class StakeInfoResponse(BaseResponse):
-    """Response model for stake information."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Stake information")
+    """Response for stake information."""
+    pass
 
+class UnbondingClaimResponse(BaseResponse):
+    """Response for unbonding claim."""
+    pass
 
-class ValidationSubmitResponse(BaseResponse):
-    """Response model for validation submission."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Validation submission data")
+class DelegateStakeAddResponse(BaseResponse):
+    """Response for delegate stake addition."""
+    pass
 
+class DelegateStakeTransferResponse(BaseResponse):
+    """Response for delegate stake transfer."""
+    pass
 
-class GovernanceProposeResponse(BaseResponse):
-    """Response model for governance proposal."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Proposal data")
+class DelegateStakeRemoveResponse(BaseResponse):
+    """Response for delegate stake removal."""
+    pass
 
+# Key management responses
+class ColdkeyUpdateResponse(BaseResponse):
+    """Response for coldkey update."""
+    pass
 
-class GovernanceVoteResponse(BaseResponse):
-    """Response model for governance vote."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Vote data")
+class HotkeyUpdateResponse(BaseResponse):
+    """Response for hotkey update."""
+    pass
 
-
+# Chain responses
 class NetworkStatsResponse(BaseResponse):
-    """Response model for network statistics."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Network statistics")
-
-
-class AccountInfoResponse(BaseResponse):
-    """Response model for account information."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Account information")
-
+    """Response for network statistics."""
+    pass
 
 class EpochInfoResponse(BaseResponse):
-    """Response model for epoch information."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Epoch information")
-
+    """Response for epoch information."""
+    pass
 
 class BalanceResponse(BaseResponse):
-    """Response model for balance query."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Balance data")
-
+    """Response for balance information."""
+    pass
 
 class PeersResponse(BaseResponse):
-    """Response model for peers query."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Peers data")
-
+    """Response for peers information."""
+    pass
 
 class BlockInfoResponse(BaseResponse):
-    """Response model for block information."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Block information")
+    """Response for block information."""
+    pass
 
+class AccountInfoResponse(BaseResponse):
+    """Response for account information."""
+    pass
 
-class KeyGenerateResponse(BaseResponse):
-    """Response model for key generation."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Key generation data")
+class ChainHeadResponse(BaseResponse):
+    """Response for chain head information."""
+    pass
 
+class RuntimeVersionResponse(BaseResponse):
+    """Response for runtime version information."""
+    pass
 
-class KeyListResponse(BaseResponse):
-    """Response model for key list."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Key list data")
+# Validation responses
+class ValidationResponse(BaseResponse):
+    """Response for validation submission."""
+    pass
 
+class AttestationResponse(BaseResponse):
+    """Response for attestation submission."""
+    pass
 
-class TransferResponse(BaseResponse):
-    """Response model for token transfer."""
-    data: Optional[Dict[str, Any]] = Field(None, description="Transfer data")
+class ProposalResponse(BaseResponse):
+    """Response for proposal submission."""
+    pass
+
+class VoteResponse(BaseResponse):
+    """Response for vote submission."""
+    pass

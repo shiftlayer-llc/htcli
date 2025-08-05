@@ -186,13 +186,165 @@ Nonce: {account_data.get('nonce', 0)}
 def create_epoch_info_panel(epoch_data: Dict[str, Any]) -> Panel:
     """Create a panel for epoch information."""
     info_text = f"""
-Current Epoch: {epoch_data.get('epoch', 0)}
-Epoch Start: {format_block_number(epoch_data.get('start_block', 0))}
-Epoch End: {format_block_number(epoch_data.get('end_block', 0))}
-Blocks Remaining: {epoch_data.get('blocks_remaining', 0)}
+Epoch: {epoch_data.get('epoch', 'N/A')}
+Start Block: {epoch_data.get('start_block', 'N/A')}
+End Block: {epoch_data.get('end_block', 'N/A')}
+Blocks Remaining: {epoch_data.get('blocks_remaining', 'N/A')}
+Epoch Duration: {epoch_data.get('epoch_duration', 'N/A')} blocks
+Timestamp: {epoch_data.get('timestamp', 'N/A')}
+    """
+    return Panel(info_text, title="Epoch Information")
+
+
+def format_subnet_list(subnets: List[Dict[str, Any]]):
+    """Format and display subnet list."""
+    if not subnets:
+        console.print("No subnets found.")
+        return
+
+    table = Table(title="Subnets")
+    table.add_column("ID", style="cyan")
+    table.add_column("Path", style="green")
+    table.add_column("Status", style="yellow")
+    table.add_column("Nodes", style="blue")
+    table.add_column("Total Stake", style="magenta")
+
+    for subnet in subnets:
+        status = "Active" if subnet.get('activated', 0) > 0 else "Inactive"
+        table.add_row(
+            str(subnet.get('subnet_id', 'N/A')),
+            subnet.get('path', 'N/A'),
+            status,
+            str(subnet.get('node_count', 0)),
+            format_balance(subnet.get('total_stake', 0))
+        )
+
+    console.print(table)
+
+
+def format_subnet_info(subnet_info: Dict[str, Any]):
+    """Format and display subnet information."""
+    if not subnet_info:
+        console.print("Subnet information not available.")
+        return
+
+    info_text = f"""
+Subnet ID: {subnet_info.get('subnet_id', 'N/A')}
+Path: {subnet_info.get('path', 'N/A')}
+Status: {'Active' if subnet_info.get('activated', 0) > 0 else 'Inactive'}
+Registration Cost: {format_balance(subnet_info.get('registration_cost', 0))}
+Node Count: {subnet_info.get('node_count', 0)}
+Total Stake: {format_balance(subnet_info.get('total_stake', 0))}
+Memory: {subnet_info.get('memory_mb', 0)} MB
+Registration Blocks: {subnet_info.get('registration_blocks', 0)}
+Entry Interval: {subnet_info.get('entry_interval', 0)}
     """
 
-    return Panel(info_text, title="Epoch Information")
+    panel = Panel(info_text, title="Subnet Information")
+    console.print(panel)
+
+
+def format_node_list(nodes: List[Dict[str, Any]]):
+    """Format and display node list."""
+    if not nodes:
+        console.print("No nodes found.")
+        return
+
+    table = Table(title="Subnet Nodes")
+    table.add_column("Node ID", style="cyan")
+    table.add_column("Peer ID", style="green")
+    table.add_column("Hotkey", style="yellow")
+    table.add_column("Stake", style="blue")
+    table.add_column("Status", style="magenta")
+
+    for node in nodes:
+        table.add_row(
+            str(node.get('node_id', 'N/A')),
+            format_address(node.get('peer_id', 'N/A')),
+            format_address(node.get('hotkey', 'N/A')),
+            format_balance(node.get('stake', 0)),
+            node.get('status', 'N/A')
+        )
+
+    console.print(table)
+
+
+def format_stake_info(stake_data: Dict[str, Any]):
+    """Format and display stake information."""
+    if not stake_data:
+        console.print("Stake information not available.")
+        return
+
+    info_text = f"""
+Account: {format_address(stake_data.get('account', 'N/A'))}
+Subnet ID: {stake_data.get('subnet_id', 'N/A')}
+Current Stake: {format_balance(stake_data.get('stake', 0))}
+Unbonding: {format_balance(stake_data.get('unbonding', 0))}
+Total Stake: {format_balance(stake_data.get('total_stake', 0))}
+    """
+
+    panel = Panel(info_text, title="Stake Information")
+    console.print(panel)
+
+
+def format_network_stats(stats: Dict[str, Any]):
+    """Format and display network statistics."""
+    if not stats:
+        console.print("Network statistics not available.")
+        return
+
+    info_text = f"""
+Total Subnets: {stats.get('total_subnets', 0)}
+Active Subnets: {stats.get('active_subnets', 0)}
+Total Nodes: {stats.get('total_nodes', 0)}
+Total Stake: {format_balance(stats.get('total_stake', 0))}
+Current Epoch: {stats.get('current_epoch', 0)}
+Total Validations: {stats.get('total_validations', 0)}
+Total Attestations: {stats.get('total_attestations', 0)}
+Network Uptime: {stats.get('network_uptime', 0)}%
+Average Block Time: {stats.get('average_block_time', 0)}s
+    """
+
+    panel = Panel(info_text, title="Network Statistics")
+    console.print(panel)
+
+
+def format_account_info(account_data: Dict[str, Any]):
+    """Format and display account information."""
+    if not account_data:
+        console.print("Account information not available.")
+        return
+
+    info_text = f"""
+Account: {format_address(account_data.get('account', 'N/A'))}
+Balance: {format_balance(account_data.get('balance', 0))}
+Nonce: {account_data.get('nonce', 0)}
+Reserved: {format_balance(account_data.get('reserved', 0))}
+Misc Frozen: {format_balance(account_data.get('misc_frozen', 0))}
+Fee Frozen: {format_balance(account_data.get('fee_frozen', 0))}
+    """
+
+    panel = Panel(info_text, title="Account Information")
+    console.print(panel)
+
+
+def format_epoch_info(epoch_data: Dict[str, Any]):
+    """Format and display epoch information."""
+    if not epoch_data:
+        console.print("Epoch information not available.")
+        return
+
+    info_text = f"""
+Epoch: {epoch_data.get('epoch', 'N/A')}
+Start Block: {epoch_data.get('start_block', 'N/A')}
+End Block: {epoch_data.get('end_block', 'N/A')}
+Blocks Remaining: {epoch_data.get('blocks_remaining', 'N/A')}
+Epoch Duration: {epoch_data.get('epoch_duration', 'N/A')} blocks
+Timestamp: {epoch_data.get('timestamp', 'N/A')}
+    """
+
+    panel = Panel(info_text, title="Epoch Information")
+    console.print(panel)
 
 
 def show_progress(description: str):

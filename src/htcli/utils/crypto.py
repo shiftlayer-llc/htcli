@@ -24,11 +24,13 @@ class KeypairInfo:
 def generate_keypair(name: str, key_type: str = "sr25519", password: Optional[str] = None) -> KeypairInfo:
     """Generate a new keypair."""
     try:
-        # Generate keypair
+        # Generate random keypair
         if key_type == "sr25519":
-            keypair = Keypair.create_from_uri("//Alice")
+            keypair = Keypair.generate_mnemonic()
+            keypair = Keypair.create_from_uri(keypair)
         elif key_type == "ed25519":
-            keypair = Keypair.create_from_uri("//Alice", crypto_type=Keypair.CRYPTO_TYPE_ED25519)
+            mnemonic = Keypair.generate_mnemonic()
+            keypair = Keypair.create_from_uri(mnemonic, crypto_type=Keypair.CRYPTO_TYPE_ED25519)
         else:
             raise ValueError(f"Unsupported key type: {key_type}")
 

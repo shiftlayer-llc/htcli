@@ -1,283 +1,211 @@
+#!/usr/bin/env python3
 """
-Hypertensor RPC client for interacting with the blockchain.
+Hypertensor CLI client for blockchain interaction.
+Uses modular structure with separate client modules.
 """
 
-import json
-import logging
-from typing import Optional, Dict, Any, List
-from substrateinterface import SubstrateInterface
-from websockets import connect
 import asyncio
+import logging
+from typing import Optional, Dict, Any
+from substrateinterface import SubstrateInterface
+from .models.requests import *
+from .models.responses import *
+from .client.subnet import SubnetClient
+from .client.wallet import WalletClient
+from .client.chain import ChainClient
 
 logger = logging.getLogger(__name__)
 
-
 class HypertensorClient:
-    """Client for interacting with the Hypertensor blockchain."""
+    """Main client for interacting with Hypertensor blockchain."""
 
     def __init__(self, config):
-        """Initialize the client with configuration."""
         self.config = config
         self.substrate = None
         self.ws_connection = None
+
+        # Initialize modular clients
+        self.subnet = None
+        self.wallet = None
+        self.chain = None
+
+        self.connect()
 
     def connect(self, rpc_url: Optional[str] = None) -> bool:
         """Connect to the Hypertensor blockchain."""
         try:
             url = rpc_url or self.config.network.endpoint
-            self.substrate = SubstrateInterface(url=url, ss58_format=42)
-            logger.info(f"Connected to Hypertensor at {url}")
+            self.substrate = SubstrateInterface(url=url, ss58_format=0)
+            logger.info(f"Connected to blockchain at {url}")
+
+            # Initialize modular clients
+            self.subnet = SubnetClient(self.substrate)
+            self.wallet = WalletClient(self.substrate)
+            self.chain = ChainClient(self.substrate)
+
             return True
         except Exception as e:
-            logger.error(f"Failed to connect to Hypertensor: {str(e)}")
+            logger.error(f"Failed to connect to blockchain: {e}")
             return False
 
     async def connect_websocket(self, ws_url: Optional[str] = None):
-        """Connect to WebSocket endpoint for real-time updates."""
+        """Connect to WebSocket endpoint."""
         try:
             url = ws_url or self.config.network.ws_endpoint
-            self.ws_connection = await connect(url)
+            import websockets
+            self.ws_connection = await websockets.connect(url)
             logger.info(f"Connected to WebSocket at {url}")
-            return True
         except Exception as e:
-            logger.error(f"Failed to connect to WebSocket: {str(e)}")
-            return False
+            logger.error(f"Failed to connect to WebSocket: {e}")
 
     def disconnect(self):
-        """Disconnect from the blockchain."""
+        """Disconnect from blockchain."""
         if self.substrate:
             self.substrate.close()
         if self.ws_connection:
             asyncio.create_task(self.ws_connection.close())
 
-    # Subnet Operations
-    def register_subnet(self, request):
+    # ===== DELEGATION METHODS TO MODULAR CLIENTS =====
+
+    # Subnet operations
+    def register_subnet(self, request: SubnetRegisterRequest, keypair=None):
         """Register a new subnet."""
-        try:
-            # Implementation for subnet registration
-            # This would call the actual RPC endpoint
-            pass
-        except Exception as e:
-            logger.error(f"Failed to register subnet: {str(e)}")
-            raise
+        return self.subnet.register_subnet(request, keypair)
 
-    def activate_subnet(self, subnet_id: int):
-        """Activate a registered subnet."""
-        try:
-            # Implementation for subnet activation
-            pass
-        except Exception as e:
-            logger.error(f"Failed to activate subnet: {str(e)}")
-            raise
+    def activate_subnet(self, subnet_id: int, keypair=None):
+        """Activate a subnet."""
+        return self.subnet.activate_subnet(subnet_id, keypair)
 
-    def list_subnets(self, active_only: bool = False):
-        """List all subnets."""
-        try:
-            # Implementation for listing subnets
-            pass
-        except Exception as e:
-            logger.error(f"Failed to list subnets: {str(e)}")
-            raise
+    def get_subnet_data(self, subnet_id: int):
+        """Get subnet data."""
+        return self.subnet.get_subnet_data(subnet_id)
 
-    def get_subnet_info(self, subnet_id: int):
-        """Get detailed subnet information."""
-        try:
-            # Implementation for getting subnet info
-            pass
-        except Exception as e:
-            logger.error(f"Failed to get subnet info: {str(e)}")
-            raise
+    def get_subnets_data(self, active_only: bool = False):
+        """Get all subnets data."""
+        return self.subnet.get_subnets_data(active_only)
 
-    # Node Operations
-    def add_subnet_node(self, request):
+    def add_subnet_node(self, request: SubnetNodeAddRequest, keypair=None):
         """Add a node to a subnet."""
-        try:
-            # Implementation for adding subnet node
-            pass
-        except Exception as e:
-            logger.error(f"Failed to add subnet node: {str(e)}")
-            raise
+        return self.subnet.add_subnet_node(request, keypair)
 
     def get_subnet_nodes(self, subnet_id: int):
-        """Get all nodes in a subnet."""
-        try:
-            # Implementation for getting subnet nodes
-            pass
-        except Exception as e:
-            logger.error(f"Failed to get subnet nodes: {str(e)}")
-            raise
+        """Get subnet nodes."""
+        return self.subnet.get_subnet_nodes(subnet_id)
 
-    # Staking Operations
-    def add_stake(self, request):
-        """Add stake to a subnet node."""
-        try:
-            # Implementation for adding stake
-            # For now, return a mock response for testing
-            from .models.responses import StakeAddResponse
-            return StakeAddResponse(
-                success=True,
-                message="Stake added successfully",
-                transaction_hash="0x1234567890abcdef",
-                data={"stake_amount": request.stake_to_be_added}
-            )
-        except Exception as e:
-            logger.error(f"Failed to add stake: {str(e)}")
-            raise
+    def remove_subnet(self, subnet_id: int, keypair=None):
+        """Remove a subnet."""
+        return self.subnet.remove_subnet(subnet_id, keypair)
 
-    def remove_stake(self, request):
-        """Remove stake from a subnet."""
-        try:
-            # Implementation for removing stake
-            # For now, return a mock response for testing
-            from .models.responses import StakeRemoveResponse
-            return StakeRemoveResponse(
-                success=True,
-                message="Stake removed successfully",
-                transaction_hash="0xabcdef1234567890",
-                data={"stake_amount": request.stake_to_be_removed}
-            )
-        except Exception as e:
-            logger.error(f"Failed to remove stake: {str(e)}")
-            raise
+    def deactivate_subnet_node(self, subnet_id: int, subnet_node_id: int, keypair=None):
+        """Deactivate a subnet node."""
+        return self.subnet.deactivate_subnet_node(subnet_id, subnet_node_id, keypair)
 
-    def get_stake_info(self, subnet_id: int, hotkey: str):
-        """Get stake information."""
-        try:
-            # Implementation for getting stake info
-            # For now, return a mock response for testing
-            from .models.responses import StakeInfoResponse
-            return StakeInfoResponse(
-                success=True,
-                message="Stake info retrieved successfully",
-                data={
-                    "subnet_id": subnet_id,
-                    "hotkey": hotkey,
-                    "total_stake": 1000,
-                    "active_stake": 800,
-                    "unbonding_stake": 200
-                }
-            )
-        except Exception as e:
-            logger.error(f"Failed to get stake info: {str(e)}")
-            raise
+    def remove_subnet_node(self, subnet_id: int, subnet_node_id: int, keypair=None):
+        """Remove a subnet node."""
+        return self.subnet.remove_subnet_node(subnet_id, subnet_node_id, keypair)
 
-    # Chain Information
-    def get_network_stats(self):
-        """Get network statistics."""
-        try:
-            # Implementation for getting network stats
-            # For now, return a mock response for testing
-            from .models.responses import NetworkStatsResponse
-            return NetworkStatsResponse(
-                success=True,
-                message="Network stats retrieved successfully",
-                data={
-                    "total_subnets": 10,
-                    "active_subnets": 8,
-                    "total_nodes": 150,
-                    "total_stake": 5000000000000,
-                    "current_epoch": 1234,
-                    "block_height": 567890
-                }
-            )
-        except Exception as e:
-            logger.error(f"Failed to get network stats: {str(e)}")
-            raise
+    # Wallet operations
+    def add_to_stake(self, request: StakeAddRequest, keypair=None):
+        """Add stake."""
+        return self.wallet.add_to_stake(request, keypair)
 
-    def get_account_info(self, address: str):
-        """Get account information."""
-        try:
-            # Implementation for getting account info
-            # For now, return a mock response for testing
-            from .models.responses import AccountInfoResponse
-            return AccountInfoResponse(
-                success=True,
-                message="Account info retrieved successfully",
-                data={
-                    "address": address,
-                    "balance": 1000000000000,
-                    "nonce": 0,
-                    "free": 1000000000000,
-                    "reserved": 0,
-                    "misc_frozen": 0,
-                    "fee_frozen": 0
-                }
-            )
-        except Exception as e:
-            logger.error(f"Failed to get account info: {str(e)}")
-            raise
+    def remove_stake(self, request: StakeRemoveRequest, keypair=None):
+        """Remove stake."""
+        return self.wallet.remove_stake(request, keypair)
 
-    def get_current_epoch(self):
-        """Get current epoch information."""
-        try:
-            # Implementation for getting current epoch
-            # For now, return a mock response for testing
-            from .models.responses import EpochInfoResponse
-            return EpochInfoResponse(
-                success=True,
-                message="Epoch info retrieved successfully",
-                data={
-                    "current_epoch": 1234,
-                    "epoch_length": 1000,
-                    "epoch_start": 1234000,
-                    "epoch_end": 1235000
-                }
-            )
-        except Exception as e:
-            logger.error(f"Failed to get current epoch: {str(e)}")
-            raise
+    def get_account_subnet_stake(self, account: str, subnet_id: int):
+        """Get account stake for a subnet."""
+        return self.wallet.get_account_subnet_stake(account, subnet_id)
 
     def get_balance(self, address: str):
         """Get account balance."""
-        try:
-            # Implementation for getting balance
-            # For now, return a mock response for testing
-            from .models.responses import BalanceResponse
-            return BalanceResponse(
-                success=True,
-                message="Balance retrieved successfully",
-                data={
-                    "address": address,
-                    "balance": 1000000000000,
-                    "free": 1000000000000,
-                    "reserved": 0
-                }
-            )
-        except Exception as e:
-            logger.error(f"Failed to get balance: {str(e)}")
-            raise
+        return self.wallet.get_balance(address)
+
+    def claim_unbondings(self, keypair=None):
+        """Claim unbondings."""
+        return self.wallet.claim_unbondings(keypair)
+
+    def add_to_delegate_stake(self, subnet_id: int, stake_to_be_added: int, keypair=None):
+        """Add to delegate stake."""
+        return self.wallet.add_to_delegate_stake(subnet_id, stake_to_be_added, keypair)
+
+    def transfer_delegate_stake(self, from_subnet_id: int, to_subnet_id: int,
+                               delegate_stake_shares_to_be_switched: int, keypair=None):
+        """Transfer delegate stake."""
+        return self.wallet.transfer_delegate_stake(from_subnet_id, to_subnet_id,
+                                                 delegate_stake_shares_to_be_switched, keypair)
+
+    def remove_delegate_stake(self, subnet_id: int, shares_to_be_removed: int, keypair=None):
+        """Remove delegate stake."""
+        return self.wallet.remove_delegate_stake(subnet_id, shares_to_be_removed, keypair)
+
+    def update_coldkey(self, hotkey: str, new_coldkey: str, keypair=None):
+        """Update coldkey."""
+        return self.wallet.update_coldkey(hotkey, new_coldkey, keypair)
+
+    def update_hotkey(self, old_hotkey: str, new_hotkey: str, keypair=None):
+        """Update hotkey."""
+        return self.wallet.update_hotkey(old_hotkey, new_hotkey, keypair)
+
+    # Chain operations
+    def get_network_stats(self):
+        """Get network statistics."""
+        return self.chain.get_network_stats()
+
+    def get_current_epoch(self):
+        """Get current epoch."""
+        return self.chain.get_current_epoch()
 
     def get_peers(self):
-        """Get connected peers."""
-        try:
-            # Implementation for getting peers
-            # For now, return a mock response for testing
-            from .models.responses import PeersResponse
-            return PeersResponse(
-                success=True,
-                message="Peers retrieved successfully",
-                data=[
-                    {
-                        "peer_id": "QmPeer1",
-                        "address": "127.0.0.1:9944",
-                        "protocols": ["substrate"]
-                    },
-                    {
-                        "peer_id": "QmPeer2",
-                        "address": "127.0.0.1:9945",
-                        "protocols": ["substrate"]
-                    }
-                ]
-            )
-        except Exception as e:
-            logger.error(f"Failed to get peers: {str(e)}")
-            raise
+        """Get network peers."""
+        return self.chain.get_peers()
 
     def get_block_info(self, block_number: Optional[int] = None):
         """Get block information."""
-        try:
-            # Implementation for getting block info
-            pass
-        except Exception as e:
-            logger.error(f"Failed to get block info: {str(e)}")
-            raise
+        return self.chain.get_block_info(block_number)
+
+    def validate(self, subnet_id: int, data: str, args: str = None, keypair=None):
+        """Validate."""
+        return self.chain.validate(subnet_id, data, args, keypair)
+
+    def attest(self, subnet_id: int, keypair=None):
+        """Attest."""
+        return self.chain.attest(subnet_id, keypair)
+
+    def propose(self, subnet_id: int, subnet_node_id: int, peer_id: str, data: str, keypair=None):
+        """Propose."""
+        return self.chain.propose(subnet_id, subnet_node_id, peer_id, data, keypair)
+
+    def vote(self, subnet_id: int, subnet_node_id: int, proposal_id: int, vote: str, keypair=None):
+        """Vote."""
+        return self.chain.vote(subnet_id, subnet_node_id, proposal_id, vote, keypair)
+
+    def get_account_info(self, address: str):
+        """Get detailed account information."""
+        return self.chain.get_account_info(address)
+
+    def get_chain_head(self):
+        """Get the current chain head."""
+        return self.chain.get_chain_head()
+
+    def get_runtime_version(self):
+        """Get the runtime version."""
+        return self.chain.get_runtime_version()
+
+    # ===== LEGACY METHODS (for backward compatibility) =====
+
+    def list_subnets(self, active_only: bool = False):
+        """Legacy method - use get_subnets_data instead."""
+        return self.get_subnets_data(active_only)
+
+    def get_subnet_info(self, subnet_id: int):
+        """Legacy method - use get_subnet_data instead."""
+        return self.get_subnet_data(subnet_id)
+
+    def add_stake(self, request):
+        """Legacy method - use add_to_stake instead."""
+        return self.add_to_stake(request)
+
+    def get_stake_info(self, subnet_id: int, hotkey: str):
+        """Legacy method - use get_account_subnet_stake instead."""
+        return self.get_account_subnet_stake(hotkey, subnet_id)

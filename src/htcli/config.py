@@ -10,8 +10,8 @@ from pydantic import BaseModel, Field
 
 class NetworkConfig(BaseModel):
     """Network configuration."""
-    endpoint: str = Field("ws://127.0.0.1:9944", description="RPC endpoint")
-    ws_endpoint: str = Field("ws://127.0.0.1:9944", description="WebSocket endpoint")
+    endpoint: str = Field("wss://hypertensor.duckdns.org", description="RPC endpoint")
+    ws_endpoint: str = Field("wss://hypertensor.duckdns.org", description="WebSocket endpoint")
     timeout: int = Field(30, description="Connection timeout in seconds")
     retry_attempts: int = Field(3, description="Number of retry attempts")
 

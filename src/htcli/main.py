@@ -7,9 +7,9 @@ from rich.console import Console
 from pathlib import Path
 from typing import Optional
 
-from .commands.subnet import register, manage, nodes
-from .commands.wallet import keys, staking
-from .commands.chain import info, query
+from .commands.subnet import app as subnet_app
+from .commands.wallet import app as wallet_app
+from .commands.chain import app as chain_app
 from .config import load_config
 from .client import HypertensorClient
 from .dependencies import set_client
@@ -17,7 +17,7 @@ from .dependencies import set_client
 app = typer.Typer(
     name="htcli",
     help="Hypertensor Blockchain CLI",
-    add_completion=False,
+    add_completion=True,
     rich_markup_mode="rich"
 )
 
@@ -57,18 +57,10 @@ def main(
     config.output.format = output_format
 
 
-# Include subnet command modules
-app.add_typer(register.app, name="register", help="Subnet registration")
-app.add_typer(manage.app, name="manage", help="Subnet management")
-app.add_typer(nodes.app, name="nodes", help="Subnet node operations")
-
-# Include wallet command modules
-app.add_typer(keys.app, name="keys", help="Key management")
-app.add_typer(staking.app, name="stake", help="Staking operations")
-
-# Include chain command modules
-app.add_typer(info.app, name="info", help="Chain information")
-app.add_typer(query.app, name="query", help="Data queries")
+# Include the three main command groups
+app.add_typer(subnet_app, name="subnet", help="Subnet operations")
+app.add_typer(wallet_app, name="wallet", help="Wallet operations")
+app.add_typer(chain_app, name="chain", help="Chain operations")
 
 if __name__ == "__main__":
     app()

@@ -1,5 +1,5 @@
 """
-Subnet node operations commands.
+Subnet node operations.
 """
 
 import typer
@@ -7,7 +7,7 @@ from rich.console import Console
 from typing import Optional
 from ...models.requests import SubnetNodeAddRequest
 from ...utils.validation import validate_peer_id, validate_address
-from ...utils.formatting import print_success, print_error, create_node_table
+from ...utils.formatting import print_success, print_error, format_node_list
 from ...dependencies import get_client
 
 app = typer.Typer(name="nodes", help="Subnet node operations")
@@ -18,7 +18,7 @@ console = Console()
 def add(
     subnet_id: int = typer.Argument(..., help="Subnet ID"),
     peer_id: str = typer.Argument(..., help="Peer ID"),
-    hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey account"),
+    hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey account address"),
     client = typer.Option(None, help="Client instance")
 ):
     """Add a node to a subnet."""
@@ -42,9 +42,16 @@ def add(
             hotkey=hotkey
         )
 
+        # Use the proper RPC method according to documentation
         response = client.add_subnet_node(request)
-        print_success(f"Node added to subnet {subnet_id} successfully!")
-        console.print(f"Transaction: {response.transaction_hash}")
+
+        if response.success:
+            print_success(f"Node added to subnet {subnet_id} successfully!")
+            if response.transaction_hash:
+                console.print(f"Transaction: {response.transaction_hash}")
+        else:
+            print_error(f"Failed to add node: {response.message}")
+            raise typer.Exit(1)
     except Exception as e:
         print_error(f"Failed to add node: {str(e)}")
         raise typer.Exit(1)
@@ -55,26 +62,20 @@ def list(
     subnet_id: int = typer.Argument(..., help="Subnet ID"),
     client = typer.Option(None, help="Client instance")
 ):
-    """List nodes in a subnet."""
+    """List all nodes in a subnet."""
     # Get client if not provided
     if client is None:
         client = get_client()
 
     try:
+        # Use the proper RPC method according to documentation
         response = client.get_subnet_nodes(subnet_id)
 
-        if response.data and response.data.get("nodes"):
-            table = create_node_table(response.data["nodes"], subnet_id)
-            console.print(table)
-
-            if response.data.get("total_nodes"):
-                console.print(f"\nTotal Nodes: {response.data['total_nodes']}")
-                if response.data.get("total_stake"):
-                    from ...utils.formatting import format_balance
-                    console.print(f"Total Stake: {format_balance(response.data['total_stake'])}")
+        if response.success:
+            format_node_list(response.data.get("nodes", []))
         else:
-            console.print(f"No nodes found in subnet {subnet_id}.")
-
+            print_error(f"Failed to list nodes: {response.message}")
+            raise typer.Exit(1)
     except Exception as e:
         print_error(f"Failed to list nodes: {str(e)}")
         raise typer.Exit(1)

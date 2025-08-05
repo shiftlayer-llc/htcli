@@ -8,62 +8,40 @@ from typing import Optional
 
 class SubnetRegisterRequest(BaseModel):
     """Request model for subnet registration."""
-    path: str = Field(..., description="Subnet path/name")
-    memory_mb: int = Field(..., description="Memory requirement in MB")
-    registration_blocks: int = Field(..., description="Registration period in blocks")
-    entry_interval: int = Field(..., description="Entry interval in blocks")
+    path: str = Field(..., description="Subnet path")
+    memory_mb: int = Field(..., description="Memory in MB")
+    registration_blocks: int = Field(..., description="Registration blocks")
+    entry_interval: int = Field(..., description="Entry interval")
+    max_node_registration_epochs: int = Field(..., description="Maximum node registration epochs")
+    node_registration_interval: int = Field(..., description="Node registration interval")
+    node_activation_interval: int = Field(..., description="Node activation interval")
+    node_queue_period: int = Field(..., description="Node queue period")
+    max_node_penalties: int = Field(..., description="Maximum node penalties")
+    coldkey_whitelist: list = Field(default_factory=list, description="Coldkey whitelist")
 
 
 class SubnetNodeAddRequest(BaseModel):
     """Request model for adding a node to a subnet."""
     subnet_id: int = Field(..., description="Subnet ID")
     peer_id: str = Field(..., description="Peer ID")
-    hotkey: str = Field(..., description="Hotkey account")
+    hotkey: str = Field(..., description="Hotkey")
+    delegate_reward_rate: int = Field(..., description="Delegate reward rate")
+    stake_to_be_added: int = Field(..., description="Stake to be added")
 
 
 class StakeAddRequest(BaseModel):
     """Request model for adding stake."""
     subnet_id: int = Field(..., description="Subnet ID")
-    subnet_node_id: int = Field(..., description="Subnet node ID")
-    hotkey: str = Field(..., description="Hotkey account")
-    stake_to_be_added: int = Field(..., description="Stake amount in smallest unit")
+    node_id: int = Field(..., description="Node ID")
+    hotkey: str = Field(..., description="Hotkey")
+    stake_to_be_added: int = Field(..., description="Stake amount to add")
 
 
 class StakeRemoveRequest(BaseModel):
     """Request model for removing stake."""
     subnet_id: int = Field(..., description="Subnet ID")
-    hotkey: str = Field(..., description="Hotkey account")
+    hotkey: str = Field(..., description="Hotkey")
     stake_to_be_removed: int = Field(..., description="Stake amount to remove")
-
-
-class ValidationSubmitRequest(BaseModel):
-    """Request model for submitting validation."""
-    subnet_id: int = Field(..., description="Subnet ID")
-    data: str = Field(..., description="Validation data")
-    args: Optional[str] = Field(None, description="Optional arguments")
-
-
-class GovernanceProposeRequest(BaseModel):
-    """Request model for creating a governance proposal."""
-    subnet_id: int = Field(..., description="Subnet ID")
-    subnet_node_id: int = Field(..., description="Subnet node ID")
-    peer_id: str = Field(..., description="Peer ID")
-    data: str = Field(..., description="Proposal data")
-
-
-class GovernanceVoteRequest(BaseModel):
-    """Request model for voting on a governance proposal."""
-    subnet_id: int = Field(..., description="Subnet ID")
-    subnet_node_id: int = Field(..., description="Subnet node ID")
-    proposal_id: int = Field(..., description="Proposal ID")
-    vote: str = Field(..., description="Vote type: 'yay' or 'nay'")
-
-
-class TransferRequest(BaseModel):
-    """Request model for token transfer."""
-    to_address: str = Field(..., description="Destination address")
-    amount: int = Field(..., description="Amount in smallest unit")
-    from_address: Optional[str] = Field(None, description="Source address")
 
 
 class KeyGenerateRequest(BaseModel):

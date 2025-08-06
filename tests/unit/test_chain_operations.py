@@ -95,7 +95,7 @@ class TestChainInfo:
             assert "retrieved successfully" in response.message
             assert response.data['address'] == "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
             assert response.data['balance'] == 31662054793350007812500
-            assert "TAO" in response.data['formatted_balance']
+            assert "TENSOR" in response.data['formatted_balance']
 
 
 class TestChainQuery:

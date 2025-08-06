@@ -69,11 +69,11 @@ def print_info(message: str):
 def format_balance(amount: int, decimals: int = 9) -> str:
     """Format balance amount with proper decimal places."""
     if amount == 0:
-        return "0 TAO"
+        return "0 TENSOR"
 
     # Convert from smallest unit
     balance = amount / (10 ** decimals)
-    return f"{balance:.9f} TAO".rstrip('0').rstrip('.')
+    return f"{balance:.9f} TENSOR".rstrip('0').rstrip('.')
 
 
 def format_address(address: str, max_length: int = 20) -> str:

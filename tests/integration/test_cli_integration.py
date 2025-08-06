@@ -93,10 +93,10 @@ class TestCLIIntegration:
                 "--node-queue-period", "40",
                 "--max-node-penalties", "5"
             ])
-            
+
             # The command might not be implemented yet, so we check for either success or proper error
             assert result.exit_code in [0, 2]  # 0 for success, 2 for command not found
-            
+
             if result.exit_code == 0:
                 assert "Subnet registered successfully" in result.stdout
             else:
@@ -113,7 +113,7 @@ class TestCLIIntegration:
             # Test subnet activation
             result = cli_runner.invoke(app, ["subnet", "register", "activate", "1"])
             assert result.exit_code in [0, 2]  # 0 for success, 2 for command not found
-            
+
             if result.exit_code == 0:
                 assert "activated successfully" in result.stdout.lower()
             else:
@@ -198,4 +198,4 @@ class TestCLIIntegration:
             ])
             assert result.exit_code == 0
             # Check for balance information in the output
-            assert "balance" in result.stdout.lower() or "TAO" in result.stdout
+            assert "balance" in result.stdout.lower() or "TENSOR" in result.stdout

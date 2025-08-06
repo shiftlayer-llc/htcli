@@ -113,7 +113,7 @@ class ChainClient:
                 data={
                     "address": address,
                     "balance": balance,
-                    "formatted_balance": f"{balance / 1e12:.6f} TAO"
+                    "formatted_balance": f"{balance / 1e12:.6f} TENSOR"
                 }
             )
         except Exception as e:
@@ -393,7 +393,7 @@ class ChainClient:
                     "address": address,
                     "balance": balance,
                     "nonce": nonce_value,
-                    "formatted_balance": f"{(balance / 1e12):.6f} TAO" if balance > 0 else "0 TAO"
+                    "formatted_balance": f"{(balance / 1e12):.6f} TENSOR" if balance > 0 else "0 TENSOR"
                 }
             )
         except Exception as e:

@@ -178,7 +178,7 @@ class WalletClient:
                 data={
                     "address": address,
                     "balance": balance,
-                    "formatted_balance": f"{balance / 1e12:.6f} TAO"
+                    "formatted_balance": f"{balance / 1e12:.6f} TENSOR"
                 }
             )
         except Exception as e:

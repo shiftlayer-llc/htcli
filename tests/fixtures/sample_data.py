@@ -76,15 +76,15 @@ SAMPLE_STAKE_DATA = {
         "subnet_id": 1,
         "node_id": 1,
         "hotkey": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
-        "stake_to_be_added": 1000000000000,  # 1 TAO
-        "stake_to_be_removed": 500000000000   # 0.5 TAO
+        "stake_to_be_added": 1000000000000,  # 1 TENSOR
+        "stake_to_be_removed": 500000000000   # 0.5 TENSOR
     },
     "stake_2": {
         "subnet_id": 2,
         "node_id": 1,
         "hotkey": "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty",
-        "stake_to_be_added": 2000000000000,  # 2 TAO
-        "stake_to_be_removed": 1000000000000  # 1 TAO
+        "stake_to_be_added": 2000000000000,  # 2 TENSOR
+        "stake_to_be_removed": 1000000000000  # 1 TENSOR
     }
 }
 
@@ -93,7 +93,7 @@ SAMPLE_NETWORK_STATS = {
     "total_subnets": 10,
     "total_active_subnets": 8,
     "total_active_nodes": 150,
-    "total_stake": 5000000000000,  # 5 TAO
+    "total_stake": 5000000000000,  # 5 TENSOR
     "current_epoch": 1234,
     "block_height": 567890
 }
@@ -108,7 +108,7 @@ SAMPLE_ACCOUNT_DATA = {
         "reserved": 0,
         "misc_frozen": 0,
         "fee_frozen": 0,
-        "formatted_balance": "31.6621 TAO"
+        "formatted_balance": "31.6621 TENSOR"
     },
     "bob_account": {
         "address": "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty",
@@ -118,7 +118,7 @@ SAMPLE_ACCOUNT_DATA = {
         "reserved": 0,
         "misc_frozen": 0,
         "fee_frozen": 0,
-        "formatted_balance": "1.0000 TAO"
+        "formatted_balance": "1.0000 TENSOR"
     }
 }
 

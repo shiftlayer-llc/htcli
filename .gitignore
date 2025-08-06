@@ -176,6 +176,13 @@ cython_debug/
 # Project specific ignores
 htcli
 docs/
+docs/*.md
+docs/*.html
+docs/*.css
+docs/*.js
+docs/*.png
+docs/*.jpg
+docs/*.gif
 *.log
 *.json
 *.md

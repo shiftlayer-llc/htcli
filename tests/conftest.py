@@ -107,7 +107,7 @@ def sample_account_data():
     """Sample account data for testing."""
     return {
         "address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
-        "balance": 1000000000000,  # 1 TAO in smallest unit
+        "balance": 1000000000000,  # 1 TENSOR in smallest unit
         "nonce": 0,
         "free": 1000000000000,
         "reserved": 0,

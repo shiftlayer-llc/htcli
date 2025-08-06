@@ -18,7 +18,7 @@ console = Console()
 def add(
     subnet_id: int = typer.Argument(..., help="Subnet ID"),
     node_id: int = typer.Argument(..., help="Node ID"),
-    amount: float = typer.Argument(..., help="Stake amount in TAO"),
+    amount: float = typer.Argument(..., help="Stake amount in TENSOR"),
     hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey account address"),
     client = typer.Option(None, help="Client instance")
 ):
@@ -65,7 +65,7 @@ def add(
 @app.command()
 def remove(
     subnet_id: int = typer.Argument(..., help="Subnet ID"),
-    amount: float = typer.Argument(..., help="Stake amount to remove in TAO"),
+    amount: float = typer.Argument(..., help="Stake amount to remove in TENSOR"),
     hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey account address"),
     client = typer.Option(None, help="Client instance")
 ):

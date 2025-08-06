@@ -51,7 +51,7 @@ SAMPLE_NODE_DATA = {
         "hotkey": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
         "bootstrap_peer_id": "QmTestPeerId1234567890abcdef",
         "delegate_reward_rate": 1000,
-        "stake_to_be_added": 1000000000000,
+        "stake_to_be_added": 1000000000000000000,  # 1 TENSOR with 18 decimals
         "a": "1000000000000",
         "b": "1000",
         "c": "1"
@@ -63,7 +63,7 @@ SAMPLE_NODE_DATA = {
         "hotkey": "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty",
         "bootstrap_peer_id": "QmTestPeerId9876543210fedcba",
         "delegate_reward_rate": 2000,
-        "stake_to_be_added": 2000000000000,
+        "stake_to_be_added": 2000000000000000000,  # 2 TENSOR with 18 decimals
         "a": "2000000000000",
         "b": "2000",
         "c": "1"
@@ -76,15 +76,15 @@ SAMPLE_STAKE_DATA = {
         "subnet_id": 1,
         "node_id": 1,
         "hotkey": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
-        "stake_to_be_added": 1000000000000,  # 1 TENSOR
-        "stake_to_be_removed": 500000000000   # 0.5 TENSOR
+        "stake_to_be_added": 1000000000000000000,  # 1 TENSOR with 18 decimals
+        "stake_to_be_removed": 500000000000000000   # 0.5 TENSOR with 18 decimals
     },
     "stake_2": {
         "subnet_id": 2,
         "node_id": 1,
         "hotkey": "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty",
-        "stake_to_be_added": 2000000000000,  # 2 TENSOR
-        "stake_to_be_removed": 1000000000000  # 1 TENSOR
+        "stake_to_be_added": 2000000000000000000,  # 2 TENSOR with 18 decimals
+        "stake_to_be_removed": 1000000000000000000  # 1 TENSOR with 18 decimals
     }
 }
 
@@ -93,7 +93,7 @@ SAMPLE_NETWORK_STATS = {
     "total_subnets": 10,
     "total_active_subnets": 8,
     "total_active_nodes": 150,
-    "total_stake": 5000000000000,  # 5 TENSOR
+    "total_stake": 5000000000000000000,  # 5 TENSOR with 18 decimals
     "current_epoch": 1234,
     "block_height": 567890
 }
@@ -102,7 +102,7 @@ SAMPLE_NETWORK_STATS = {
 SAMPLE_ACCOUNT_DATA = {
     "alice_account": {
         "address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
-        "balance": 31662054793350007812500,
+        "balance": 31662054793350007812500,  # Balance with 18 decimals
         "nonce": 0,
         "free": 31662054793350007812500,
         "reserved": 0,
@@ -112,7 +112,7 @@ SAMPLE_ACCOUNT_DATA = {
     },
     "bob_account": {
         "address": "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty",
-        "balance": 1000000000000,
+        "balance": 1000000000000000000,  # 1 TENSOR with 18 decimals
         "nonce": 5,
         "free": 1000000000000,
         "reserved": 0,

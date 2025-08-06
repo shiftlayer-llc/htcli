@@ -24,7 +24,7 @@ class TestChainInfo:
             mock_total_active_nodes = Mock()
             mock_total_active_nodes.value = 5
             mock_total_stake = Mock()
-            mock_total_stake.value = 1000000000000
+            mock_total_stake.value = 1000000000000000000  # 1 TENSOR with 18 decimals
 
             mock_substrate_instance.query.side_effect = [
                 mock_total_subnets,
@@ -44,7 +44,7 @@ class TestChainInfo:
             assert response.data['total_subnets'] == 2
             assert response.data['total_active_subnets'] == 1
             assert response.data['total_active_nodes'] == 5
-            assert response.data['total_stake'] == 1000000000000
+            assert response.data['total_stake'] == 1000000000000000000  # 1 TENSOR with 18 decimals
 
     def test_get_current_epoch_success(self):
         """Test successful epoch information retrieval."""
@@ -94,7 +94,7 @@ class TestChainInfo:
             assert response.success is True
             assert "retrieved successfully" in response.message
             assert response.data['address'] == "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
-            assert response.data['balance'] == 31662054793350007812500
+            assert response.data['balance'] == 31662054793350007812500  # Balance with 18 decimals
             assert "TENSOR" in response.data['formatted_balance']
 
 

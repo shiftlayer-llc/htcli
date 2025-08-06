@@ -25,7 +25,7 @@ def validate_address(address: str) -> bool:
 
 
 def validate_amount(amount: Union[str, float, int]) -> bool:
-    """Validate amount format."""
+    """Validate amount format for TENSOR token (18 decimals)."""
     try:
         if isinstance(amount, str):
             amount = float(amount)
@@ -33,6 +33,11 @@ def validate_amount(amount: Union[str, float, int]) -> bool:
             amount = float(amount)
 
         if amount <= 0:
+            return False
+
+        # Check for TENSOR precision (18 decimals)
+        str_amount = f"{amount:.18f}"
+        if len(str_amount.split('.')[-1]) > 18:
             return False
 
         return True
@@ -274,6 +279,48 @@ def validate_limit(limit: Union[str, int]) -> bool:
             limit = int(limit)
 
         if limit <= 0 or limit > 1000:
+            return False
+
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
+def validate_tensor_stake_amount(amount: Union[str, float, int]) -> bool:
+    """Validate TENSOR stake amount with 18 decimal precision."""
+    try:
+        if isinstance(amount, str):
+            amount = float(amount)
+        elif isinstance(amount, int):
+            amount = float(amount)
+
+        if amount <= 0:
+            return False
+
+        # Check for TENSOR precision (18 decimals)
+        str_amount = f"{amount:.18f}"
+        if len(str_amount.split('.')[-1]) > 18:
+            return False
+
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
+def validate_tensor_balance(amount: Union[str, float, int]) -> bool:
+    """Validate TENSOR balance amount with 18 decimal precision."""
+    try:
+        if isinstance(amount, str):
+            amount = float(amount)
+        elif isinstance(amount, int):
+            amount = float(amount)
+
+        if amount < 0:  # Allow zero balance
+            return False
+
+        # Check for TENSOR precision (18 decimals)
+        str_amount = f"{amount:.18f}"
+        if len(str_amount.split('.')[-1]) > 18:
             return False
 
         return True

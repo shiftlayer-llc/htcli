@@ -107,7 +107,7 @@ def sample_account_data():
     """Sample account data for testing."""
     return {
         "address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
-        "balance": 1000000000000,  # 1 TENSOR in smallest unit
+        "balance": 1000000000000000000,  # 1 TENSOR with 18 decimals
         "nonce": 0,
         "free": 1000000000000,
         "reserved": 0,
@@ -123,7 +123,7 @@ def sample_network_stats():
         "total_subnets": 10,
         "active_subnets": 8,
         "total_nodes": 150,
-        "total_stake": 5000000000000,
+        "total_stake": 5000000000000000000,  # 5 TENSOR with 18 decimals
         "current_epoch": 1234,
         "block_height": 567890
     }

@@ -10,6 +10,28 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from typing import Any, Dict, List, Optional
 import json
 
+# TENSOR token precision constant
+TENSOR_DECIMALS = 18
+
+
+def tensor_to_smallest_unit(tensor_amount: float) -> int:
+    """Convert TENSOR amount to smallest unit (18 decimals)."""
+    return int(tensor_amount * (10 ** TENSOR_DECIMALS))
+
+
+def smallest_unit_to_tensor(smallest_unit: int) -> float:
+    """Convert smallest unit to TENSOR amount (18 decimals)."""
+    return smallest_unit / (10 ** TENSOR_DECIMALS)
+
+
+def validate_tensor_amount(amount: float) -> bool:
+    """Validate TENSOR amount has proper precision."""
+    # Check if amount has more than 18 decimal places
+    str_amount = f"{amount:.18f}"
+    if len(str_amount.split('.')[-1]) > TENSOR_DECIMALS:
+        return False
+    return True
+
 
 console = Console()
 
@@ -66,14 +88,14 @@ def print_info(message: str):
     console.print(f"ℹ️  {message}", style="blue")
 
 
-def format_balance(amount: int, decimals: int = 9) -> str:
-    """Format balance amount with proper decimal places."""
+def format_balance(amount: int, decimals: int = TENSOR_DECIMALS) -> str:
+    """Format balance amount with proper decimal places for TENSOR token (18 decimals)."""
     if amount == 0:
         return "0 TENSOR"
 
-    # Convert from smallest unit
+    # Convert from smallest unit (18 decimals for TENSOR)
     balance = amount / (10 ** decimals)
-    return f"{balance:.9f} TENSOR".rstrip('0').rstrip('.')
+    return f"{balance:.18f} TENSOR".rstrip('0').rstrip('.')
 
 
 def format_address(address: str, max_length: int = 20) -> str:

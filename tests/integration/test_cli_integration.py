@@ -188,7 +188,7 @@ class TestCLIIntegration:
                 "message": "Balance retrieved successfully",
                 "data": {
                     "address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
-                    "balance": 1000000000000
+                    "balance": 1000000000000000000  # 1 TENSOR with 18 decimals
                 }
             }
 

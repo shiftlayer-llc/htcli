@@ -192,7 +192,7 @@ class TestSubnetNodes:
                 peer_id="QmTestPeerId123456789",
                 hotkey="5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
                 delegate_reward_rate=1000,
-                stake_to_be_added=1000000000000
+                stake_to_be_added=1000000000000000000  # 1 TENSOR with 18 decimals
             )
 
             # Test node addition
@@ -213,7 +213,7 @@ class TestSubnetNodes:
                     'peer_id': 'QmTestPeerId123456789',
                     'bootstrap_peer_id': 'QmTestPeerId123456789',
                     'delegate_reward_rate': 1000,
-                    'stake_to_be_added': 1000000000000,
+                    'stake_to_be_added': 1000000000000000000,  # 1 TENSOR with 18 decimals
                     'a': '1000000000000',
                     'b': '1000',
                     'c': '1'

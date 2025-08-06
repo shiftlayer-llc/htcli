@@ -26,7 +26,7 @@ class TestWalletStaking:
                 subnet_id=1,
                 node_id=1,
                 hotkey="5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
-                stake_to_be_added=1000000000000
+                stake_to_be_added=1000000000000000000  # 1 TENSOR with 18 decimals
             )
 
             response = client.add_to_stake(request)
@@ -49,7 +49,7 @@ class TestWalletStaking:
             request = StakeRemoveRequest(
                 subnet_id=1,
                 hotkey="5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
-                stake_to_be_removed=500000000000
+                stake_to_be_removed=500000000000000000  # 0.5 TENSOR with 18 decimals
             )
 
             response = client.remove_stake(request)
@@ -65,7 +65,7 @@ class TestWalletStaking:
             mock_substrate.return_value = mock_substrate_instance
 
             mock_stake_data = Mock()
-            mock_stake_data.value = 1000000000000
+            mock_stake_data.value = 1000000000000000000  # 1 TENSOR with 18 decimals
             mock_substrate_instance.query.return_value = mock_stake_data
 
             from src.htcli.config import load_config
@@ -76,7 +76,7 @@ class TestWalletStaking:
 
             assert response.success is True
             assert "retrieved successfully" in response.message
-            assert response.data['stake'] == 1000000000000
+            assert response.data['stake'] == 1000000000000000000  # 1 TENSOR with 18 decimals
 
 
 class TestWalletKeys:

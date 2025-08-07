@@ -57,7 +57,7 @@ def main(
     config.output.format = output_format
 
 
-# Include the three main command groups
+# Include the three main command groups with flattened structure
 app.add_typer(subnet_app, name="subnet", help="Subnet operations")
 app.add_typer(wallet_app, name="wallet", help="Wallet operations")
 app.add_typer(chain_app, name="chain", help="Chain operations")

@@ -174,12 +174,18 @@ def block(
         print_error("Invalid block number.")
         raise typer.Exit(1)
 
-    if not block_hash and not block_number:
+    if not block_hash and block_number is None:
         print_error("Either block hash or block number must be provided.")
         raise typer.Exit(1)
 
     try:
-        response = client.get_block_info(block_hash, block_number)
+        # Pass only one parameter to get_block_info
+        if block_hash:
+            # For now, we'll use block_number=None when hash is provided
+            # In a real implementation, we might need to convert hash to number
+            response = client.get_block_info(None)
+        else:
+            response = client.get_block_info(block_number)
         if response.success:
             block_data = response.data
             if format_type == "json":

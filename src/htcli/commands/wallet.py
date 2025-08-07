@@ -287,7 +287,7 @@ def claim_unbondings(
             # TODO: Load keypair from storage
             pass
 
-        response = client.claim_unbondings(hotkey, keypair)
+        response = client.claim_unbondings(keypair)
         print_success("✅ Unbonded stake claimed successfully!")
         console.print(f"Transaction: {response.transaction_hash}")
         if response.block_number:

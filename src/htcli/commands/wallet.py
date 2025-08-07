@@ -5,7 +5,7 @@ Flattened wallet commands - 3-level hierarchy.
 import typer
 from rich.console import Console
 from typing import Optional
-from ..utils.crypto import generate_keypair, import_keypair, list_keys, delete_keypair
+from ..utils.crypto import generate_keypair, import_keypair, list_keys as list_keys_util, delete_keypair
 from ..utils.validation import (
     validate_key_type, validate_password, validate_private_key,
     validate_wallet_name, validate_address, validate_tensor_stake_amount
@@ -99,7 +99,7 @@ def list_keys(
 ):
     """List all stored keys."""
     try:
-        keys = list_keys()
+        keys = list_keys_util()
         if not keys:
             console.print("No keys found.")
             return

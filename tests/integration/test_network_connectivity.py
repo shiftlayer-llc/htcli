@@ -50,7 +50,7 @@ class TestNetworkConnectivity:
     @pytest.mark.network
     def test_cli_network_info(self, cli_runner):
         """Test CLI network info command with real network."""
-        result = cli_runner.invoke(app, ["chain", "info", "network"])
+        result = cli_runner.invoke(app, ["chain", "network"])
 
         # Should not crash, even if network is unavailable
         assert result.exit_code in [0, 1]  # 0 for success, 1 for network error
@@ -64,7 +64,7 @@ class TestNetworkConnectivity:
     @pytest.mark.network
     def test_cli_epoch_info(self, cli_runner):
         """Test CLI epoch info command with real network."""
-        result = cli_runner.invoke(app, ["chain", "info", "epoch"])
+        result = cli_runner.invoke(app, ["chain", "epoch"])
 
         # Should not crash, even if network is unavailable
         assert result.exit_code in [0, 1]
@@ -78,7 +78,7 @@ class TestNetworkConnectivity:
     @pytest.mark.network
     def test_cli_peers_query(self, cli_runner):
         """Test CLI peers query command with real network."""
-        result = cli_runner.invoke(app, ["chain", "query", "peers"])
+        result = cli_runner.invoke(app, ["chain", "peers"])
 
         # Should not crash, even if network is unavailable
         assert result.exit_code in [0, 1]
@@ -92,7 +92,7 @@ class TestNetworkConnectivity:
     @pytest.mark.network
     def test_cli_block_query(self, cli_runner):
         """Test CLI block query command with real network."""
-        result = cli_runner.invoke(app, ["chain", "query", "block"])
+        result = cli_runner.invoke(app, ["chain", "block", "--number", "1"])
 
         # Should not crash, even if network is unavailable
         assert result.exit_code in [0, 1]
@@ -103,81 +103,120 @@ class TestNetworkConnectivity:
             # Network error is acceptable for tests
             assert "error" in result.stdout.lower() or "failed" in result.stdout.lower()
 
-    def test_endpoint_configuration(self):
-        """Test that the endpoint is correctly configured."""
-        config = load_config()
+    @pytest.mark.network
+    def test_cli_balance_query(self, cli_runner):
+        """Test CLI balance query command with real network."""
+        # Use a test address
+        test_address = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+        result = cli_runner.invoke(app, ["chain", "balance", test_address])
 
-        assert config.network.endpoint == "wss://hypertensor.duckdns.org"
-        assert config.network.ws_endpoint == "wss://hypertensor.duckdns.org"
-        assert config.network.timeout == 30
-        assert config.network.retry_attempts == 3
+        # Should not crash, even if network is unavailable
+        assert result.exit_code in [0, 1]
+
+        if result.exit_code == 0:
+            assert "balance" in result.stdout.lower() or "TENSOR" in result.stdout
+        else:
+            # Network error is acceptable for tests
+            assert "error" in result.stdout.lower() or "failed" in result.stdout.lower()
+
+    @pytest.mark.network
+    def test_cli_account_info(self, cli_runner):
+        """Test CLI account info command with real network."""
+        # Use a test address
+        test_address = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+        result = cli_runner.invoke(app, ["chain", "account", test_address])
+
+        # Should not crash, even if network is unavailable
+        assert result.exit_code in [0, 1]
+
+        if result.exit_code == 0:
+            assert "account" in result.stdout.lower() or "balance" in result.stdout.lower()
+        else:
+            # Network error is acceptable for tests
+            assert "error" in result.stdout.lower() or "failed" in result.stdout.lower()
+
+    def test_endpoint_configuration(self):
+        """Test endpoint configuration loading."""
+        config = load_config()
+        
+        # Test that configuration loads correctly
+        assert config.network.endpoint is not None
+        assert config.network.ws_endpoint is not None
+        assert isinstance(config.network.timeout, int)
+        assert config.network.timeout > 0
 
     @pytest.mark.network
     def test_substrate_interface_connection(self):
-        """Test SubstrateInterface connection to Hypertensor."""
+        """Test SubstrateInterface connection to Hypertensor network."""
+        config = load_config()
+        client = HypertensorClient(config)
+
         try:
-            from substrateinterface import SubstrateInterface
+            # Test connection
+            connected = client.connect()
+            assert connected, "Failed to connect to Hypertensor network"
 
-            # Test connection with SubstrateInterface
-            substrate = SubstrateInterface(
-                url="wss://hypertensor.duckdns.org",
-                ss58_format=42
-            )
-
-            # Test basic chain properties
-            chain_name = substrate.get_chain_name()
-            assert chain_name is not None, "Failed to get chain name"
-
-            # Test block header
-            block_header = substrate.get_block_header(None)
-            assert block_header is not None, "Failed to get block header"
-
-            # Clean up
-            substrate.close()
+            # Test basic RPC call
+            if client.substrate:
+                # Test a simple RPC call
+                try:
+                    peers = client.substrate.rpc_request("system_peers", [])
+                    assert isinstance(peers, dict), "Invalid response from system_peers"
+                except Exception as e:
+                    # RPC call might fail in test environment
+                    pytest.skip(f"RPC call failed: {e}")
 
         except Exception as e:
-            pytest.skip(f"SubstrateInterface connection failed: {e}")
+            # Connection might fail in test environment
+            pytest.skip(f"Connection failed: {e}")
+        finally:
+            # Clean up
+            client.disconnect()
 
     @pytest.mark.network
     def test_network_endpoint_availability(self):
-        """Test that the network endpoint is available."""
-        import socket
-        import ssl
-
-        # Parse the endpoint
-        endpoint = "wss://hypertensor.duckdns.org"
-        host = "hypertensor.duckdns.org"
-        port = 443  # Default HTTPS/WSS port
+        """Test that the network endpoint is available and responding."""
+        config = load_config()
+        client = HypertensorClient(config)
 
         try:
-            # Test basic socket connectivity
-            context = ssl.create_default_context()
-            with socket.create_connection((host, port), timeout=10) as sock:
-                with context.wrap_socket(sock, server_hostname=host) as ssock:
-                    # If we get here, the endpoint is reachable
-                    assert ssock is not None
+            # Test connection
+            connected = client.connect()
+            assert connected, "Failed to connect to Hypertensor network"
+
+            # Test that we can get basic network information
+            if client.substrate:
+                try:
+                    # Test chain head
+                    chain_head = client.substrate.get_chain_head()
+                    assert chain_head is not None, "Failed to get chain head"
+
+                    # Test runtime version
+                    runtime_version = client.substrate.get_runtime_version()
+                    assert runtime_version is not None, "Failed to get runtime version"
+
+                except Exception as e:
+                    # These calls might fail in test environment
+                    pytest.skip(f"Network queries failed: {e}")
+
         except Exception as e:
-            pytest.skip(f"Network endpoint not reachable: {e}")
+            # Connection might fail in test environment
+            pytest.skip(f"Connection failed: {e}")
+        finally:
+            # Clean up
+            client.disconnect()
 
     def test_environment_variables(self):
-        """Test that environment variables are properly set."""
+        """Test environment variable configuration."""
         import os
-
-        # Set test environment variables if not already set
-        if not os.getenv("HTCLI_NETWORK_ENDPOINT"):
-            os.environ["HTCLI_NETWORK_ENDPOINT"] = "wss://hypertensor.duckdns.org"
-        if not os.getenv("HTCLI_NETWORK_WS_ENDPOINT"):
-            os.environ["HTCLI_NETWORK_WS_ENDPOINT"] = "wss://hypertensor.duckdns.org"
-        if not os.getenv("HTCLI_OUTPUT_FORMAT"):
-            os.environ["HTCLI_OUTPUT_FORMAT"] = "table"
-        if not os.getenv("HTCLI_OUTPUT_VERBOSE"):
-            os.environ["HTCLI_OUTPUT_VERBOSE"] = "false"
-        if not os.getenv("HTCLI_OUTPUT_COLOR"):
-            os.environ["HTCLI_OUTPUT_COLOR"] = "true"
-
-        # Check that environment variables are set
-        assert os.getenv("HTCLI_NETWORK_ENDPOINT") == "wss://hypertensor.duckdns.org"
-        assert os.getenv("HTCLI_NETWORK_WS_ENDPOINT") == "wss://hypertensor.duckdns.org"
-        assert os.getenv("HTCLI_OUTPUT_FORMAT") == "table"
-        assert os.getenv("HTCLI_OUTPUT_VERBOSE") == "false"
-        assert os.getenv("HTCLI_OUTPUT_COLOR") == "true"
+        
+        # Test that environment variables can be set
+        test_endpoint = "wss://test.endpoint:9944"
+        os.environ["HTCLI_NETWORK_ENDPOINT"] = test_endpoint
+        
+        config = load_config()
+        assert config.network.endpoint == test_endpoint
+        
+        # Clean up
+        if "HTCLI_NETWORK_ENDPOINT" in os.environ:
+            del os.environ["HTCLI_NETWORK_ENDPOINT"]

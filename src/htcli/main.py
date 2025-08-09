@@ -13,6 +13,7 @@ from .commands.chain import app as chain_app
 from .commands.config import app as config_app
 from .commands.node import app as node_app
 from .commands.stake import app as stake_app
+from .commands.my import app as my_app
 from .config import load_config
 from .client import HypertensorClient
 from .dependencies import set_client
@@ -62,6 +63,7 @@ def main(
 
 # Include the main command groups with flattened structure
 app.add_typer(config_app, name="config", help="Configuration management")
+app.add_typer(my_app, name="my", help="View your personal assets and ownership")
 app.add_typer(subnet_app, name="subnet", help="Subnet operations")
 app.add_typer(node_app, name="node", help="Node management operations")
 app.add_typer(stake_app, name="stake", help="Staking operations and management")

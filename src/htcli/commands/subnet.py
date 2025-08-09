@@ -15,6 +15,7 @@ from ..utils.validation import (
 from ..utils.formatting import (
     print_success, print_error, format_subnet_list, format_subnet_info
 )
+from ..utils.ownership import get_user_addresses, user_owns_subnet, require_user_keys, show_mine_filter_info
 from ..dependencies import get_client
 
 app = typer.Typer(name="subnet", help="Subnet operations")
@@ -107,17 +108,48 @@ def activate(
 def list(
     format_type: str = typer.Option("table", "--format", "-f", help="Output format (table/json)")
 ):
-    """List all subnets."""
+    """List subnets. Use --mine flag globally to show only your subnets."""
     client = get_client()
+
+    # Check if --mine filter is enabled globally
+    config = client.config
+    filter_mine = getattr(config.filter, 'mine', False)
 
     try:
         response = client.get_subnets_data()
         if response.success:
             subnets = response.data.get('subnets', [])
+            original_count = len(subnets)
+
+            # Apply --mine filtering if enabled
+            if filter_mine:
+                user_addresses = require_user_keys()
+
+                # Enhance subnets with ownership information
+                enhanced_subnets = []
+                for subnet in subnets:
+                    subnet_id = subnet.get('subnet_id')
+                    if subnet_id:
+                        # Get detailed subnet data to check ownership
+                        detail_response = client.get_subnet_data(subnet_id)
+                        if detail_response.success:
+                            subnet_detail = detail_response.data
+                            # Check if user owns this subnet
+                            if user_owns_subnet(subnet_detail, user_addresses):
+                                enhanced_subnets.append({
+                                    **subnet,
+                                    'owner': subnet_detail.get('owner', ''),
+                                    'is_mine': True
+                                })
+
+                subnets = enhanced_subnets
+                show_mine_filter_info(user_addresses, len(subnets), original_count)
+
             if format_type == "json":
                 console.print_json(data=subnets)
             else:
                 format_subnet_list(subnets)
+
         else:
             print_error(f"Failed to retrieve subnets: {response.message}")
     except Exception as e:

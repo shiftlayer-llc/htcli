@@ -23,6 +23,11 @@ class OutputConfig(BaseModel):
     color: bool = Field(True, description="Enable colored output")
 
 
+class FilterConfig(BaseModel):
+    """Filter configuration."""
+    mine: bool = Field(False, description="Filter results to show only user assets")
+
+
 class WalletConfig(BaseModel):
     """Wallet configuration."""
     path: str = Field("~/.htcli/wallets", description="Wallet storage path")
@@ -35,6 +40,7 @@ class Config(BaseModel):
     network: NetworkConfig = Field(default_factory=NetworkConfig)
     output: OutputConfig = Field(default_factory=OutputConfig)
     wallet: WalletConfig = Field(default_factory=WalletConfig)
+    filter: FilterConfig = Field(default_factory=FilterConfig)
 
 
 def load_config(config_file: Optional[Path] = None) -> Config:
@@ -66,10 +72,15 @@ def load_config(config_file: Optional[Path] = None) -> Config:
             encryption_enabled=os.getenv("HTCLI_WALLET_ENCRYPTION_ENABLED", "true").lower() == "true"
         )
 
+        filter_config = FilterConfig(
+            mine=os.getenv("HTCLI_FILTER_MINE", "false").lower() == "true"
+        )
+
         return Config(
             network=network_config,
             output=output_config,
-            wallet=wallet_config
+            wallet=wallet_config,
+            filter=filter_config
         )
 
 

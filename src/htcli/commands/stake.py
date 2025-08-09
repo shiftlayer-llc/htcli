@@ -17,6 +17,7 @@ from ..utils.validation import (
 from ..utils.formatting import (
     print_success, print_error, print_info, format_balance, format_stake_info
 )
+from ..utils.ownership import get_user_addresses, require_user_keys, show_mine_filter_info
 from ..dependencies import get_client
 
 app = typer.Typer(name="stake", help="Staking operations and management")
@@ -354,53 +355,122 @@ def remove(
 
 @app.command()
 def info(
-    address: str = typer.Option(..., "--address", "-a", help="Account address"),
+    address: Optional[str] = typer.Option(None, "--address", "-a", help="Account address (optional with --mine)"),
     subnet_id: Optional[int] = typer.Option(None, "--subnet-id", "-s", help="Subnet ID (optional, shows all if not specified)"),
     format_type: str = typer.Option("table", "--format", "-f", help="Output format (table/json)"),
     show_guidance: bool = typer.Option(False, "--guidance", help="Show comprehensive guidance")
 ):
-    """Get stake information for an account with comprehensive guidance."""
+    """Get stake information. Use --mine flag globally to show stakes for all your addresses."""
     client = get_client()
+
+    # Check if --mine filter is enabled globally
+    config = client.config
+    filter_mine = getattr(config.filter, 'mine', False)
+
+    # Determine addresses to check
+    if filter_mine:
+        user_addresses = require_user_keys()
+        addresses_to_check = [addr for _, addr in user_addresses]
+        if address:
+            print_info("💡 --mine flag detected: ignoring --address parameter, using your wallet addresses")
+    else:
+        if not address:
+            print_error("❌ Address is required when not using --mine filter.")
+            raise typer.Exit(1)
+        addresses_to_check = [address]
 
     # Show comprehensive guidance if requested
     if show_guidance:
         show_staking_guidance("info", {
-            "Address": address,
+            "Address": addresses_to_check if filter_mine else address,
             "Subnet ID": subnet_id or "All subnets",
-            "Output Format": format_type
+            "Output Format": format_type,
+            "Mine Filter": "Enabled - showing your addresses" if filter_mine else "Disabled"
         })
 
     # Validate inputs
-    if not validate_address(address):
-        print_error("❌ Invalid address format.")
-        raise typer.Exit(1)
+    for addr in addresses_to_check:
+        if not validate_address(addr):
+            print_error(f"❌ Invalid address format: {addr}")
+            raise typer.Exit(1)
 
     if subnet_id is not None and not validate_subnet_id(subnet_id):
         print_error("❌ Invalid subnet ID. Must be a positive integer.")
         raise typer.Exit(1)
 
     try:
-        if subnet_id:
-            print_info(f"🔄 Retrieving stake information for subnet {subnet_id}...")
-            response = client.get_account_subnet_stake(address, subnet_id)
-        else:
-            print_info("🔄 Retrieving stake information for all subnets...")
-            # TODO: Implement get_all_stakes method
-            print_error("❌ All-subnet stake info not yet implemented. Please specify --subnet-id")
-            raise typer.Exit(1)
+        all_stake_data = []
 
-        if response.success:
-            stake_data = response.data
-
-            if format_type == "json":
-                console.print_json(data=stake_data)
+        for addr in addresses_to_check:
+            if subnet_id:
+                print_info(f"🔄 Retrieving stake information for {addr[:10]}... subnet {subnet_id}...")
+                response = client.get_account_subnet_stake(addr, subnet_id)
+                if response.success and response.data:
+                    stake_data = response.data
+                    stake_data['address'] = addr
+                    all_stake_data.append(stake_data)
             else:
-                format_stake_info(stake_data, address, subnet_id)
+                print_info(f"🔄 Retrieving stake information for {addr[:10]}... all subnets...")
+                # Check multiple subnets for this address
+                for sid in range(1, 10):  # Check first 10 subnets
+                    try:
+                        response = client.get_account_subnet_stake(addr, sid)
+                        if response.success and response.data:
+                            stake_data = response.data
+                            total_stake = stake_data.get('total_stake', 0)
+                            if total_stake > 0:  # Only include if there's actual stake
+                                stake_data['address'] = addr
+                                stake_data['subnet_id'] = sid
+                                all_stake_data.append(stake_data)
+                    except:
+                        continue  # Skip non-existent stakes
+
+        if filter_mine:
+            show_mine_filter_info(user_addresses, len(all_stake_data))
+
+        if all_stake_data:
+            if format_type == "json":
+                console.print_json(data=all_stake_data)
+            else:
+                if filter_mine:
+                    # Show combined stake info for all addresses
+                    from rich.table import Table
+                    table = Table(title=f"🎯 Your Stake Positions")
+                    table.add_column("Address", style="cyan")
+                    if not subnet_id:
+                        table.add_column("Subnet ID", style="magenta")
+                    table.add_column("Total Stake", style="green")
+                    table.add_column("Rewards", style="yellow")
+
+                    total_stakes = 0
+                    total_rewards = 0
+
+                    for stake_data in all_stake_data:
+                        addr = stake_data.get('address', '')
+                        total_stake = stake_data.get('total_stake', 0)
+                        rewards = stake_data.get('rewards', 0)
+                        sid = stake_data.get('subnet_id', subnet_id)
+
+                        row = [addr[:20] + "...", format_balance(total_stake), format_balance(rewards)]
+                        if not subnet_id:
+                            row.insert(1, str(sid))
+                        table.add_row(*row)
+
+                        total_stakes += total_stake
+                        total_rewards += rewards
+
+                    console.print(table)
+                    print_info(f"📊 Total across all addresses: {format_balance(total_stakes)} staked, {format_balance(total_rewards)} rewards")
+                else:
+                    # Show single address stake info
+                    format_stake_info(all_stake_data[0])
 
             print_success("✅ Retrieved stake information successfully")
         else:
-            print_error(f"❌ Failed to retrieve stake info: {response.message}")
-            raise typer.Exit(1)
+            if filter_mine:
+                print_info("💡 No active stakes found for your addresses.")
+            else:
+                print_info("💡 No stakes found for the specified address.")
 
     except Exception as e:
         print_error(f"❌ Failed to get stake info: {str(e)}")

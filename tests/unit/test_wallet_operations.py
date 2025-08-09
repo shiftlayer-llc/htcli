@@ -2,7 +2,6 @@
 Real tests for wallet operations.
 """
 
-import pytest
 from unittest.mock import Mock, patch
 from src.htcli.client import HypertensorClient
 from src.htcli.models.requests import StakeAddRequest, StakeRemoveRequest

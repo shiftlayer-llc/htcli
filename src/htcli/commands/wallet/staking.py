@@ -4,7 +4,6 @@ Wallet staking operations.
 
 import typer
 from rich.console import Console
-from typing import Optional
 from ...models.requests import StakeAddRequest, StakeRemoveRequest
 from ...utils.validation import validate_address, validate_amount
 from ...utils.formatting import print_success, print_error, format_stake_info

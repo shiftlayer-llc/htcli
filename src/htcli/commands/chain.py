@@ -7,7 +7,7 @@ from rich.console import Console
 from typing import Optional
 from ..utils.validation import validate_address, validate_block_number, validate_limit
 from ..utils.formatting import (
-    print_success, print_error, format_network_stats, format_account_info,
+    print_error, format_network_stats, format_account_info,
     format_epoch_info, format_table
 )
 from ..dependencies import get_client

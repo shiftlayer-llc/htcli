@@ -4,7 +4,7 @@ Response models for Hypertensor CLI.
 """
 
 from pydantic import BaseModel, Field
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 
 class BaseResponse(BaseModel):
     """Base response model."""

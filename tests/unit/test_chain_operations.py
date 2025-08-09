@@ -2,7 +2,6 @@
 Real tests for chain operations.
 """
 
-import pytest
 from unittest.mock import Mock, patch
 from src.htcli.client import HypertensorClient
 

@@ -5,11 +5,10 @@ Pytest configuration and fixtures for htcli tests.
 import os
 import pytest
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 from typer.testing import CliRunner
 
 from src.htcli.config import Config, NetworkConfig
-from src.htcli.client import HypertensorClient
 
 
 @pytest.fixture
@@ -35,7 +34,6 @@ def mock_config():
 @pytest.fixture
 def mock_client(mock_config):
     """Create a mock HypertensorClient for testing."""
-    from unittest.mock import Mock
     client = Mock()
     client.config = mock_config
 

@@ -4,7 +4,6 @@ Subnet node operations.
 
 import typer
 from rich.console import Console
-from typing import Optional
 from ...models.requests import SubnetNodeAddRequest
 from ...utils.validation import validate_peer_id, validate_address
 from ...utils.formatting import print_success, print_error, format_node_list

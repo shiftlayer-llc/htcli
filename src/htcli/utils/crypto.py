@@ -2,10 +2,9 @@
 Cryptographic utility functions for the Hypertensor CLI.
 """
 
-import os
 import json
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional
 from substrateinterface import Keypair
 from cryptography.fernet import Fernet
 import base64

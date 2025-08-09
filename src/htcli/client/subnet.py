@@ -5,7 +5,6 @@ Handles all subnet-related blockchain operations.
 """
 
 import logging
-from typing import Optional
 from substrateinterface import SubstrateInterface
 from ..models.requests import SubnetRegisterRequest, SubnetNodeAddRequest
 from ..models.responses import *

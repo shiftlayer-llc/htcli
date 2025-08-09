@@ -17,7 +17,7 @@ from ..utils.validation import (
 from ..utils.formatting import (
     print_success, print_error, print_info, format_balance, format_stake_info
 )
-from ..utils.ownership import get_user_addresses, require_user_keys, show_mine_filter_info
+from ..utils.ownership import require_user_keys, show_mine_filter_info
 from ..dependencies import get_client
 
 app = typer.Typer(name="stake", help="Staking operations and management")
@@ -435,7 +435,7 @@ def info(
                 if filter_mine:
                     # Show combined stake info for all addresses
                     from rich.table import Table
-                    table = Table(title=f"🎯 Your Stake Positions")
+                    table = Table(title="🎯 Your Stake Positions")
                     table.add_column("Address", style="cyan")
                     if not subnet_id:
                         table.add_column("Subnet ID", style="magenta")

@@ -15,7 +15,7 @@ from ..utils.validation import (
 from ..utils.formatting import (
     print_success, print_error, format_subnet_list, format_subnet_info
 )
-from ..utils.ownership import get_user_addresses, user_owns_subnet, require_user_keys, show_mine_filter_info
+from ..utils.ownership import user_owns_subnet, require_user_keys, show_mine_filter_info
 from ..dependencies import get_client
 
 app = typer.Typer(name="subnet", help="Subnet operations")

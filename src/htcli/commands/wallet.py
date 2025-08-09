@@ -13,7 +13,6 @@ from ..utils.validation import (
 from ..utils.formatting import (
     print_success, print_error, format_table
 )
-from ..dependencies import get_client
 
 app = typer.Typer(name="wallet", help="Wallet operations")
 console = Console()

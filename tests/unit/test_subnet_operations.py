@@ -6,7 +6,6 @@ import pytest
 from unittest.mock import Mock, patch
 from src.htcli.client import HypertensorClient
 from src.htcli.models.requests import SubnetRegisterRequest, SubnetNodeAddRequest
-from src.htcli.models.responses import SubnetRegisterResponse, SubnetInfoResponse, SubnetsListResponse, NodeAddResponse, NodesListResponse
 
 
 class TestSubnetRegister:

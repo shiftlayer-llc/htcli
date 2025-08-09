@@ -4,7 +4,6 @@ Subnet registration commands.
 
 import typer
 from rich.console import Console
-from typing import Optional
 from ...models.requests import SubnetRegisterRequest
 from ...utils.validation import (
     validate_subnet_path,

@@ -4,8 +4,7 @@ Subnet management commands.
 
 import typer
 from rich.console import Console
-from typing import Optional
-from ...utils.formatting import print_success, print_error, format_subnet_list, format_subnet_info
+from ...utils.formatting import print_error, format_subnet_list, format_subnet_info
 from ...dependencies import get_client
 
 app = typer.Typer(name="manage", help="Subnet management commands")

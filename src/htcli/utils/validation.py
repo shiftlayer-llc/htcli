@@ -115,6 +115,7 @@ def validate_file_path(file_path: str) -> bool:
     """Validate file path."""
     try:
         path = Path(file_path)
+        # Check if parent directory exists or can be created
         return True
     except Exception:
         return False

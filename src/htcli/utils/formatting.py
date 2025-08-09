@@ -5,9 +5,8 @@ Output formatting utility functions for the Hypertensor CLI.
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
-from rich.text import Text
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 import json
 
 # TENSOR token precision constant
@@ -303,7 +302,7 @@ Data Completeness: {data_completeness.title()}"""
 
     # Add note for partial data
     if is_partial:
-        full_info += f"\n\n[bold yellow]⚠️ Note:[/bold yellow] This subnet exists but has partial registration data.\nSome fields may show default values or be unavailable."
+        full_info += "\n\n[bold yellow]⚠️ Note:[/bold yellow] This subnet exists but has partial registration data.\nSome fields may show default values or be unavailable."
 
     # Set title and border based on data completeness
     title = "📊 Subnet Information"

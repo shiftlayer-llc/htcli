@@ -3,8 +3,6 @@ Integration tests for the htcli application.
 """
 
 import pytest
-import os
-from typer.testing import CliRunner
 from unittest.mock import patch
 
 from src.htcli.main import app

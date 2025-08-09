@@ -47,7 +47,7 @@ def create_keypair_from_mnemonic(mnemonic: str) -> Keypair:
     """
     try:
         keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42)
-        logger.info(f"Created keypair from mnemonic:")
+        logger.info("Created keypair from mnemonic:")
         logger.info(f"  Address: {keypair.ss58_address}")
         logger.info(f"  Public Key: 0x{keypair.public_key.hex()}")
         logger.info(f"  Private Key: 0x{keypair.private_key.hex()}")
@@ -251,7 +251,7 @@ def import_wallet(name: str, wallet_dir: Path, password: str = None) -> Keypair:
         with open(wallet_path) as f:
             wallet_data = json.load(f)
     except json.JSONDecodeError:
-        raise ValueError(f"Invalid wallet file: not a valid Key file")
+        raise ValueError("Invalid wallet file: not a valid Key file")
 
     # Get private key
     private_key_hex = wallet_data.get("privateKey", "").replace("0x", "")
@@ -287,7 +287,7 @@ def import_wallet(name: str, wallet_dir: Path, password: str = None) -> Keypair:
         private_key_bytes = decrypt_data(private_key_bytes, password)
         if not is_valid_private_key(private_key_bytes):
             raise RuntimeError("Invalid password: Failed to decrypt private key")
-    except Exception as e:
+    except Exception:
         raise RuntimeError("Invalid password: Failed to decrypt private key")
 
     try:

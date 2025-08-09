@@ -4,7 +4,6 @@ Chain information commands.
 
 import typer
 from rich.console import Console
-from typing import Optional
 from ...utils.formatting import print_error, format_network_stats, format_account_info, format_epoch_info
 from ...dependencies import get_client
 

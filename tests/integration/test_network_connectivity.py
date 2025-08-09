@@ -4,8 +4,6 @@ Network connectivity tests for Hypertensor blockchain.
 
 import pytest
 import asyncio
-from unittest.mock import patch
-from typer.testing import CliRunner
 
 from src.htcli.main import app
 from src.htcli.client import HypertensorClient

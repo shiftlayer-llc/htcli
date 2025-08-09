@@ -2,7 +2,6 @@
 Configuration management commands for the Hypertensor CLI.
 """
 
-import os
 import typer
 import yaml
 from pathlib import Path
@@ -401,7 +400,7 @@ def show(
 
     if not config_path.exists():
         print_error(f"Configuration file not found: {config_path}")
-        console.print(f"\nRun [bold]htcli config init[/bold] to create a configuration file.")
+        console.print("\nRun [bold]htcli config init[/bold] to create a configuration file.")
         raise typer.Exit(1)
 
     try:
@@ -445,7 +444,7 @@ def path(
         console.print("✅ File exists")
     else:
         console.print("❌ File does not exist")
-        console.print(f"\nRun [bold]htcli config init[/bold] to create the configuration file.")
+        console.print("\nRun [bold]htcli config init[/bold] to create the configuration file.")
 
 
 @app.command()
@@ -462,7 +461,7 @@ def edit(
 
     if not config_path.exists():
         print_error(f"Configuration file not found: {config_path}")
-        console.print(f"\nRun [bold]htcli config init[/bold] to create a configuration file.")
+        console.print("\nRun [bold]htcli config init[/bold] to create a configuration file.")
         raise typer.Exit(1)
 
     try:

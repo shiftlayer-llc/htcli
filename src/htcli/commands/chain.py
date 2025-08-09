@@ -62,7 +62,7 @@ def epoch(
 
 @app.command()
 def account(
-    address: str = typer.Argument(..., help="Account address"),
+    address: str = typer.Option(..., "--address", "-a", help="Account address"),
     format_type: str = typer.Option("table", "--format", "-f", help="Output format (table/json)")
 ):
     """Get account information."""
@@ -90,7 +90,7 @@ def account(
 
 @app.command()
 def balance(
-    address: str = typer.Argument(..., help="Account address"),
+    address: str = typer.Option(..., "--address", "-a", help="Account address"),
     format_type: str = typer.Option("table", "--format", "-f", help="Output format (table/json)")
 ):
     """Get account balance."""

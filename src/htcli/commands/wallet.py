@@ -22,11 +22,12 @@ console = Console()
 
 @app.command()
 def generate_key(
-    name: str = typer.Argument(..., help="Key name"),
+    name: str = typer.Option(..., "--name", "-n", help="Key name"),
     key_type: str = typer.Option("sr25519", "--type", "-t", help="Key type (sr25519/ed25519)"),
-    password: Optional[str] = typer.Option(None, "--password", "-p", help="Key password")
+    password: Optional[str] = typer.Option(None, "--password", "-p", help="Key password"),
+    show_guidance: bool = typer.Option(True, "--guidance/--no-guidance", help="Show comprehensive guidance")
 ):
-    """Generate a new keypair."""
+    """Generate a new keypair with comprehensive guidance."""
     # Validate inputs
     if not validate_wallet_name(name):
         print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
@@ -56,12 +57,13 @@ def generate_key(
 
 @app.command()
 def import_key(
-    name: str = typer.Argument(..., help="Key name"),
+    name: str = typer.Option(..., "--name", "-n", help="Key name"),
     private_key: str = typer.Option(..., "--private-key", "-k", help="Private key (64-character hex)"),
     key_type: str = typer.Option("sr25519", "--type", "-t", help="Key type (sr25519/ed25519)"),
-    password: Optional[str] = typer.Option(None, "--password", "-p", help="Key password")
+    password: Optional[str] = typer.Option(None, "--password", "-p", help="Key password"),
+    show_guidance: bool = typer.Option(True, "--guidance/--no-guidance", help="Show comprehensive guidance")
 ):
-    """Import a keypair from private key."""
+    """Import a keypair from private key with comprehensive guidance."""
     # Validate inputs
     if not validate_wallet_name(name):
         print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
@@ -126,10 +128,11 @@ def list_keys(
 
 @app.command()
 def delete_key(
-    name: str = typer.Argument(..., help="Key name to delete"),
-    confirm: bool = typer.Option(False, "--confirm", "-y", help="Skip confirmation prompt")
+    name: str = typer.Option(..., "--name", "-n", help="Key name to delete"),
+    confirm: bool = typer.Option(False, "--confirm", "-y", help="Skip confirmation prompt"),
+    show_guidance: bool = typer.Option(True, "--guidance/--no-guidance", help="Show comprehensive guidance")
 ):
-    """Delete a stored key."""
+    """Delete a stored key with comprehensive guidance."""
     if not validate_wallet_name(name):
         print_error("Invalid wallet name.")
         raise typer.Exit(1)
@@ -240,7 +243,7 @@ def remove_stake(
 
 @app.command()
 def stake_info(
-    address: str = typer.Argument(..., help="Account address"),
+    address: str = typer.Option(..., "--address", "-a", help="Account address"),
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
     format_type: str = typer.Option("table", "--format", "-f", help="Output format (table/json)")
 ):

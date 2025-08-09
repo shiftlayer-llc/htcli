@@ -5,17 +5,15 @@ Flattened subnet commands - 3-level hierarchy.
 import typer
 from rich.console import Console
 from typing import Optional
-from ..models.requests import SubnetRegisterRequest, SubnetNodeAddRequest
+from ..models.requests import SubnetRegisterRequest
 from ..utils.validation import (
     validate_subnet_path,
     validate_memory_mb,
     validate_registration_blocks,
-    validate_entry_interval,
-    validate_address,
-    validate_peer_id
+    validate_entry_interval
 )
 from ..utils.formatting import (
-    print_success, print_error, format_subnet_list, format_subnet_info, format_node_list
+    print_success, print_error, format_subnet_list, format_subnet_info
 )
 from ..dependencies import get_client
 
@@ -25,7 +23,7 @@ console = Console()
 
 @app.command()
 def register(
-    path: str = typer.Argument(..., help="Subnet path"),
+    path: str = typer.Option(..., "--path", "-p", help="Subnet path"),
     memory_mb: int = typer.Option(..., "--memory", "-m", help="Memory requirement in MB"),
     registration_blocks: int = typer.Option(..., "--blocks", "-b", help="Registration period in blocks"),
     entry_interval: int = typer.Option(..., "--interval", "-i", help="Entry interval in blocks"),
@@ -35,8 +33,9 @@ def register(
     node_queue_period: int = typer.Option(100, "--queue-period", help="Node queue period"),
     max_node_penalties: int = typer.Option(10, "--max-penalties", help="Maximum node penalties"),
     coldkey_whitelist: Optional[str] = typer.Option(None, "--whitelist", help="Comma-separated coldkey whitelist"),
+    show_guidance: bool = typer.Option(True, "--guidance/--no-guidance", help="Show comprehensive guidance")
 ):
-    """Register a new subnet."""
+    """Register a new subnet with comprehensive guidance."""
     client = get_client()
 
     # Validate inputs
@@ -87,9 +86,10 @@ def register(
 
 @app.command()
 def activate(
-    subnet_id: int = typer.Argument(..., help="Subnet ID to activate"),
+    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID to activate"),
+    show_guidance: bool = typer.Option(True, "--guidance/--no-guidance", help="Show comprehensive guidance")
 ):
-    """Activate a registered subnet."""
+    """Activate a registered subnet with comprehensive guidance."""
     client = get_client()
 
     try:
@@ -127,7 +127,7 @@ def list(
 
 @app.command()
 def info(
-    subnet_id: int = typer.Argument(..., help="Subnet ID"),
+    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
     format_type: str = typer.Option("table", "--format", "-f", help="Output format (table/json)")
 ):
     """Get detailed information about a subnet."""
@@ -148,73 +148,13 @@ def info(
         raise typer.Exit(1)
 
 
-@app.command()
-def add_node(
-    subnet_id: int = typer.Argument(..., help="Subnet ID"),
-    hotkey: str = typer.Option(..., "--hotkey", "-h", help="Node hotkey address"),
-    peer_id: str = typer.Option(..., "--peer-id", "-p", help="Node peer ID"),
-    delegate_reward_rate: int = typer.Option(1000, "--reward-rate", "-r", help="Delegate reward rate"),
-    stake_amount: int = typer.Option(1000000000000000000, "--stake", "-s", help="Initial stake amount"),
-):
-    """Add a node to a subnet."""
-    client = get_client()
-
-    # Validate inputs
-    if not validate_address(hotkey):
-        print_error("Invalid hotkey address format.")
-        raise typer.Exit(1)
-
-    if not validate_peer_id(peer_id):
-        print_error("Invalid peer ID format.")
-        raise typer.Exit(1)
-
-    try:
-        request = SubnetNodeAddRequest(
-            subnet_id=subnet_id,
-            peer_id=peer_id,
-            hotkey=hotkey,
-            delegate_reward_rate=delegate_reward_rate,
-            stake_to_be_added=stake_amount
-        )
-
-        response = client.add_subnet_node(request)
-        print_success(f"✅ Node added to subnet {subnet_id} successfully!")
-        console.print(f"Transaction: {response.transaction_hash}")
-        if response.block_number:
-            console.print(f"Block: #{response.block_number}")
-    except Exception as e:
-        print_error(f"Failed to add node: {str(e)}")
-        raise typer.Exit(1)
-
-
-@app.command()
-def list_nodes(
-    subnet_id: int = typer.Argument(..., help="Subnet ID"),
-    format_type: str = typer.Option("table", "--format", "-f", help="Output format (table/json)")
-):
-    """List all nodes in a subnet."""
-    client = get_client()
-
-    try:
-        response = client.get_subnet_nodes(subnet_id)
-        if response.success:
-            nodes = response.data.get('nodes', [])
-            if format_type == "json":
-                console.print_json(data=nodes)
-            else:
-                format_node_list(nodes)
-        else:
-            print_error(f"Failed to retrieve subnet nodes: {response.message}")
-    except Exception as e:
-        print_error(f"Failed to list subnet nodes: {str(e)}")
-        raise typer.Exit(1)
-
 
 @app.command()
 def remove(
-    subnet_id: int = typer.Argument(..., help="Subnet ID to remove"),
+    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID to remove"),
+    show_guidance: bool = typer.Option(True, "--guidance/--no-guidance", help="Show comprehensive guidance")
 ):
-    """Remove a subnet."""
+    """Remove a subnet with comprehensive guidance."""
     client = get_client()
 
     try:

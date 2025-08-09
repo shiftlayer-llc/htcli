@@ -12,6 +12,7 @@ from .commands.wallet import app as wallet_app
 from .commands.chain import app as chain_app
 from .commands.config import app as config_app
 from .commands.node import app as node_app
+from .commands.stake import app as stake_app
 from .config import load_config
 from .client import HypertensorClient
 from .dependencies import set_client
@@ -63,7 +64,8 @@ def main(
 app.add_typer(config_app, name="config", help="Configuration management")
 app.add_typer(subnet_app, name="subnet", help="Subnet operations")
 app.add_typer(node_app, name="node", help="Node management operations")
-app.add_typer(wallet_app, name="wallet", help="Wallet operations")
+app.add_typer(stake_app, name="stake", help="Staking operations and management")
+app.add_typer(wallet_app, name="wallet", help="Wallet and key management")
 app.add_typer(chain_app, name="chain", help="Chain operations")
 
 if __name__ == "__main__":

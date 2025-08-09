@@ -11,10 +11,17 @@ A comprehensive, professional command-line interface (CLI) tool for interacting 
 
 ### **🎯 Professional CLI Experience**
 - **34 Commands** across 6 logical categories
+- **Universal --mine Filtering**: Filter any command to show only your assets
 - **Consistent Switch-Based Format**: All commands use `--switches` (no positional arguments)
 - **Interactive Guidance**: Rich panels with step-by-step instructions
 - **Safety Features**: Confirmation prompts and warning messages
 - **Multiple Output Formats**: Table, JSON, and CSV support
+
+### **👤 Personal Asset Management**
+- **Smart Ownership Detection**: Automatically identifies your assets vs. network-wide data
+- **Universal Filtering**: Add `--mine` to any command to see only your assets
+- **Secure Key Storage**: Encrypted wallet keys stored in `~/.htcli/wallets/`
+- **Multi-Address Support**: Manage multiple wallet addresses simultaneously
 
 ### **🔗 Real Blockchain Integration**
 - **Direct WebSocket Connections**: `wss://hypertensor.duckdns.org`
@@ -86,6 +93,42 @@ htcli --help
 
 # Verify blockchain connectivity
 htcli chain network
+```
+
+## 🎯 **Universal Asset Filtering**
+
+### **The --mine Flag: Your Personal Blockchain View**
+
+The `--mine` flag transforms any command to show only **your assets** instead of network-wide data:
+
+```bash
+# 📊 NETWORK-WIDE DATA (Default)
+htcli subnet list              # Shows ALL subnets on the network
+htcli stake info --address ... # Shows stakes for specific address
+htcli chain network           # Shows global network statistics
+
+# 👤 YOUR PERSONAL DATA (With --mine)
+htcli --mine subnet list      # Shows ONLY subnets you own
+htcli --mine stake info       # Shows stakes for ALL your addresses
+htcli --mine node list        # Shows ONLY nodes you registered
+```
+
+### **How It Works**
+1. **Automatic Key Detection**: Reads your wallet keys from `~/.htcli/wallets/`
+2. **Smart Ownership Matching**: Compares blockchain ownership with your addresses
+3. **Intelligent Filtering**: Shows only assets where you are the owner/stakeholder
+4. **Clear Feedback**: Provides guidance when no personal assets are found
+
+### **Example Comparison**
+```bash
+# Network View: Shows 2 total subnets (including others')
+$ htcli subnet list
+Found 2 subnets on network (real blockchain data)
+
+# Personal View: Shows only your subnets
+$ htcli --mine subnet list
+🔍 Filtered for your 1 wallet address(es) - no matching assets found.
+💡 Network has 2 total items, but none are owned by you.
 ```
 
 ## 🎯 **Quick Start**

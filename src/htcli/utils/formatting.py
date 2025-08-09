@@ -245,24 +245,73 @@ def format_subnet_list(subnets: List[Dict[str, Any]]):
 
 
 def format_subnet_info(subnet_info: Dict[str, Any]):
-    """Format and display subnet information."""
+    """Format and display comprehensive subnet information."""
     if not subnet_info:
         console.print("Subnet information not available.")
         return
 
-    info_text = f"""
-Subnet ID: {subnet_info.get('subnet_id', 'N/A')}
-Path: {subnet_info.get('path', 'N/A')}
-Status: {'Active' if subnet_info.get('activated', 0) > 0 else 'Inactive'}
-Registration Cost: {format_balance(subnet_info.get('registration_cost', 0))}
-Node Count: {subnet_info.get('node_count', 0)}
-Total Stake: {format_balance(subnet_info.get('total_stake', 0))}
-Memory: {subnet_info.get('memory_mb', 0)} MB
-Registration Blocks: {subnet_info.get('registration_blocks', 0)}
-Entry Interval: {subnet_info.get('entry_interval', 0)}
-    """
+    # Check data completeness
+    data_completeness = subnet_info.get('data_completeness', 'unknown')
+    is_partial = data_completeness == 'partial'
 
-    panel = Panel(info_text, title="Subnet Information")
+    # Basic Information Section
+    basic_info = f"""[bold cyan]Basic Information:[/bold cyan]
+Subnet ID: {subnet_info.get('subnet_id', 'N/A')}
+Name: {subnet_info.get('name', 'N/A')}
+Repository: {subnet_info.get('repo', 'N/A') or 'Not specified'}
+Description: {subnet_info.get('description', 'N/A') or 'Not specified'}
+State: {subnet_info.get('state', 'N/A')}
+Owner: {subnet_info.get('owner', 'N/A') or 'Not assigned'}
+Start Epoch: {subnet_info.get('start_epoch', 'N/A')}
+Registration Epoch: {subnet_info.get('registration_epoch', 'N/A')}"""
+
+    # Node Information Section
+    node_info = f"""[bold green]Node Information:[/bold green]
+Total Nodes: {subnet_info.get('total_nodes', 0)}
+Active Nodes: {subnet_info.get('total_active_nodes', 0)}
+Max Registered Nodes: {subnet_info.get('max_registered_nodes', 0)}
+Node Registration Epochs: {subnet_info.get('node_registration_epochs', 0)}
+Node Activation Interval: {subnet_info.get('node_activation_interval', 0)}
+Churn Limit: {subnet_info.get('churn_limit', 0)}"""
+
+    # Staking Information Section
+    min_stake = subnet_info.get('min_stake', 0)
+    max_stake = subnet_info.get('max_stake', 0)
+    delegate_stake_balance = subnet_info.get('total_delegate_stake_balance', 0)
+    delegate_stake_shares = subnet_info.get('total_delegate_stake_shares', 0)
+
+    staking_info = f"""[bold yellow]Staking Information:[/bold yellow]
+Minimum Stake: {format_balance(min_stake)}
+Maximum Stake: {format_balance(max_stake)}
+Delegate Stake Percentage: {subnet_info.get('delegate_stake_percentage', 0) / 1000000:.1f}%
+Total Delegate Stake Balance: {format_balance(delegate_stake_balance)}
+Total Delegate Stake Shares: {delegate_stake_shares}"""
+
+    # System Information Section
+    system_info = f"""[bold red]System Information:[/bold red]
+Max Node Penalties: {subnet_info.get('max_node_penalties', 0)}
+Penalty Count: {subnet_info.get('penalty_count', 0)}
+Data Completeness: {data_completeness.title()}"""
+
+    # Combine all sections
+    full_info = f"{basic_info}\n\n{node_info}\n\n{staking_info}\n\n{system_info}"
+
+    # Additional info section
+    misc = subnet_info.get('misc', '')
+    if misc:
+        full_info += f"\n\n[bold blue]Additional Information:[/bold blue]\n{misc}"
+
+    # Add note for partial data
+    if is_partial:
+        full_info += f"\n\n[bold yellow]⚠️ Note:[/bold yellow] This subnet exists but has partial registration data.\nSome fields may show default values or be unavailable."
+
+    # Set title and border based on data completeness
+    title = "📊 Subnet Information"
+    if is_partial:
+        title += " (Partial Data)"
+    border_style = "yellow" if is_partial else "cyan"
+
+    panel = Panel(full_info, title=title, border_style=border_style)
     console.print(panel)
 
 

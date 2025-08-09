@@ -128,29 +128,118 @@ class SubnetClient:
             raise
 
     def get_subnet_data(self, subnet_id: int):
-        """Get subnet data using Network storage query."""
+        """Get subnet data using Network storage query with updated structure."""
         try:
             if not self.substrate:
                 raise Exception("Not connected to blockchain")
 
-            # Query subnet data from storage
+            # First check if subnet UID exists by checking various subnet-specific storage
+            subnet_exists = False
+            
+            # Check if subnet has an owner (indicates it exists)
+            owner = self._safe_query_value('SubnetOwner', subnet_id, None)
+            if owner:
+                subnet_exists = True
+            
+            # Check if subnet has delegate stake (indicates it exists)
+            delegate_stake = self._safe_query_value('TotalSubnetDelegateStakeBalance', subnet_id, 0)
+            if delegate_stake > 0:
+                subnet_exists = True
+            
+            # Check if subnet has node activation interval (indicates it exists)
+            activation_interval = self._safe_query_value('SubnetNodeActivationInterval', subnet_id, None)
+            if activation_interval:
+                subnet_exists = True
+
+            if not subnet_exists:
+                return SubnetInfoResponse(
+                    success=False,
+                    message=f"Subnet {subnet_id} not found",
+                    data={}
+                )
+
+            # Query subnet data from storage (might be empty for new subnets)
             subnet_data = self.substrate.query(
                 module='Network',
                 storage_function='SubnetsData',
                 params=[subnet_id]
             )
 
+            # Parse the subnet data - handle both full data and partial data
+            raw_data = subnet_data.value if subnet_data else {}
+            
+            # Ensure raw_data is a dict
+            if raw_data is None:
+                raw_data = {}
+            
+            # Build comprehensive subnet info based on available data
+            parsed_data = {
+                'subnet_id': subnet_id,
+                'id': raw_data.get('id', subnet_id) if isinstance(raw_data, dict) else subnet_id,
+                'name': raw_data.get('name', f'Subnet-{subnet_id}') if isinstance(raw_data, dict) else f'Subnet-{subnet_id}',
+                'repo': raw_data.get('repo', '') if isinstance(raw_data, dict) else '',
+                'description': raw_data.get('description', '') if isinstance(raw_data, dict) else '',
+                'misc': raw_data.get('misc', '') if isinstance(raw_data, dict) else '',
+                'state': raw_data.get('state', 'Registered') if isinstance(raw_data, dict) and raw_data else 'Partial',
+                'start_epoch': raw_data.get('start_epoch', 0) if isinstance(raw_data, dict) else 0,
+                'churn_limit': self._safe_query_value('ChurnDenominator', subnet_id, 0),
+                'min_stake': self._safe_query_value('MinStakeBalance', None, 0),  # Global value
+                'max_stake': self._safe_query_value('MaxStakeBalance', None, 0),  # Global value
+                'delegate_stake_percentage': self._safe_query_value('DelegateStakeRewardsPercentage', None, 0),  # Global value
+                'registration_queue_epochs': self._safe_query_value('SubnetNodeRegistrationEpochs', subnet_id, 0),
+                'activation_grace_epochs': 0,  # Not available in current storage
+                'queue_classification_epochs': 0,  # Not available in current storage
+                'included_classification_epochs': 0,  # Not available in current storage
+                'max_node_penalties': self._safe_query_value('MaxSubnetNodePenalties', subnet_id, 0),
+                'initial_coldkeys': [],  # Not available in current storage
+                'max_registered_nodes': self._safe_query_value('MaxRegisteredSubnetNodes', subnet_id, 0),
+                'owner': owner or '',
+                'registration_epoch': self._safe_query_value('SubnetRegistrationEpoch', subnet_id, 0),
+                'node_removal_system': '',  # Not available in current storage
+                'key_types': [],  # Not available in current storage
+                'slot_index': 0,  # Not available in current storage
+                'penalty_count': self._safe_query_value('SubnetPenaltyCount', subnet_id, 0),
+                'total_nodes': self._safe_query_value('TotalSubnetNodes', subnet_id, 0),
+                'total_active_nodes': self._safe_query_value('TotalActiveSubnetNodes', subnet_id, 0),
+                'total_electable_nodes': 0,  # Not available in current storage
+                'node_activation_interval': activation_interval or 0,
+                'node_registration_epochs': self._safe_query_value('SubnetNodeRegistrationEpochs', subnet_id, 0),
+                'total_delegate_stake_balance': delegate_stake,
+                'total_delegate_stake_shares': self._safe_query_value('TotalSubnetDelegateStakeShares', subnet_id, 0),
+                'data_completeness': 'full' if raw_data else 'partial',
+                'raw_data': raw_data  # Keep raw data for debugging
+            }
+
             return SubnetInfoResponse(
                 success=True,
-                message="Subnet data retrieved successfully",
-                data={
-                    'subnet_id': subnet_id,
-                    'subnet_data': subnet_data.value if subnet_data else None
-                }
+                message="Subnet data retrieved successfully" + (" (partial data - subnet exists but not fully registered)" if not raw_data else ""),
+                data=parsed_data
             )
         except Exception as e:
             logger.error(f"Failed to get subnet data: {str(e)}")
             raise
+
+    def _safe_query_value(self, storage_function: str, subnet_id, default_value):
+        """Safely query a storage value with fallback to default."""
+        try:
+            if subnet_id is None:
+                # Global storage query (no parameters)
+                result = self.substrate.query(
+                    module='Network',
+                    storage_function=storage_function,
+                    params=[]
+                )
+            else:
+                # Subnet-specific storage query
+                result = self.substrate.query(
+                    module='Network',
+                    storage_function=storage_function,
+                    params=[subnet_id]
+                )
+            return result.value if result and result.value is not None else default_value
+        except Exception as e:
+            logger.debug(f"Failed to query {storage_function} for subnet {subnet_id}: {e}")
+            return default_value
 
     def get_subnets_data(self, active_only: bool = False):
         """Get all subnets data using storage queries."""

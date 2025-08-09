@@ -10,6 +10,7 @@ from typing import Optional
 from .commands.subnet import app as subnet_app
 from .commands.wallet import app as wallet_app
 from .commands.chain import app as chain_app
+from .commands.config import app as config_app
 from .config import load_config
 from .client import HypertensorClient
 from .dependencies import set_client
@@ -57,7 +58,8 @@ def main(
     config.output.format = output_format
 
 
-# Include the three main command groups with flattened structure
+# Include the main command groups with flattened structure
+app.add_typer(config_app, name="config", help="Configuration management")
 app.add_typer(subnet_app, name="subnet", help="Subnet operations")
 app.add_typer(wallet_app, name="wallet", help="Wallet operations")
 app.add_typer(chain_app, name="chain", help="Chain operations")

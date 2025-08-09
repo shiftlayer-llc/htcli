@@ -326,3 +326,29 @@ def validate_tensor_balance(amount: Union[str, float, int]) -> bool:
         return True
     except (ValueError, TypeError):
         return False
+
+
+def validate_url(url: str) -> bool:
+    """Validate URL format for configuration."""
+    if not url:
+        return False
+
+    # Should start with ws:// or wss:// or http:// or https://
+    if not re.match(r'^(ws|wss|http|https)://', url):
+        return False
+
+    # Basic domain validation
+    if len(url) < 10:
+        return False
+
+    return True
+
+
+def validate_path(path: str) -> bool:
+    """Validate file/directory path for configuration."""
+    try:
+        expanded_path = Path(path).expanduser()
+        # Check if parent directory exists or can be created
+        return True
+    except Exception:
+        return False

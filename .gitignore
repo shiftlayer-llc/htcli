@@ -181,12 +181,8 @@ docs/*.png
 docs/*.jpg
 docs/*.gif
 *.log
-*.json
-*.md
-!README.md
+# Allow all markdown documentation files
+!*.md
 !LICENSE
 !pyproject.toml
 !pytest.ini
-src/htcli/commands/chain
-src/htcli/commands/subnet
-src/htcli/commands/wallet

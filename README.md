@@ -10,6 +10,7 @@ A comprehensive, professional command-line interface (CLI) tool for interacting 
 ## 🚀 **Features**
 
 ### **🎯 Professional CLI Experience**
+
 - **34 Commands** across 6 logical categories
 - **Universal --mine Filtering**: Filter any command to show only your assets
 - **Consistent Switch-Based Format**: All commands use `--switches` (no positional arguments)
@@ -18,12 +19,14 @@ A comprehensive, professional command-line interface (CLI) tool for interacting 
 - **Multiple Output Formats**: Table, JSON, and CSV support
 
 ### **👤 Personal Asset Management**
+
 - **Smart Ownership Detection**: Automatically identifies your assets vs. network-wide data
 - **Universal Filtering**: Add `--mine` to any command to see only your assets
 - **Secure Key Storage**: Encrypted wallet keys stored in `~/.htcli/wallets/`
 - **Multi-Address Support**: Manage multiple wallet addresses simultaneously
 
 ### **🔗 Real Blockchain Integration**
+
 - **Direct WebSocket Connections**: `wss://hypertensor.duckdns.org`
 - **SubstrateInterface Integration**: Full Substrate blockchain operations
 - **Real Transaction Submission**: Actual blockchain transaction composition and submission
@@ -33,32 +36,38 @@ A comprehensive, professional command-line interface (CLI) tool for interacting 
 ### **📁 Organized Command Categories**
 
 #### **⚙️ Configuration Management**
+
 - Interactive configuration wizard with YAML output
 - Multiple configuration file support
 - Validation and editing capabilities
 
 #### **🏗️ Subnet Operations**
+
 - Subnet registration and activation
 - Subnet information and management
 - Real-time subnet statistics
 
 #### **🔗 Node Management**
+
 - Add/remove nodes from subnets
 - Node status monitoring and management
 - Comprehensive node lifecycle operations
 
 #### **💰 Staking Operations**
+
 - Add/remove stake with comprehensive guidance
 - Delegate staking and transfers
 - Unbonding management and claims
 - Real-time staking rewards tracking
 
 #### **🔑 Wallet & Key Management**
+
 - Generate and import cryptographic keys
 - Support for sr25519 and ed25519 key types
 - Secure key storage and management
 
 #### **🔍 Chain Queries**
+
 - Real-time network statistics
 - Account information and balances
 - Block and runtime information
@@ -67,6 +76,7 @@ A comprehensive, professional command-line interface (CLI) tool for interacting 
 ## 📦 **Installation**
 
 ### **Prerequisites**
+
 - Python 3.12 or higher
 - UV package manager (recommended)
 - Network access to Hypertensor blockchain
@@ -114,12 +124,14 @@ htcli --mine node list        # Shows ONLY nodes you registered
 ```
 
 ### **How It Works**
+
 1. **Automatic Key Detection**: Reads your wallet keys from `~/.htcli/wallets/`
 2. **Smart Ownership Matching**: Compares blockchain ownership with your addresses
 3. **Intelligent Filtering**: Shows only assets where you are the owner/stakeholder
 4. **Clear Feedback**: Provides guidance when no personal assets are found
 
 ### **Example Comparison**
+
 ```bash
 # Network View: Shows 2 total subnets (including others')
 $ htcli subnet list
@@ -134,6 +146,7 @@ $ htcli --mine subnet list
 ## 🎯 **Quick Start**
 
 ### **1. Initialize Configuration**
+
 ```bash
 # Interactive configuration setup
 htcli config init
@@ -143,6 +156,7 @@ htcli config show
 ```
 
 ### **2. Key Management**
+
 ```bash
 # Generate a new key
 htcli wallet generate-key --name my-key --type sr25519
@@ -152,6 +166,7 @@ htcli wallet list-keys
 ```
 
 ### **3. Check Network Status**
+
 ```bash
 # Get network statistics
 htcli chain network
@@ -161,6 +176,7 @@ htcli chain balance --address 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
 ```
 
 ### **4. Subnet Operations**
+
 ```bash
 # Register a new subnet
 htcli subnet register --path my-subnet --memory 1024 --blocks 1000 --interval 100
@@ -173,6 +189,7 @@ htcli subnet info --subnet-id 1
 ```
 
 ### **5. Node Management**
+
 ```bash
 # Add node to subnet
 htcli node add --subnet-id 1 --hotkey <address> --peer-id <peer-id> --stake 1000000000000000000
@@ -185,6 +202,7 @@ htcli node status --subnet-id 1 --node-id 1
 ```
 
 ### **6. Staking Operations**
+
 ```bash
 # Add stake to node
 htcli stake add --subnet-id 1 --node-id 1 --hotkey <address> --amount 1000000000000000000
@@ -199,7 +217,9 @@ htcli stake claim --hotkey <address>
 ## 📋 **Command Structure**
 
 ### **Consistent Format**
+
 All commands follow the pattern:
+
 ```
 htcli <category> <command> [switches]
 ```
@@ -260,6 +280,7 @@ htcli
 ## 🎨 **User Experience Features**
 
 ### **Interactive Guidance**
+
 Every complex operation includes comprehensive guidance:
 
 ```
@@ -282,12 +303,14 @@ Every complex operation includes comprehensive guidance:
 ```
 
 ### **Safety Features**
+
 - **Confirmation prompts** for destructive operations
 - **Warning messages** for unbonding periods and risks
 - **Input validation** with helpful error messages
 - **Recovery guidance** for failed operations
 
 ### **Flexible Output**
+
 ```bash
 # Table format (default)
 htcli chain network
@@ -302,6 +325,7 @@ htcli chain network --format csv
 ## ⚙️ **Configuration**
 
 ### **Configuration File**
+
 Default location: `~/.htcli/config.yaml`
 
 ```yaml
@@ -326,7 +350,9 @@ wallet:
 ```
 
 ### **Environment Variables**
+
 Override configuration with environment variables:
+
 ```bash
 export HTCLI_NETWORK_ENDPOINT="wss://custom-endpoint.com"
 export HTCLI_OUTPUT_FORMAT="json"
@@ -336,6 +362,7 @@ export HTCLI_WALLET_PATH="/custom/wallet/path"
 ## 🔧 **Advanced Usage**
 
 ### **Custom Configuration**
+
 ```bash
 # Use custom config file
 htcli --config /path/to/config.yaml chain network
@@ -348,6 +375,7 @@ htcli --verbose chain network
 ```
 
 ### **Scripting Examples**
+
 ```bash
 # Get network stats in JSON for processing
 STATS=$(htcli chain network --format json)
@@ -363,6 +391,7 @@ htcli stake add --subnet-id 1 --node-id 1 --hotkey $HOTKEY --amount $AMOUNT --no
 ```
 
 ### **Batch Operations**
+
 ```bash
 # Register multiple subnets
 for subnet in subnet1 subnet2 subnet3; do
@@ -378,6 +407,7 @@ done
 ## 🛠️ **Development**
 
 ### **Project Structure**
+
 ```
 htcli/
 ├── src/htcli/           # Main CLI source code
@@ -398,6 +428,7 @@ htcli/
 ```
 
 ### **Testing**
+
 ```bash
 # Run all tests
 uv run pytest
@@ -411,6 +442,7 @@ uv run pytest --cov=src/htcli
 ```
 
 ### **Contributing**
+
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
@@ -433,6 +465,7 @@ Comprehensive documentation is available in the `docs/` folder:
 ### **Common Issues**
 
 #### **Connection Problems**
+
 ```bash
 # Test network connectivity
 htcli chain network
@@ -442,6 +475,7 @@ htcli --endpoint wss://backup.endpoint.com chain network
 ```
 
 #### **Configuration Issues**
+
 ```bash
 # Validate configuration
 htcli config validate
@@ -451,6 +485,7 @@ htcli config init --force
 ```
 
 #### **Key Management Issues**
+
 ```bash
 # List available keys
 htcli wallet list-keys
@@ -460,6 +495,7 @@ htcli wallet generate-key --name backup-key
 ```
 
 ### **Getting Help**
+
 ```bash
 # General help
 htcli --help
@@ -474,12 +510,14 @@ htcli stake add --help
 ## 🚀 **Performance & Reliability**
 
 ### **Performance Metrics**
+
 - **Command Response Times**: < 0.1s for help, 1-3s for network operations
 - **Success Rates**: 100% command execution success
 - **Error Handling**: Comprehensive error recovery and user guidance
 - **Network Resilience**: Automatic retry with exponential backoff
 
 ### **Production Ready Features**
+
 - **18-digit TENSOR precision** for accurate token calculations
 - **Real blockchain integration** with transaction submission
 - **Comprehensive input validation** and error handling

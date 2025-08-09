@@ -9,7 +9,9 @@ The Hypertensor CLI documentation is organized into several comprehensive guides
 ### **🎯 Core Documentation**
 
 #### **[📋 Commands Reference](COMMANDS.md)**
+
 Complete reference for all 34 CLI commands across 6 categories:
+
 - **Configuration Management** (5 commands) - Setup and manage CLI configuration
 - **Subnet Operations** (5 commands) - Register and manage subnets
 - **Node Management** (5 commands) - Add, monitor, and manage nodes
@@ -18,7 +20,9 @@ Complete reference for all 34 CLI commands across 6 categories:
 - **Chain Queries** (8 commands) - Query blockchain information
 
 #### **[⚙️ Configuration Guide](CONFIGURATION.md)**
+
 Comprehensive configuration management covering:
+
 - Interactive configuration wizard
 - YAML configuration files
 - Environment variable overrides
@@ -26,7 +30,9 @@ Comprehensive configuration management covering:
 - Configuration validation and troubleshooting
 
 #### **[💰 Staking Guide](STAKING.md)**
+
 Complete staking operations manual including:
+
 - Direct node staking strategies
 - Delegate staking for diversification
 - Unbonding and claims management
@@ -34,14 +40,18 @@ Complete staking operations manual including:
 - Performance monitoring and rebalancing
 
 #### **[🔗 Node Management Guide](NODE_MANAGEMENT.md)**
+
 Comprehensive node lifecycle management covering:
+
 - Node registration and activation
 - Performance monitoring and optimization
 - Maintenance and troubleshooting
 - Best practices for node operators
 
 #### **[🔧 API Reference](API.md)**
+
 Complete programmatic API documentation including:
+
 - Client architecture and initialization
 - All client APIs (Subnet, Node, Staking, Wallet, Chain)
 - Request/response models and data structures
@@ -51,17 +61,21 @@ Complete programmatic API documentation including:
 ### **📊 Technical References**
 
 #### **[🌳 Command Tree Structure](COMMAND_TREE.md)**
+
 Visual representation of the complete CLI command hierarchy
 
 #### **[📏 TENSOR Precision Guide](TENSOR_PRECISION_GUIDE.md)**
+
 Detailed guide on 18-digit TENSOR token precision handling
 
 #### **[✅ Command Testing Results](COMMAND_TESTING_RESULTS.md)**
+
 Comprehensive testing results showing 100% command success rate
 
 ## 🚀 **Quick Start Guide**
 
 ### **1. Installation**
+
 ```bash
 # Clone and install
 git clone https://github.com/shiftlayer-llc/htcli.git
@@ -70,6 +84,7 @@ uv pip install -e .
 ```
 
 ### **2. Initial Configuration**
+
 ```bash
 # Interactive configuration setup
 htcli config init
@@ -79,6 +94,7 @@ htcli --help
 ```
 
 ### **3. Basic Operations**
+
 ```bash
 # Check network status
 htcli chain network
@@ -91,6 +107,7 @@ htcli chain balance --address <your-address>
 ```
 
 ### **4. Advanced Operations**
+
 ```bash
 # Register a subnet
 htcli subnet register --path my-subnet --memory 2048 --blocks 1000 --interval 100
@@ -105,12 +122,14 @@ htcli stake add --subnet-id 1 --node-id 1 --hotkey <address> --amount 2000000000
 ## 📖 **Documentation Structure**
 
 ### **User Guides**
+
 - **Beginners**: Start with [Commands Reference](COMMANDS.md) and [Configuration Guide](CONFIGURATION.md)
 - **Node Operators**: Focus on [Node Management Guide](NODE_MANAGEMENT.md)
 - **Stakers**: Read the [Staking Guide](STAKING.md) thoroughly
 - **Developers**: Use the [API Reference](API.md) for integration
 
 ### **Reference Materials**
+
 - **Command Syntax**: [Commands Reference](COMMANDS.md)
 - **Configuration Options**: [Configuration Guide](CONFIGURATION.md)
 - **API Methods**: [API Reference](API.md)
@@ -119,6 +138,7 @@ htcli stake add --subnet-id 1 --node-id 1 --hotkey <address> --amount 2000000000
 ## 🎯 **Key Features Covered**
 
 ### **Professional CLI Experience**
+
 - **34 commands** across 6 logical categories
 - **Consistent switch-based format** for all commands
 - **Interactive guidance** with comprehensive help
@@ -126,12 +146,14 @@ htcli stake add --subnet-id 1 --node-id 1 --hotkey <address> --amount 2000000000
 - **Safety features** with confirmation prompts
 
 ### **Real Blockchain Integration**
+
 - **Direct WebSocket connections** to Hypertensor network
 - **18-digit TENSOR precision** for accurate calculations
 - **Real transaction submission** and blockchain queries
 - **Comprehensive error handling** and recovery guidance
 
 ### **Advanced Features**
+
 - **Modular client architecture** for programmatic access
 - **Configuration management** with multiple environments
 - **Performance monitoring** and optimization tools
@@ -140,6 +162,7 @@ htcli stake add --subnet-id 1 --node-id 1 --hotkey <address> --amount 2000000000
 ## 🔄 **Workflow Examples**
 
 ### **Complete Subnet Setup**
+
 ```bash
 htcli config init                    # Configure CLI
 htcli wallet generate-key --name owner  # Generate keys
@@ -149,6 +172,7 @@ htcli node add --subnet-id 1 --hotkey <addr> --peer-id <peer> --stake 5000000000
 ```
 
 ### **Staking Management**
+
 ```bash
 htcli stake info --address <addr>    # Check current positions
 htcli stake add --subnet-id 1 --node-id 2 --hotkey <addr> --amount 2000000000000000000
@@ -157,6 +181,7 @@ htcli stake claim --hotkey <addr>    # Claim unbonded tokens
 ```
 
 ### **Network Monitoring**
+
 ```bash
 htcli chain network                  # Network overview
 htcli subnet list                    # All subnets
@@ -167,6 +192,7 @@ htcli stake info --address <addr>    # Stake positions
 ## 🛠️ **Development Resources**
 
 ### **API Integration**
+
 ```python
 from src.htcli.client import HypertensorClient
 
@@ -176,6 +202,7 @@ print(f"Total subnets: {response.data['total_subnets']}")
 ```
 
 ### **Configuration Management**
+
 ```python
 from src.htcli.config import load_config
 
@@ -184,7 +211,9 @@ endpoint = config.network.endpoint
 ```
 
 ### **Automation Scripts**
+
 The documentation includes complete examples for:
+
 - Network monitoring bots
 - Automated staking strategies
 - Performance optimization scripts
@@ -193,6 +222,7 @@ The documentation includes complete examples for:
 ## 📞 **Support and Resources**
 
 ### **Getting Help**
+
 ```bash
 # General help
 htcli --help
@@ -205,13 +235,16 @@ htcli stake add --help
 ```
 
 ### **Troubleshooting**
+
 Each guide includes comprehensive troubleshooting sections:
+
 - Common issues and solutions
 - Error message explanations
 - Recovery procedures
 - Performance optimization tips
 
 ### **Community Resources**
+
 - **GitHub Issues**: Report bugs and request features
 - **Documentation**: This comprehensive guide collection
 - **API Reference**: Complete programmatic interface documentation
@@ -219,18 +252,21 @@ Each guide includes comprehensive troubleshooting sections:
 ## 🎉 **Documentation Features**
 
 ### **Comprehensive Coverage**
+
 - **Every command documented** with examples and use cases
 - **Complete workflow guides** from setup to advanced operations
 - **Real-world examples** and practical scenarios
 - **Best practices** and optimization strategies
 
 ### **User-Friendly Format**
+
 - **Clear structure** with logical organization
 - **Rich examples** with actual command syntax
 - **Visual aids** including command trees and workflows
 - **Progressive complexity** from basic to advanced topics
 
 ### **Practical Focus**
+
 - **Real blockchain integration** examples
 - **Production-ready scripts** and automation
 - **Security best practices** and risk management

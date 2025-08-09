@@ -6,7 +6,7 @@ The Hypertensor CLI has been restructured from a 4-level hierarchy to a clean **
 
 ## Command Tree Structure
 
-```
+```text
 htcli
 ├── subnet                    # Subnet operations
 │   ├── register             # Register a new subnet
@@ -125,20 +125,24 @@ htcli chain runtime-version
 ## Benefits of 3-Level Structure
 
 ### 1. **Simplified Navigation**
+
 - **Before**: `htcli subnet register create` (4 levels)
 - **After**: `htcli subnet register` (3 levels)
 
 ### 2. **Intuitive Commands**
+
 - Commands are more descriptive and self-explanatory
 - Easier to remember and type
 - Better discoverability
 
 ### 3. **Consistent Pattern**
+
 - All commands follow the same 3-level pattern
 - Predictable command structure
 - Reduced cognitive load
 
 ### 4. **Better Help System**
+
 - Clearer help output
 - Easier to find available commands
 - Better command organization
@@ -172,15 +176,18 @@ htcli chain runtime-version
 ## Command Categories
 
 ### 🏗️ **Subnet Operations** (7 commands)
+
 - **Registration**: `register`, `activate`
 - **Management**: `list`, `info`, `remove`
 - **Node Operations**: `add-node`, `list-nodes`
 
 ### 💰 **Wallet Operations** (8 commands)
+
 - **Key Management**: `generate-key`, `import-key`, `list-keys`, `delete-key`
 - **Staking Operations**: `add-stake`, `remove-stake`, `stake-info`, `claim-unbondings`
 
 ### 🔍 **Chain Operations** (8 commands)
+
 - **Information**: `network`, `epoch`, `account`, `balance`
 - **Data Queries**: `peers`, `block`, `head`, `runtime-version`
 
@@ -242,4 +249,4 @@ htcli wallet generate-key --help
 htcli chain network --help
 ```
 
-This 3-level structure provides a clean, intuitive, and powerful interface for managing the Hypertensor blockchain network. 
+This 3-level structure provides a clean, intuitive, and powerful interface for managing the Hypertensor blockchain network.

@@ -7,6 +7,7 @@ Successfully tested all **23 commands** in the new 3-level CLI structure. The te
 ## ✅ **Test Results Overview**
 
 ### **Overall Status: PERFECT**
+
 - **✅ 23/23 commands working perfectly** (100% success rate)
 - **✅ All help commands working** (100% success rate)
 - **✅ Error handling working correctly** (100% success rate)
@@ -29,6 +30,7 @@ Successfully tested all **23 commands** in the new 3-level CLI structure. The te
 | `htcli subnet remove --help` | ✅ **PASS** | Shows subnet ID parameter |
 
 **Command Execution Tests:**
+
 - ✅ `htcli subnet register test-subnet --memory 1024 --blocks 1000 --interval 100` - **WORKING**
 - ✅ `htcli subnet activate 1` - **WORKING**
 - ✅ `htcli subnet add-node 1 --hotkey 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY --peer-id QmYwAPJzv5CZsnA625s3ofHtUyJ9eykQZ6d3s5hgcEAuSo` - **WORKING**
@@ -51,6 +53,7 @@ Successfully tested all **23 commands** in the new 3-level CLI structure. The te
 | `htcli wallet claim-unbondings --help` | ✅ **PASS** | Shows claim parameters |
 
 **Command Execution Tests:**
+
 - ✅ `htcli wallet generate-key test-key --type sr25519` - **WORKING**
 - ✅ `htcli wallet list-keys` - **WORKING** (shows "No keys found")
 - ✅ `htcli wallet add-stake --subnet-id 1 --node-id 1 --hotkey 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY --amount 1000000000000000000` - **WORKING**
@@ -72,6 +75,7 @@ Successfully tested all **23 commands** in the new 3-level CLI structure. The te
 | `htcli chain runtime-version --help` | ✅ **PASS** | Shows format options |
 
 **Command Execution Tests:**
+
 - ✅ `htcli chain network` - **WORKING** (shows network statistics)
 - ✅ `htcli chain epoch` - **WORKING** (shows epoch information)
 - ✅ `htcli chain balance 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY` - **WORKING** (shows balance)
@@ -84,31 +88,38 @@ Successfully tested all **23 commands** in the new 3-level CLI structure. The te
 ## 🎯 **Format Testing Results**
 
 ### **JSON Output Format**
+
 - ✅ `htcli chain network --format json` - **WORKING**
 - ✅ `htcli chain balance 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY --format json` - **WORKING**
 
 ### **Verbose Output**
+
 - ✅ `htcli --verbose chain network` - **WORKING**
 
 ### **Global Options**
+
 - ✅ `htcli --format json chain epoch` - **WORKING**
 
 ## 🛡️ **Error Handling Tests**
 
 ### **Invalid Commands**
+
 - ✅ `htcli invalid-command` - **CORRECT ERROR** (shows help)
 - ✅ `htcli subnet invalid-command` - **CORRECT ERROR** (shows help)
 
 ### **Missing Parameters**
+
 - ✅ `htcli chain balance` - **CORRECT ERROR** (missing address)
 - ✅ `htcli subnet register` - **CORRECT ERROR** (missing parameters)
 
 ### **Invalid Parameters**
+
 - ✅ `htcli subnet add-node 1 --hotkey 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY --peer-id QmTestPeerId123` - **CORRECT ERROR** (invalid peer ID format)
 
 ## 🔧 **Issues Found & Status**
 
 ### **✅ All Issues Resolved**
+
 - **`htcli chain block` Command**: ✅ **FIXED** - Parameter mismatch resolved
 - **`htcli wallet claim-unbondings` Command**: ✅ **FIXED** - Parameter mismatch resolved
 
@@ -122,6 +133,7 @@ Successfully tested all **23 commands** in the new 3-level CLI structure. The te
 ## 📊 **Performance Metrics**
 
 ### **Command Response Times**
+
 - **Help Commands**: < 0.1 seconds
 - **Network Commands**: 1-3 seconds
 - **Balance Queries**: 1-2 seconds
@@ -129,6 +141,7 @@ Successfully tested all **23 commands** in the new 3-level CLI structure. The te
 - **Subnet Operations**: 1-2 seconds
 
 ### **Success Rates**
+
 - **Help Commands**: 100% (23/23)
 - **Command Execution**: 100% (23/23)
 - **Error Handling**: 100% (all error cases handled correctly)
@@ -137,23 +150,27 @@ Successfully tested all **23 commands** in the new 3-level CLI structure. The te
 ## 🎉 **Key Achievements**
 
 ### **✅ 3-Level Structure Working Perfectly**
+
 - All commands follow the new flattened structure
 - No more 4-level deep commands
 - Intuitive and discoverable command hierarchy
 
 ### **✅ Real Blockchain Integration**
+
 - Successfully connecting to Hypertensor network
 - Real balance queries working (37495 TENSOR retrieved)
 - Real network statistics working
 - Real account information working
 
 ### **✅ Comprehensive Error Handling**
+
 - Invalid commands handled gracefully
 - Missing parameters detected correctly
 - Invalid parameters validated properly
 - Helpful error messages provided
 
 ### **✅ Multiple Output Formats**
+
 - Table format working for all commands
 - JSON format working for data commands
 - Verbose mode working correctly
@@ -161,6 +178,7 @@ Successfully tested all **23 commands** in the new 3-level CLI structure. The te
 ## 🚀 **Production Readiness Assessment**
 
 ### **✅ Ready for Production**
+
 - **100% command success rate** (23/23 working perfectly)
 - **100% help system working**
 - **100% error handling working**
@@ -170,6 +188,7 @@ Successfully tested all **23 commands** in the new 3-level CLI structure. The te
 ## 📈 **User Experience Improvements**
 
 ### **Before (4-level structure)**
+
 ```bash
 htcli subnet register create my-subnet --memory-mb 1024
 htcli wallet keys generate my-key --type sr25519
@@ -177,6 +196,7 @@ htcli chain info network
 ```
 
 ### **After (3-level structure)**
+
 ```bash
 htcli subnet register my-subnet --memory 1024
 htcli wallet generate-key my-key --type sr25519
@@ -184,6 +204,7 @@ htcli chain network
 ```
 
 **Benefits Achieved:**
+
 - **25% reduction** in command complexity
 - **30% shorter** average command length
 - **Improved discoverability** with better help system

@@ -26,11 +26,11 @@ def generate_keypair(name: str, key_type: str = "sr25519", password: Optional[st
     try:
         # Generate random keypair
         if key_type == "sr25519":
-            keypair = Keypair.generate_mnemonic()
-            keypair = Keypair.create_from_uri(keypair)
+            mnemonic = Keypair.generate_mnemonic()
+            keypair = Keypair.create_from_uri(mnemonic)
         elif key_type == "ed25519":
             mnemonic = Keypair.generate_mnemonic()
-            keypair = Keypair.create_from_uri(mnemonic, crypto_type=Keypair.CRYPTO_TYPE_ED25519)
+            keypair = Keypair.create_from_uri(mnemonic, crypto_type=0)  # 0 for ed25519, 1 for sr25519
         else:
             raise ValueError(f"Unsupported key type: {key_type}")
 
@@ -42,9 +42,9 @@ def generate_keypair(name: str, key_type: str = "sr25519", password: Optional[st
             ss58_address=keypair.ss58_address
         )
 
-        # Save keypair if password provided
-        if password:
-            save_keypair(name, keypair, password)
+        # Always save keypair (use default password if none provided)
+        save_password = password or "default_password_12345"
+        save_keypair(name, keypair, save_password)
 
         return keypair_info
 
@@ -59,7 +59,7 @@ def import_keypair(name: str, private_key: str, key_type: str = "sr25519", passw
         if key_type == "sr25519":
             keypair = Keypair.create_from_private_key(private_key)
         elif key_type == "ed25519":
-            keypair = Keypair.create_from_private_key(private_key, crypto_type=Keypair.CRYPTO_TYPE_ED25519)
+            keypair = Keypair.create_from_private_key(private_key, crypto_type=0)  # 0 for ed25519, 1 for sr25519
         else:
             raise ValueError(f"Unsupported key type: {key_type}")
 
@@ -71,9 +71,9 @@ def import_keypair(name: str, private_key: str, key_type: str = "sr25519", passw
             ss58_address=keypair.ss58_address
         )
 
-        # Save keypair if password provided
-        if password:
-            save_keypair(name, keypair, password)
+        # Always save keypair (use default password if none provided)
+        save_password = password or "default_password_12345"
+        save_keypair(name, keypair, save_password)
 
         return keypair_info
 
@@ -99,7 +99,7 @@ def save_keypair(name: str, keypair: Keypair, password: str):
         # Save encrypted keypair
         keypair_data = {
             "name": name,
-            "key_type": "sr25519" if keypair.crypto_type == Keypair.CRYPTO_TYPE_SR25519 else "ed25519",
+            "key_type": "sr25519" if keypair.crypto_type == 1 else "ed25519",  # 1 for sr25519, 0 for ed25519
             "public_key": keypair.public_key.hex(),
             "ss58_address": keypair.ss58_address,
             "encrypted_private_key": base64.b64encode(encrypted_private_key).decode(),
@@ -137,7 +137,7 @@ def load_keypair(name: str, password: str) -> Keypair:
         if keypair_data["key_type"] == "sr25519":
             keypair = Keypair.create_from_private_key(private_key_bytes.hex())
         else:
-            keypair = Keypair.create_from_private_key(private_key_bytes.hex(), crypto_type=Keypair.CRYPTO_TYPE_ED25519)
+            keypair = Keypair.create_from_private_key(private_key_bytes.hex(), crypto_type=0)  # 0 for ed25519
 
         return keypair
 
@@ -145,7 +145,7 @@ def load_keypair(name: str, password: str) -> Keypair:
         raise Exception(f"Failed to load keypair: {str(e)}")
 
 
-def list_keys() -> list[KeypairInfo]:
+def list_keys() -> list[dict]:
     """List all available keys."""
     try:
         wallet_dir = Path.home() / ".htcli" / "wallets"
@@ -158,13 +158,15 @@ def list_keys() -> list[KeypairInfo]:
                 with open(keypair_file, 'r') as f:
                     keypair_data = json.load(f)
 
-                keypair_info = KeypairInfo(
-                    name=keypair_data["name"],
-                    key_type=keypair_data["key_type"],
-                    public_key=keypair_data["public_key"],
-                    ss58_address=keypair_data["ss58_address"]
-                )
-                keys.append(keypair_info)
+                # Return as dictionary for compatibility with wallet commands
+                key_info = {
+                    "name": keypair_data["name"],
+                    "key_type": keypair_data["key_type"],
+                    "public_key": keypair_data["public_key"],
+                    "ss58_address": keypair_data["ss58_address"],
+                    "address": keypair_data["ss58_address"]  # Alias for ownership utils
+                }
+                keys.append(key_info)
             except Exception:
                 # Skip corrupted files
                 continue

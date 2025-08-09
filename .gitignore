@@ -174,9 +174,6 @@ cython_debug/
 .pypirc
 
 # Project specific ignores
-htcli
-docs/
-docs/*.md
 docs/*.html
 docs/*.css
 docs/*.js
@@ -190,7 +187,6 @@ docs/*.gif
 !LICENSE
 !pyproject.toml
 !pytest.ini
-FINAL_COMMIT_MESSAGE.txt
 src/htcli/commands/chain
 src/htcli/commands/subnet
 src/htcli/commands/wallet

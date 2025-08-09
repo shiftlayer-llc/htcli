@@ -269,7 +269,7 @@ network:
   timeout: 30
   retry_attempts: 3
 
-# Output Configuration  
+# Output Configuration
 output:
   format: "table"
   verbose: false

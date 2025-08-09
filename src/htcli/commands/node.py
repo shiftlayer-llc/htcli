@@ -33,7 +33,7 @@ def show_comprehensive_guidance(operation: str, details: dict):
             "requirements": [
                 "• Valid subnet ID (must exist and be active)",
                 "• Hotkey address (your node's identity)",
-                "• Peer ID (your node's network identifier)", 
+                "• Peer ID (your node's network identifier)",
                 "• Sufficient TENSOR balance for staking",
                 "• Node must meet subnet's hardware requirements"
             ],
@@ -115,43 +115,43 @@ def show_comprehensive_guidance(operation: str, details: dict):
             ]
         }
     }
-    
+
     if operation in guidance_messages:
         msg = guidance_messages[operation]
-        
+
         # Create comprehensive guidance panel
         content = f"[bold]{msg['description']}[/bold]\n\n"
-        
+
         if 'requirements' in msg:
             content += "[bold cyan]📋 Requirements:[/bold cyan]\n"
             for req in msg['requirements']:
                 content += f"{req}\n"
             content += "\n"
-        
+
         if 'process' in msg:
             content += "[bold green]⚙️ Process:[/bold green]\n"
             for step in msg['process']:
                 content += f"{step}\n"
             content += "\n"
-        
+
         if 'tips' in msg:
             content += "[bold yellow]💡 Tips & Warnings:[/bold yellow]\n"
             for tip in msg['tips']:
                 content += f"{tip}\n"
-        
+
         # Add specific details if provided
         if details:
             content += "\n[bold magenta]📊 Current Operation:[/bold magenta]\n"
             for key, value in details.items():
                 content += f"• {key}: {value}\n"
-        
+
         panel = Panel(
             content,
             title=msg['title'],
             border_style="cyan",
             padding=(1, 2)
         )
-        
+
         console.print(panel)
         console.print()
 
@@ -178,7 +178,7 @@ def add(
             "Stake Amount": format_balance(stake_amount),
             "Reward Rate": f"{delegate_reward_rate * 100:.1f}%"
         })
-        
+
         # Ask for confirmation
         if not typer.confirm("Do you want to proceed with adding this node?"):
             print_info("Node addition cancelled.")
@@ -207,7 +207,7 @@ def add(
 
     try:
         print_info(f"🔄 Adding node to subnet {subnet_id}...")
-        
+
         request = SubnetNodeAddRequest(
             subnet_id=subnet_id,
             hotkey=hotkey,
@@ -226,13 +226,13 @@ def add(
             print_info(f"🔑 Using key: {key_name}")
 
         response = client.add_subnet_node(request, keypair)
-        
+
         if response.success:
             print_success(f"✅ Node successfully added to subnet {subnet_id}!")
             console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
             if response.block_number:
                 console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
-            
+
             console.print(Panel(
                 f"[bold green]🎉 Node Registration Complete![/bold green]\n\n"
                 f"Your node has been successfully registered to subnet {subnet_id}.\n"
@@ -248,7 +248,7 @@ def add(
         else:
             print_error(f"❌ Failed to add node: {response.message}")
             raise typer.Exit(1)
-            
+
     except Exception as e:
         print_error(f"❌ Failed to add node to subnet: {str(e)}")
         raise typer.Exit(1)
@@ -270,7 +270,7 @@ def remove(
             "Subnet ID": subnet_id,
             "Node ID": node_id
         })
-        
+
         # Ask for confirmation with warning
         console.print("[bold red]⚠️ WARNING: This action will remove your node and unbond all staked tokens![/bold red]")
         if not typer.confirm("Are you sure you want to remove this node?"):
@@ -288,7 +288,7 @@ def remove(
 
     try:
         print_info(f"🔄 Removing node {node_id} from subnet {subnet_id}...")
-        
+
         # Get keypair for signing if provided
         keypair = None
         if key_name:
@@ -296,13 +296,13 @@ def remove(
             print_info(f"🔑 Using key: {key_name}")
 
         response = client.remove_subnet_node(subnet_id, node_id, keypair)
-        
+
         if response.success:
             print_success(f"✅ Node {node_id} successfully removed from subnet {subnet_id}!")
             console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
             if response.block_number:
                 console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
-            
+
             console.print(Panel(
                 f"[bold green]🗑️ Node Removal Complete![/bold green]\n\n"
                 f"Node {node_id} has been removed from subnet {subnet_id}.\n\n"
@@ -315,7 +315,7 @@ def remove(
         else:
             print_error(f"❌ Failed to remove node: {response.message}")
             raise typer.Exit(1)
-            
+
     except Exception as e:
         print_error(f"❌ Failed to remove node from subnet: {str(e)}")
         raise typer.Exit(1)
@@ -337,7 +337,7 @@ def deactivate(
             "Subnet ID": subnet_id,
             "Node ID": node_id
         })
-        
+
         # Ask for confirmation
         if not typer.confirm("Do you want to deactivate this node?"):
             print_info("Node deactivation cancelled.")
@@ -354,7 +354,7 @@ def deactivate(
 
     try:
         print_info(f"🔄 Deactivating node {node_id} in subnet {subnet_id}...")
-        
+
         # Get keypair for signing if provided
         keypair = None
         if key_name:
@@ -362,13 +362,13 @@ def deactivate(
             print_info(f"🔑 Using key: {key_name}")
 
         response = client.deactivate_subnet_node(subnet_id, node_id, keypair)
-        
+
         if response.success:
             print_success(f"✅ Node {node_id} successfully deactivated in subnet {subnet_id}!")
             console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
             if response.block_number:
                 console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
-            
+
             console.print(Panel(
                 f"[bold yellow]⏸️ Node Deactivation Complete![/bold yellow]\n\n"
                 f"Node {node_id} has been deactivated in subnet {subnet_id}.\n\n"
@@ -382,7 +382,7 @@ def deactivate(
         else:
             print_error(f"❌ Failed to deactivate node: {response.message}")
             raise typer.Exit(1)
-            
+
     except Exception as e:
         print_error(f"❌ Failed to deactivate node: {str(e)}")
         raise typer.Exit(1)
@@ -411,12 +411,12 @@ def list(
 
     try:
         print_info(f"🔄 Retrieving nodes for subnet {subnet_id}...")
-        
+
         response = client.get_subnet_nodes(subnet_id)
-        
+
         if response.success:
             nodes = response.data
-            
+
             if not nodes:
                 console.print(Panel(
                     f"[bold yellow]📭 No nodes found in subnet {subnet_id}[/bold yellow]\n\n"
@@ -426,17 +426,17 @@ def list(
                     border_style="yellow"
                 ))
                 return
-            
+
             if format_type == "json":
                 console.print_json(data=nodes)
             else:
                 format_node_list(nodes, subnet_id)
-                
+
             console.print(f"\n✅ Found {len(nodes)} node(s) in subnet {subnet_id}")
         else:
             print_error(f"❌ Failed to retrieve nodes: {response.message}")
             raise typer.Exit(1)
-            
+
     except Exception as e:
         print_error(f"❌ Failed to list subnet nodes: {str(e)}")
         raise typer.Exit(1)
@@ -462,23 +462,23 @@ def status(
 
     try:
         print_info(f"🔄 Retrieving status for node {node_id} in subnet {subnet_id}...")
-        
+
         # Get all nodes and find the specific one
         response = client.get_subnet_nodes(subnet_id)
-        
+
         if response.success:
             nodes = response.data
             target_node = None
-            
+
             for node in nodes:
                 if node.get('node_id') == node_id:
                     target_node = node
                     break
-            
+
             if not target_node:
                 print_error(f"❌ Node {node_id} not found in subnet {subnet_id}")
                 raise typer.Exit(1)
-            
+
             if format_type == "json":
                 console.print_json(data=target_node)
             else:
@@ -496,12 +496,12 @@ def status(
                     title="Node Status",
                     border_style="cyan"
                 ))
-                
+
             print_success(f"✅ Retrieved status for node {node_id}")
         else:
             print_error(f"❌ Failed to retrieve node status: {response.message}")
             raise typer.Exit(1)
-            
+
     except Exception as e:
         print_error(f"❌ Failed to get node status: {str(e)}")
         raise typer.Exit(1)

@@ -152,6 +152,3 @@ def delete_key(
     except Exception as e:
         print_error(f"Failed to delete key: {str(e)}")
         raise typer.Exit(1)
-
-
-

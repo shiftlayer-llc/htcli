@@ -50,13 +50,13 @@ def format_yaml_with_comments(config: Config) -> str:
 network:
   # RPC endpoint for blockchain communication
   endpoint: "{config.network.endpoint}"
-  
+
   # WebSocket endpoint for real-time communication
   ws_endpoint: "{config.network.ws_endpoint}"
-  
+
   # Connection timeout in seconds
   timeout: {config.network.timeout}
-  
+
   # Number of retry attempts for failed connections
   retry_attempts: {config.network.retry_attempts}
 
@@ -65,10 +65,10 @@ network:
 output:
   # Default output format (table, json, csv)
   format: "{config.output.format}"
-  
+
   # Enable verbose output with detailed information
   verbose: {str(config.output.verbose).lower()}
-  
+
   # Enable colored output in terminal
   color: {str(config.output.color).lower()}
 
@@ -77,10 +77,10 @@ output:
 wallet:
   # Path where wallets and keys are stored
   path: "{config.wallet.path}"
-  
+
   # Default wallet name to use
   default_name: "{config.wallet.default_name}"
-  
+
   # Enable wallet encryption for security
   encryption_enabled: {str(config.wallet.encryption_enabled).lower()}
 """
@@ -103,13 +103,13 @@ def save_config(config: Config, config_path: Path):
     """Save configuration to YAML file."""
     try:
         create_config_dir(config_path)
-        
+
         # Format with comments
         yaml_content = format_yaml_with_comments(config)
-        
+
         with open(config_path, 'w') as f:
             f.write(yaml_content)
-        
+
         print_success(f"✅ Configuration saved to: {config_path}")
     except Exception as e:
         print_error(f"Failed to save configuration: {str(e)}")
@@ -120,36 +120,36 @@ def prompt_network_config(existing: Optional[NetworkConfig] = None) -> NetworkCo
     """Prompt user for network configuration."""
     console.print("\n[bold blue]🌐 Network Configuration[/bold blue]")
     console.print("Configure how the CLI connects to the Hypertensor blockchain.\n")
-    
+
     # RPC Endpoint
     default_endpoint = existing.endpoint if existing else "wss://hypertensor.duckdns.org"
     endpoint = Prompt.ask(
         "RPC Endpoint (WebSocket URL for blockchain communication)",
         default=default_endpoint
     )
-    
+
     while not validate_url(endpoint):
         print_error("Invalid URL format. Please enter a valid WebSocket URL (wss://).")
         endpoint = Prompt.ask("RPC Endpoint", default=default_endpoint)
-    
+
     # WebSocket Endpoint
     default_ws = existing.ws_endpoint if existing else endpoint
     ws_endpoint = Prompt.ask(
         "WebSocket Endpoint (for real-time communication)",
         default=default_ws
     )
-    
+
     while not validate_url(ws_endpoint):
         print_error("Invalid URL format. Please enter a valid WebSocket URL (wss://).")
         ws_endpoint = Prompt.ask("WebSocket Endpoint", default=default_ws)
-    
+
     # Timeout
     default_timeout = existing.timeout if existing else 30
     timeout_str = Prompt.ask(
         "Connection timeout (seconds)",
         default=str(default_timeout)
     )
-    
+
     try:
         timeout = int(timeout_str)
         if timeout <= 0:
@@ -157,14 +157,14 @@ def prompt_network_config(existing: Optional[NetworkConfig] = None) -> NetworkCo
     except ValueError:
         print_error("Invalid timeout. Using default value of 30 seconds.")
         timeout = 30
-    
+
     # Retry attempts
     default_retry = existing.retry_attempts if existing else 3
     retry_str = Prompt.ask(
         "Retry attempts for failed connections",
         default=str(default_retry)
     )
-    
+
     try:
         retry_attempts = int(retry_str)
         if retry_attempts < 0:
@@ -172,7 +172,7 @@ def prompt_network_config(existing: Optional[NetworkConfig] = None) -> NetworkCo
     except ValueError:
         print_error("Invalid retry attempts. Using default value of 3.")
         retry_attempts = 3
-    
+
     return NetworkConfig(
         endpoint=endpoint,
         ws_endpoint=ws_endpoint,
@@ -185,7 +185,7 @@ def prompt_output_config(existing: Optional[OutputConfig] = None) -> OutputConfi
     """Prompt user for output configuration."""
     console.print("\n[bold green]📊 Output Configuration[/bold green]")
     console.print("Configure how the CLI displays information.\n")
-    
+
     # Output format
     default_format = existing.format if existing else "table"
     format_choice = Prompt.ask(
@@ -193,21 +193,21 @@ def prompt_output_config(existing: Optional[OutputConfig] = None) -> OutputConfi
         choices=["table", "json", "csv"],
         default=default_format
     )
-    
+
     # Verbose output
     default_verbose = existing.verbose if existing else False
     verbose = Confirm.ask(
         "Enable verbose output by default?",
         default=default_verbose
     )
-    
+
     # Colored output
     default_color = existing.color if existing else True
     color = Confirm.ask(
         "Enable colored output in terminal?",
         default=default_color
     )
-    
+
     return OutputConfig(
         format=format_choice,
         verbose=verbose,
@@ -219,34 +219,34 @@ def prompt_wallet_config(existing: Optional[WalletConfig] = None) -> WalletConfi
     """Prompt user for wallet configuration."""
     console.print("\n[bold yellow]💰 Wallet Configuration[/bold yellow]")
     console.print("Configure wallet and key management settings.\n")
-    
+
     # Wallet path
     default_path = existing.path if existing else "~/.htcli/wallets"
     wallet_path = Prompt.ask(
         "Wallet storage path (where keys will be stored)",
         default=default_path
     )
-    
+
     # Expand and validate path
     expanded_path = Path(wallet_path).expanduser()
     if not validate_path(str(expanded_path.parent)):
         print_error("Invalid path. Using default path.")
         wallet_path = "~/.htcli/wallets"
-    
+
     # Default wallet name
     default_name = existing.default_name if existing else "default"
     wallet_name = Prompt.ask(
         "Default wallet name",
         default=default_name
     )
-    
+
     # Encryption
     default_encryption = existing.encryption_enabled if existing else True
     encryption = Confirm.ask(
         "Enable wallet encryption for security?",
         default=default_encryption
     )
-    
+
     return WalletConfig(
         path=wallet_path,
         default_name=wallet_name,
@@ -257,32 +257,32 @@ def prompt_wallet_config(existing: Optional[WalletConfig] = None) -> WalletConfi
 @app.command()
 def init(
     config_file: Optional[str] = typer.Option(
-        None, 
-        "--config", 
-        "-c", 
+        None,
+        "--config",
+        "-c",
         help="Custom configuration file path"
     ),
     force: bool = typer.Option(
-        False, 
-        "--force", 
-        "-f", 
+        False,
+        "--force",
+        "-f",
         help="Overwrite existing configuration"
     )
 ):
     """Initialize Hypertensor CLI configuration interactively."""
     config_path = get_config_path(config_file)
-    
+
     # Check if config exists
     existing_config = None
     if config_path.exists() and not force:
         console.print(f"\n[yellow]⚠️  Configuration file already exists: {config_path}[/yellow]")
-        
+
         if not Confirm.ask("Do you want to update the existing configuration?"):
             print_info("Configuration initialization cancelled.")
             return
-        
+
         existing_config = load_existing_config(config_path)
-    
+
     # Welcome message
     console.print(Panel.fit(
         "[bold cyan]🚀 Hypertensor CLI Configuration Setup[/bold cyan]\n\n"
@@ -291,38 +291,38 @@ def init(
         title="Welcome",
         border_style="cyan"
     ))
-    
+
     try:
         # Collect configuration
         network_config = prompt_network_config(
             existing_config.network if existing_config else None
         )
-        
+
         output_config = prompt_output_config(
             existing_config.output if existing_config else None
         )
-        
+
         wallet_config = prompt_wallet_config(
             existing_config.wallet if existing_config else None
         )
-        
+
         # Create final configuration
         config = Config(
             network=network_config,
             output=output_config,
             wallet=wallet_config
         )
-        
+
         # Show summary
         console.print("\n[bold cyan]📋 Configuration Summary[/bold cyan]")
         show_config_summary(config)
-        
+
         # Confirm and save
         console.print(f"\nConfiguration will be saved to: [bold]{config_path}[/bold]")
-        
+
         if Confirm.ask("\nSave this configuration?", default=True):
             save_config(config, config_path)
-            
+
             # Show next steps
             console.print(Panel.fit(
                 "[bold green]✅ Configuration Complete![/bold green]\n\n"
@@ -334,7 +334,7 @@ def init(
             ))
         else:
             print_info("Configuration not saved.")
-    
+
     except KeyboardInterrupt:
         print_info("\nConfiguration initialization cancelled.")
         raise typer.Exit(0)
@@ -345,73 +345,73 @@ def init(
 
 def show_config_summary(config: Config):
     """Display configuration summary in a nice table format."""
-    
+
     # Network table
     network_table = Table(title="🌐 Network", show_header=True, header_style="bold blue")
     network_table.add_column("Setting", style="cyan")
     network_table.add_column("Value", style="white")
-    
+
     network_table.add_row("RPC Endpoint", config.network.endpoint)
     network_table.add_row("WebSocket Endpoint", config.network.ws_endpoint)
     network_table.add_row("Timeout", f"{config.network.timeout}s")
     network_table.add_row("Retry Attempts", str(config.network.retry_attempts))
-    
+
     console.print(network_table)
-    
+
     # Output table
     output_table = Table(title="📊 Output", show_header=True, header_style="bold green")
     output_table.add_column("Setting", style="cyan")
     output_table.add_column("Value", style="white")
-    
+
     output_table.add_row("Default Format", config.output.format)
     output_table.add_row("Verbose", "✅ Yes" if config.output.verbose else "❌ No")
     output_table.add_row("Colored Output", "✅ Yes" if config.output.color else "❌ No")
-    
+
     console.print(output_table)
-    
+
     # Wallet table
     wallet_table = Table(title="💰 Wallet", show_header=True, header_style="bold yellow")
     wallet_table.add_column("Setting", style="cyan")
     wallet_table.add_column("Value", style="white")
-    
+
     wallet_table.add_row("Storage Path", config.wallet.path)
     wallet_table.add_row("Default Name", config.wallet.default_name)
     wallet_table.add_row("Encryption", "✅ Enabled" if config.wallet.encryption_enabled else "❌ Disabled")
-    
+
     console.print(wallet_table)
 
 
 @app.command()
 def show(
     config_file: Optional[str] = typer.Option(
-        None, 
-        "--config", 
-        "-c", 
+        None,
+        "--config",
+        "-c",
         help="Custom configuration file path"
     ),
     format_type: str = typer.Option(
-        "table", 
-        "--format", 
-        "-f", 
+        "table",
+        "--format",
+        "-f",
         help="Output format (table/yaml/json)"
     )
 ):
     """Show current configuration."""
     config_path = get_config_path(config_file)
-    
+
     if not config_path.exists():
         print_error(f"Configuration file not found: {config_path}")
         console.print(f"\nRun [bold]htcli config init[/bold] to create a configuration file.")
         raise typer.Exit(1)
-    
+
     try:
         config = load_existing_config(config_path)
         if not config:
             print_error("Failed to load configuration file.")
             raise typer.Exit(1)
-        
+
         console.print(f"\n[bold]Configuration file: {config_path}[/bold]\n")
-        
+
         if format_type == "table":
             show_config_summary(config)
         elif format_type == "yaml":
@@ -421,7 +421,7 @@ def show(
         else:
             print_error("Invalid format. Use: table, yaml, or json")
             raise typer.Exit(1)
-    
+
     except Exception as e:
         print_error(f"Failed to show configuration: {str(e)}")
         raise typer.Exit(1)
@@ -430,17 +430,17 @@ def show(
 @app.command()
 def path(
     config_file: Optional[str] = typer.Option(
-        None, 
-        "--config", 
-        "-c", 
+        None,
+        "--config",
+        "-c",
         help="Custom configuration file path"
     )
 ):
     """Show configuration file path."""
     config_path = get_config_path(config_file)
-    
+
     console.print(f"Configuration file path: [bold]{config_path}[/bold]")
-    
+
     if config_path.exists():
         console.print("✅ File exists")
     else:
@@ -451,41 +451,41 @@ def path(
 @app.command()
 def edit(
     config_file: Optional[str] = typer.Option(
-        None, 
-        "--config", 
-        "-c", 
+        None,
+        "--config",
+        "-c",
         help="Custom configuration file path"
     )
 ):
     """Open configuration file in default editor."""
     config_path = get_config_path(config_file)
-    
+
     if not config_path.exists():
         print_error(f"Configuration file not found: {config_path}")
         console.print(f"\nRun [bold]htcli config init[/bold] to create a configuration file.")
         raise typer.Exit(1)
-    
+
     try:
         import subprocess
         import shutil
-        
+
         # Try to find a suitable editor
         editors = ['code', 'nano', 'vim', 'vi', 'gedit']
         editor = None
-        
+
         for ed in editors:
             if shutil.which(ed):
                 editor = ed
                 break
-        
+
         if not editor:
             print_error("No suitable editor found. Please edit the file manually:")
             console.print(f"[bold]{config_path}[/bold]")
             raise typer.Exit(1)
-        
+
         print_info(f"Opening configuration file in {editor}...")
         subprocess.run([editor, str(config_path)])
-        
+
     except Exception as e:
         print_error(f"Failed to open editor: {str(e)}")
         console.print(f"Please edit the file manually: [bold]{config_path}[/bold]")
@@ -495,19 +495,19 @@ def edit(
 @app.command()
 def validate(
     config_file: Optional[str] = typer.Option(
-        None, 
-        "--config", 
-        "-c", 
+        None,
+        "--config",
+        "-c",
         help="Custom configuration file path"
     )
 ):
     """Validate configuration file."""
     config_path = get_config_path(config_file)
-    
+
     if not config_path.exists():
         print_error(f"Configuration file not found: {config_path}")
         raise typer.Exit(1)
-    
+
     try:
         config = load_existing_config(config_path)
         if config:
@@ -516,7 +516,7 @@ def validate(
         else:
             print_error("❌ Configuration file is invalid!")
             raise typer.Exit(1)
-    
+
     except Exception as e:
         print_error(f"Configuration validation failed: {str(e)}")
         raise typer.Exit(1)

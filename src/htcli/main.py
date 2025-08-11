@@ -18,9 +18,22 @@ from .config import load_config
 from .client import HypertensorClient
 from .dependencies import set_client
 
+def get_ascii_art():
+    """Return beautiful ASCII art for the CLI."""
+    return """
+    ██╗  ██╗████████╗ ██████╗██╗     ██╗
+    ██║  ██║╚══██╔══╝██╔════╝██║     ██║
+    ███████║   ██║   ██║     ██║     ██║
+    ██╔══██║   ██║   ██║     ██║     ██║
+    ██║  ██║   ██║   ╚██████╗███████╗██║
+    ╚═╝  ╚═╝   ╚═╝    ╚═════╝╚══════╝╚═╝
+    
+    Hypertensor Blockchain CLI
+    """
+
 app = typer.Typer(
     name="htcli",
-    help="Hypertensor Blockchain CLI",
+    help=f"{get_ascii_art()}\n\nHypertensor Blockchain CLI - Manage subnets, wallets, and chain operations.",
     add_completion=True,
     rich_markup_mode="rich"
 )

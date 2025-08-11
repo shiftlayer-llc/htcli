@@ -109,7 +109,7 @@ def save_config(config: Config, config_path: Path):
         with open(config_path, 'w') as f:
             f.write(yaml_content)
 
-        print_success(f"✅ Configuration saved to: {config_path}")
+        print_success(f"Configuration saved to: {config_path}")
     except Exception as e:
         print_error(f"Failed to save configuration: {str(e)}")
         raise typer.Exit(1)
@@ -117,7 +117,7 @@ def save_config(config: Config, config_path: Path):
 
 def prompt_network_config(existing: Optional[NetworkConfig] = None) -> NetworkConfig:
     """Prompt user for network configuration."""
-    console.print("\n[bold blue]🌐 Network Configuration[/bold blue]")
+    console.print("\n[bold blue]Network Configuration[/bold blue]")
     console.print("Configure how the CLI connects to the Hypertensor blockchain.\n")
 
     # RPC Endpoint
@@ -182,7 +182,7 @@ def prompt_network_config(existing: Optional[NetworkConfig] = None) -> NetworkCo
 
 def prompt_output_config(existing: Optional[OutputConfig] = None) -> OutputConfig:
     """Prompt user for output configuration."""
-    console.print("\n[bold green]📊 Output Configuration[/bold green]")
+    console.print("\n[bold green]Output Configuration[/bold green]")
     console.print("Configure how the CLI displays information.\n")
 
     # Output format
@@ -216,7 +216,7 @@ def prompt_output_config(existing: Optional[OutputConfig] = None) -> OutputConfi
 
 def prompt_wallet_config(existing: Optional[WalletConfig] = None) -> WalletConfig:
     """Prompt user for wallet configuration."""
-    console.print("\n[bold yellow]💰 Wallet Configuration[/bold yellow]")
+    console.print("\n[bold yellow]Wallet Configuration[/bold yellow]")
     console.print("Configure wallet and key management settings.\n")
 
     # Wallet path
@@ -284,7 +284,7 @@ def init(
 
     # Welcome message
     console.print(Panel.fit(
-        "[bold cyan]🚀 Hypertensor CLI Configuration Setup[/bold cyan]\n\n"
+        "[bold cyan]Hypertensor CLI Configuration Setup[/bold cyan]\n\n"
         "This wizard will help you configure the Hypertensor CLI.\n"
         "Press [bold]Enter[/bold] to use default values or type your preferred settings.",
         title="Welcome",
@@ -313,7 +313,7 @@ def init(
         )
 
         # Show summary
-        console.print("\n[bold cyan]📋 Configuration Summary[/bold cyan]")
+        console.print("\n[bold cyan]Configuration Summary[/bold cyan]")
         show_config_summary(config)
 
         # Confirm and save
@@ -324,7 +324,7 @@ def init(
 
             # Show next steps
             console.print(Panel.fit(
-                "[bold green]✅ Configuration Complete![/bold green]\n\n"
+                "[bold green]Configuration Complete![/bold green]\n\n"
                 f"Your configuration has been saved to:\n[bold]{config_path}[/bold]\n\n"
                 "You can now use the Hypertensor CLI with your custom settings.\n"
                 "Use [bold]htcli config show[/bold] to view your current configuration.",
@@ -346,7 +346,7 @@ def show_config_summary(config: Config):
     """Display configuration summary in a nice table format."""
 
     # Network table
-    network_table = Table(title="🌐 Network", show_header=True, header_style="bold blue")
+    network_table = Table(title="Network", show_header=True, header_style="bold blue")
     network_table.add_column("Setting", style="cyan")
     network_table.add_column("Value", style="white")
 
@@ -358,24 +358,29 @@ def show_config_summary(config: Config):
     console.print(network_table)
 
     # Output table
-    output_table = Table(title="📊 Output", show_header=True, header_style="bold green")
+    network_table.add_row("Retry Attempts", str(config.network.retry_attempts))
+
+    console.print(network_table)
+
+    # Output table
+    output_table = Table(title="Output", show_header=True, header_style="bold green")
     output_table.add_column("Setting", style="cyan")
     output_table.add_column("Value", style="white")
 
     output_table.add_row("Default Format", config.output.format)
-    output_table.add_row("Verbose", "✅ Yes" if config.output.verbose else "❌ No")
-    output_table.add_row("Colored Output", "✅ Yes" if config.output.color else "❌ No")
+    output_table.add_row("Verbose", "Yes" if config.output.verbose else "No")
+    output_table.add_row("Colored Output", "Yes" if config.output.color else "No")
 
     console.print(output_table)
 
     # Wallet table
-    wallet_table = Table(title="💰 Wallet", show_header=True, header_style="bold yellow")
+    wallet_table = Table(title="Wallet", show_header=True, header_style="bold yellow")
     wallet_table.add_column("Setting", style="cyan")
     wallet_table.add_column("Value", style="white")
 
     wallet_table.add_row("Storage Path", config.wallet.path)
     wallet_table.add_row("Default Name", config.wallet.default_name)
-    wallet_table.add_row("Encryption", "✅ Enabled" if config.wallet.encryption_enabled else "❌ Disabled")
+    wallet_table.add_row("Encryption", "Enabled" if config.wallet.encryption_enabled else "Disabled")
 
     console.print(wallet_table)
 
@@ -441,9 +446,9 @@ def path(
     console.print(f"Configuration file path: [bold]{config_path}[/bold]")
 
     if config_path.exists():
-        console.print("✅ File exists")
+        console.print("File exists")
     else:
-        console.print("❌ File does not exist")
+        console.print("File does not exist")
         console.print("\nRun [bold]htcli config init[/bold] to create the configuration file.")
 
 
@@ -456,7 +461,7 @@ def edit(
         help="Custom configuration file path"
     )
 ):
-    """Open configuration file in default editor."""
+    """Edit configuration interactively in the terminal."""
     config_path = get_config_path(config_file)
 
     if not config_path.exists():
@@ -465,30 +470,117 @@ def edit(
         raise typer.Exit(1)
 
     try:
-        import subprocess
-        import shutil
-
-        # Try to find a suitable editor
-        editors = ['code', 'nano', 'vim', 'vi', 'gedit']
-        editor = None
-
-        for ed in editors:
-            if shutil.which(ed):
-                editor = ed
-                break
-
-        if not editor:
-            print_error("No suitable editor found. Please edit the file manually:")
-            console.print(f"[bold]{config_path}[/bold]")
+        # Load existing configuration
+        existing_config = load_existing_config(config_path)
+        if not existing_config:
+            print_error("Failed to load existing configuration.")
             raise typer.Exit(1)
 
-        print_info(f"Opening configuration file in {editor}...")
-        subprocess.run([editor, str(config_path)])
+        console.print(Panel.fit(
+            "[bold cyan]Configuration Editor[/bold cyan]\n\n"
+            "You can edit your configuration settings interactively.\n"
+            "Press [bold]Enter[/bold] to keep current values or type new values.",
+            title="Welcome",
+            border_style="cyan"
+        ))
 
+        # Edit configuration sections
+        console.print("\n[bold blue]Network Configuration[/bold blue]")
+        network_config = prompt_network_config(existing_config.network)
+
+        console.print("\n[bold green]Output Configuration[/bold green]")
+        output_config = prompt_output_config(existing_config.output)
+
+        console.print("\n[bold yellow]Wallet Configuration[/bold yellow]")
+        wallet_config = prompt_wallet_config(existing_config.wallet)
+
+        # Create updated configuration
+        updated_config = Config(
+            network=network_config,
+            output=output_config,
+            wallet=wallet_config
+        )
+
+        # Show changes summary
+        console.print("\n[bold cyan]Configuration Changes Summary[/bold cyan]")
+        show_config_changes(existing_config, updated_config)
+
+        # Confirm and save
+        if Confirm.ask("\nSave these changes?", default=True):
+            save_config(updated_config, config_path)
+            print_success("Configuration updated successfully!")
+        else:
+            print_info("Changes not saved.")
+
+    except KeyboardInterrupt:
+        print_info("\nConfiguration editing cancelled.")
+        raise typer.Exit(0)
     except Exception as e:
-        print_error(f"Failed to open editor: {str(e)}")
-        console.print(f"Please edit the file manually: [bold]{config_path}[/bold]")
+        print_error(f"Configuration editing failed: {str(e)}")
         raise typer.Exit(1)
+
+
+def show_config_changes(old_config: Config, new_config: Config):
+    """Display configuration changes in a comparison table."""
+    
+    # Network changes
+    network_table = Table(title="Network Configuration Changes", show_header=True, header_style="bold blue")
+    network_table.add_column("Setting", style="cyan")
+    network_table.add_column("Old Value", style="red")
+    network_table.add_column("New Value", style="green")
+    network_table.add_column("Changed", style="yellow")
+
+    network_changes = [
+        ("RPC Endpoint", old_config.network.endpoint, new_config.network.endpoint),
+        ("WebSocket Endpoint", old_config.network.ws_endpoint, new_config.network.ws_endpoint),
+        ("Timeout", f"{old_config.network.timeout}s", f"{new_config.network.timeout}s"),
+        ("Retry Attempts", str(old_config.network.retry_attempts), str(new_config.network.retry_attempts))
+    ]
+
+    for setting, old_val, new_val in network_changes:
+        changed = "Yes" if old_val != new_val else "No"
+        network_table.add_row(setting, old_val, new_val, changed)
+
+    console.print(network_table)
+
+    # Output changes
+    output_table = Table(title="Output Configuration Changes", show_header=True, header_style="bold green")
+    output_table.add_column("Setting", style="cyan")
+    output_table.add_column("Old Value", style="red")
+    output_table.add_column("New Value", style="green")
+    output_table.add_column("Changed", style="yellow")
+
+    output_changes = [
+        ("Default Format", old_config.output.format, new_config.output.format),
+        ("Verbose", "Yes" if old_config.output.verbose else "No", "Yes" if new_config.output.verbose else "No"),
+        ("Colored Output", "Yes" if old_config.output.color else "No", "Yes" if new_config.output.color else "No")
+    ]
+
+    for setting, old_val, new_val in output_changes:
+        changed = "Yes" if old_val != new_val else "No"
+        output_table.add_row(setting, old_val, new_val, changed)
+
+    console.print(output_table)
+
+    # Wallet changes
+    wallet_table = Table(title="Wallet Configuration Changes", show_header=True, header_style="bold yellow")
+    wallet_table.add_column("Setting", style="cyan")
+    wallet_table.add_column("Old Value", style="red")
+    wallet_table.add_column("New Value", style="green")
+    wallet_table.add_column("Changed", style="yellow")
+
+    wallet_changes = [
+        ("Storage Path", old_config.wallet.path, new_config.wallet.path),
+        ("Default Name", old_config.wallet.default_name, new_config.wallet.default_name),
+        ("Encryption", "Enabled" if old_config.wallet.encryption_enabled else "Disabled", 
+         "Enabled" if new_config.wallet.encryption_enabled else "Disabled")
+    ]
+
+    for setting, old_val, new_val in wallet_changes:
+        changed = "Yes" if old_val != new_val else "No"
+        wallet_table.add_row(setting, old_val, new_val, changed)
+
+    console.print(wallet_table)
 
 
 @app.command()
@@ -510,10 +602,10 @@ def validate(
     try:
         config = load_existing_config(config_path)
         if config:
-            print_success("✅ Configuration file is valid!")
+            print_success("Configuration file is valid!")
             console.print(f"Configuration loaded successfully from: [bold]{config_path}[/bold]")
         else:
-            print_error("❌ Configuration file is invalid!")
+            print_error("Configuration file is invalid!")
             raise typer.Exit(1)
 
     except Exception as e:

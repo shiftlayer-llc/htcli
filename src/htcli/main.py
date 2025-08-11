@@ -16,10 +16,10 @@ from .commands.stake import app as stake_app
 from .commands.flow import app as flow_app
 from .config import load_config
 from .client import HypertensorClient
-from .dependencies import set_client
+from .dependencies import set_config
 
 def get_ascii_art():
-    """Return beautiful ASCII art for the CLI."""
+    """Return  ASCII art for the CLI."""
     return """
     ██╗  ██╗████████╗ ██████╗██╗     ██╗
     ██║  ██║╚══██╔══╝██╔════╝██║     ██║
@@ -27,15 +27,14 @@ def get_ascii_art():
     ██╔══██║   ██║   ██║     ██║     ██║
     ██║  ██║   ██║   ╚██████╗███████╗██║
     ╚═╝  ╚═╝   ╚═╝    ╚═════╝╚══════╝╚═╝
-    
-    Hypertensor Blockchain CLI
     """
 
 app = typer.Typer(
     name="htcli",
-    help=f"{get_ascii_art()}\n\nHypertensor Blockchain CLI - Manage subnets, wallets, and chain operations.",
+    help="Hypertensor Blockchain CLI - Manage subnets, wallets, and chain operations.",
     add_completion=True,
-    rich_markup_mode="rich"
+    rich_markup_mode="rich",
+    no_args_is_help=False
 )
 
 console = Console()
@@ -44,7 +43,7 @@ console = Console()
 config = None
 
 
-@app.callback()
+@app.callback(invoke_without_command=True)
 def main(
     config_file: Optional[Path] = typer.Option(
         None, "--config", "-c", help="Configuration file path"
@@ -59,6 +58,65 @@ def main(
     """Hypertensor Blockchain CLI - Manage subnets, wallets, and chain operations."""
     global config
 
+    # Show beautiful welcome screen when no command is provided
+    import sys
+    if len(sys.argv) == 1:
+        from rich.panel import Panel
+        from rich.table import Table
+        from rich.columns import Columns
+        from rich.text import Text
+
+        # Display ASCII art first
+        console.print(get_ascii_art())
+        console.print()
+
+        # Create a beautiful welcome panel
+        welcome_text = Text()
+        welcome_text.append("Welcome to ", style="bold white")
+        welcome_text.append("Hypertensor CLI", style="bold cyan")
+        welcome_text.append("\nYour gateway to the Hypertensor blockchain ecosystem", style="italic dim")
+
+        welcome_panel = Panel(
+            welcome_text,
+            title="[bold cyan]HTCLI[/bold cyan]",
+            border_style="cyan",
+            padding=(1, 2)
+        )
+
+        console.print(welcome_panel)
+        console.print()
+
+        # Create command categories table
+        table = Table(title="[bold cyan]Available Commands[/bold cyan]", show_header=True, header_style="bold magenta")
+        table.add_column("Category", style="cyan", no_wrap=True)
+        table.add_column("Description", style="white")
+        table.add_column("Example", style="dim")
+
+        table.add_row("config", "Configuration management", "htcli config init")
+        table.add_row("subnet", "Subnet operations", "htcli subnet list")
+        table.add_row("node", "Node management", "htcli node add --subnet-id 1")
+        table.add_row("stake", "Staking operations", "htcli stake add --subnet-id 1 --amount 100")
+        table.add_row("wallet", "Wallet management", "htcli wallet generate-key")
+        table.add_row("chain", "Chain operations", "htcli chain network")
+        table.add_row("flow", "Automated workflows", "htcli flow list")
+
+        console.print(table)
+        console.print()
+
+        # Quick tips section
+        tips_panel = Panel(
+            "[bold yellow]Quick Tips:[/bold yellow]\n"
+            "• Use [cyan]--mine[/cyan] to filter results to your assets only\n"
+            "• Use [cyan]--help[/cyan] with any command for detailed information\n"
+            "• Use [cyan]--format json[/cyan] for machine-readable output\n"
+            "• Use [cyan]--verbose[/cyan] for detailed operation logs",
+            title="[bold yellow]💡 Tips[/bold yellow]",
+            border_style="yellow"
+        )
+
+        console.print(tips_panel)
+        raise typer.Exit()
+
     # Load configuration
     config = load_config(config_file)
 
@@ -66,14 +124,14 @@ def main(
     if endpoint:
         config.network.endpoint = endpoint
 
-    # Initialize client
-    client = HypertensorClient(config)
-    set_client(client)
-
     # Set global options
     config.output.verbose = verbose
     config.output.format = output_format
     config.filter.mine = mine
+
+    # Store config globally for lazy client initialization
+    # Client will be initialized only when needed for blockchain operations
+    set_config(config)
 
 
 # Include the main command groups with flattened structure
@@ -84,6 +142,8 @@ app.add_typer(stake_app, name="stake", help="Staking operations and management")
 app.add_typer(wallet_app, name="wallet", help="Wallet and key management")
 app.add_typer(chain_app, name="chain", help="Chain operations")
 app.add_typer(flow_app, name="flow", help="Automated workflows for common tasks")
+
+
 
 if __name__ == "__main__":
     app()

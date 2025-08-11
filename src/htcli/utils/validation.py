@@ -18,7 +18,7 @@ def validate_address(address: str) -> bool:
         return False
 
     # Should contain only alphanumeric characters
-    if not re.match(r'^[1-9A-HJ-NP-Za-km-z]+$', address):
+    if not re.match(r"^[1-9A-HJ-NP-Za-km-z]+$", address):
         return False
 
     return True
@@ -37,7 +37,7 @@ def validate_amount(amount: Union[str, float, int]) -> bool:
 
         # Check for TENSOR precision (18 decimals)
         str_amount = f"{amount:.18f}"
-        if len(str_amount.split('.')[-1]) > 18:
+        if len(str_amount.split(".")[-1]) > 18:
             return False
 
         return True
@@ -80,11 +80,11 @@ def validate_peer_id(peer_id: str) -> bool:
         return False
 
     # Should start with Qm (base58btc multihash)
-    if not peer_id.startswith('Qm'):
+    if not peer_id.startswith("Qm"):
         return False
 
     # Should contain only base58 characters
-    if not re.match(r'^[1-9A-HJ-NP-Za-km-z]+$', peer_id):
+    if not re.match(r"^[1-9A-HJ-NP-Za-km-z]+$", peer_id):
         return False
 
     return True
@@ -105,7 +105,7 @@ def validate_password(password: Optional[str]) -> bool:
         return False
 
     # Should contain at least one letter and one number
-    if not re.search(r'[a-zA-Z]', password) or not re.search(r'\d', password):
+    if not re.search(r"[a-zA-Z]", password) or not re.search(r"\d", password):
         return False
 
     return True
@@ -128,7 +128,7 @@ def validate_rpc_url(url: str) -> bool:
         return False
 
     # Should start with ws:// or wss:// or http:// or https://
-    if not re.match(r'^(ws|wss|http|https)://', url):
+    if not re.match(r"^(ws|wss|http|https)://", url):
         return False
 
     return True
@@ -194,7 +194,7 @@ def validate_subnet_path(path: str) -> bool:
         return False
 
     # Should be alphanumeric with hyphens and underscores
-    if not re.match(r'^[a-zA-Z0-9_-]+$', path):
+    if not re.match(r"^[a-zA-Z0-9_-]+$", path):
         return False
 
     # Length validation
@@ -210,7 +210,7 @@ def validate_wallet_name(name: str) -> bool:
         return False
 
     # Should be alphanumeric with hyphens and underscores
-    if not re.match(r'^[a-zA-Z0-9_-]+$', name):
+    if not re.match(r"^[a-zA-Z0-9_-]+$", name):
         return False
 
     # Length validation
@@ -226,7 +226,7 @@ def validate_private_key(private_key: str) -> bool:
         return False
 
     # Should be hex string
-    if not re.match(r'^[0-9a-fA-F]+$', private_key):
+    if not re.match(r"^[0-9a-fA-F]+$", private_key):
         return False
 
     # Length validation (32 bytes = 64 hex characters)
@@ -300,7 +300,7 @@ def validate_tensor_stake_amount(amount: Union[str, float, int]) -> bool:
 
         # Check for TENSOR precision (18 decimals)
         str_amount = f"{amount:.18f}"
-        if len(str_amount.split('.')[-1]) > 18:
+        if len(str_amount.split(".")[-1]) > 18:
             return False
 
         return True
@@ -321,7 +321,7 @@ def validate_tensor_balance(amount: Union[str, float, int]) -> bool:
 
         # Check for TENSOR precision (18 decimals)
         str_amount = f"{amount:.18f}"
-        if len(str_amount.split('.')[-1]) > 18:
+        if len(str_amount.split(".")[-1]) > 18:
             return False
 
         return True
@@ -335,7 +335,7 @@ def validate_url(url: str) -> bool:
         return False
 
     # Should start with ws:// or wss:// or http:// or https://
-    if not re.match(r'^(ws|wss|http|https)://', url):
+    if not re.match(r"^(ws|wss|http|https)://", url):
         return False
 
     # Basic domain validation
@@ -353,3 +353,79 @@ def validate_path(path: str) -> bool:
         return True
     except Exception:
         return False
+
+
+def validate_subnet_name(name: str) -> bool:
+    """Validate subnet name."""
+    if not name or len(name) < 1 or len(name) > 100:
+        return False
+    # Allow alphanumeric, hyphens, underscores, spaces
+    import re
+
+    return bool(re.match(r"^[a-zA-Z0-9\-\_\s]+$", name))
+
+
+def validate_repo_url(repo: str) -> bool:
+    """Validate repository URL."""
+    if not repo or len(repo) < 10 or len(repo) > 500:
+        return False
+    # Basic URL validation
+    import re
+
+    return bool(re.match(r"^https?://[^\s/$.?#].[^\s]*$", repo))
+
+
+def validate_subnet_description(description: str) -> bool:
+    """Validate subnet description."""
+    if not description or len(description) < 10 or len(description) > 1000:
+        return False
+    return True
+
+
+def validate_stake_amount(amount: int) -> bool:
+    """Validate stake amount."""
+    return amount > 0 and amount <= 10**18  # Max 1 billion TENSOR
+
+
+def validate_delegate_percentage(percentage: int) -> bool:
+    """Validate delegate stake percentage."""
+    return 0 <= percentage <= 100
+
+
+def validate_epoch_value(epochs: int) -> bool:
+    """Validate epoch-based values."""
+    return 0 <= epochs <= 1000000
+
+
+def validate_churn_limit(churn_limit: int) -> bool:
+    """Validate churn limit."""
+    return 1 <= churn_limit <= 1000
+
+
+def validate_max_nodes(max_nodes: int) -> bool:
+    """Validate maximum registered nodes."""
+    return 1 <= max_nodes <= 10000
+
+
+def validate_max_penalties(penalties: int) -> bool:
+    """Validate maximum node penalties."""
+    return 1 <= penalties <= 100
+
+
+def validate_key_types(key_types: list) -> bool:
+    """Validate key types."""
+    valid_types = ["RSA", "Ed25519", "Secp256k1", "ECDSA"]
+    return all(kt in valid_types for kt in key_types)
+
+
+def validate_coldkey_addresses(addresses: list) -> bool:
+    """Validate coldkey addresses."""
+    if not addresses:
+        return True
+    # Basic SS58 address validation
+    import re
+
+    for addr in addresses:
+        if not re.match(r"^5[A-HJ-NP-Za-km-z1-9]*$", addr):
+            return False
+    return True

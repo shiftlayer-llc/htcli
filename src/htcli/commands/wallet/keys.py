@@ -6,7 +6,12 @@ import typer
 from rich.console import Console
 from typing import Optional
 from ...utils.crypto import generate_keypair, import_keypair, list_keys, delete_keypair
-from ...utils.validation import validate_key_type, validate_password, validate_private_key, validate_wallet_name
+from ...utils.validation import (
+    validate_key_type,
+    validate_password,
+    validate_private_key,
+    validate_wallet_name,
+)
 from ...utils.formatting import print_success, print_error, format_table
 
 app = typer.Typer(name="keys", help="Wallet key management")
@@ -16,13 +21,19 @@ console = Console()
 @app.command()
 def generate(
     name: str = typer.Argument(..., help="Key name"),
-    key_type: str = typer.Option("sr25519", "--type", "-t", help="Key type (sr25519/ed25519)"),
-    password: Optional[str] = typer.Option(None, "--password", "-p", help="Key password")
+    key_type: str = typer.Option(
+        "sr25519", "--type", "-t", help="Key type (sr25519/ed25519)"
+    ),
+    password: Optional[str] = typer.Option(
+        None, "--password", "-p", help="Key password"
+    ),
 ):
     """Generate a new keypair."""
     # Validate inputs
     if not validate_wallet_name(name):
-        print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
+        print_error(
+            "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
+        )
         raise typer.Exit(1)
 
     if not validate_key_type(key_type):
@@ -30,7 +41,9 @@ def generate(
         raise typer.Exit(1)
 
     if password and not validate_password(password):
-        print_error("Invalid password. Must be at least 8 characters with letters and numbers.")
+        print_error(
+            "Invalid password. Must be at least 8 characters with letters and numbers."
+        )
         raise typer.Exit(1)
 
     try:
@@ -67,12 +80,16 @@ def import_key(
     name: str = typer.Argument(..., help="Key name"),
     private_key: str = typer.Option(..., "--private-key", "-k", help="Private key"),
     key_type: str = typer.Option("sr25519", "--type", "-t", help="Key type"),
-    password: Optional[str] = typer.Option(None, "--password", "-p", help="Key password")
+    password: Optional[str] = typer.Option(
+        None, "--password", "-p", help="Key password"
+    ),
 ):
     """Import an existing keypair."""
     # Validate inputs
     if not validate_wallet_name(name):
-        print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
+        print_error(
+            "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
+        )
         raise typer.Exit(1)
 
     if not validate_private_key(private_key):
@@ -84,7 +101,9 @@ def import_key(
         raise typer.Exit(1)
 
     if password and not validate_password(password):
-        print_error("Invalid password. Must be at least 8 characters with letters and numbers.")
+        print_error(
+            "Invalid password. Must be at least 8 characters with letters and numbers."
+        )
         raise typer.Exit(1)
 
     try:
@@ -99,7 +118,7 @@ def import_key(
 @app.command()
 def delete(
     name: str = typer.Argument(..., help="Key name"),
-    force: bool = typer.Option(False, "--force", "-f", help="Skip confirmation")
+    force: bool = typer.Option(False, "--force", "-f", help="Skip confirmation"),
 ):
     """Delete a keypair."""
     if not force:

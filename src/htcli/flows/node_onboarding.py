@@ -58,7 +58,9 @@ Perfect for node operators who want to start earning rewards quickly.
             wallet_config.update({"private_key": private_key, "key_name": key_name})
         else:
             key_name = Prompt.ask("New key name", default="node-operator")
-            key_type = Prompt.ask("Key type", choices=["sr25519", "ed25519"], default="sr25519")
+            key_type = Prompt.ask(
+                "Key type", choices=["sr25519", "ed25519"], default="sr25519"
+            )
             wallet_config.update({"key_name": key_name, "key_type": key_type})
 
         # Node configuration
@@ -73,13 +75,15 @@ Perfect for node operators who want to start earning rewards quickly.
         # Staking preference
         self.console.print("\nStaking configuration:")
         stake_amount_str = Prompt.ask("Initial stake amount (TENSOR)", default="5.0")
-        stake_amount = int(float(stake_amount_str) * (10 ** 18))  # Convert to smallest units
+        stake_amount = int(
+            float(stake_amount_str) * (10**18)
+        )  # Convert to smallest units
 
         # Subnet selection preference
         subnet_selection = Prompt.ask(
             "Subnet selection method",
             choices=["manual", "auto-recommend"],
-            default="auto-recommend"
+            default="auto-recommend",
         )
 
         manual_subnet_id = None
@@ -92,7 +96,7 @@ Perfect for node operators who want to start earning rewards quickly.
             "peer_id": peer_id,
             "stake_amount": stake_amount,
             "subnet_selection": subnet_selection,
-            "manual_subnet_id": manual_subnet_id
+            "manual_subnet_id": manual_subnet_id,
         }
 
     def setup_steps(self) -> List[FlowStep]:
@@ -102,50 +106,50 @@ Perfect for node operators who want to start earning rewards quickly.
                 name="config_init",
                 description="Initialize CLI configuration",
                 function=self.step_config_init,
-                required=True
+                required=True,
             ),
             FlowStep(
                 name="wallet_setup",
                 description="Set up wallet keys",
                 function=self.step_wallet_setup,
                 required=True,
-                dependencies=["config_init"]
+                dependencies=["config_init"],
             ),
             FlowStep(
                 name="subnet_discovery",
                 description="Discover and select optimal subnet",
                 function=self.step_subnet_discovery,
                 required=True,
-                dependencies=["wallet_setup"]
+                dependencies=["wallet_setup"],
             ),
             FlowStep(
                 name="balance_check",
                 description="Verify account balance",
                 function=self.step_balance_check,
                 required=True,
-                dependencies=["wallet_setup"]
+                dependencies=["wallet_setup"],
             ),
             FlowStep(
                 name="node_register",
                 description="Register node in selected subnet",
                 function=self.step_node_register,
                 required=True,
-                dependencies=["subnet_discovery", "balance_check"]
+                dependencies=["subnet_discovery", "balance_check"],
             ),
             FlowStep(
                 name="stake_add",
                 description="Add initial stake to node",
                 function=self.step_stake_add,
                 required=False,
-                dependencies=["node_register"]
+                dependencies=["node_register"],
             ),
             FlowStep(
                 name="monitoring_setup",
                 description="Set up node monitoring",
                 function=self.step_monitoring_setup,
                 required=False,
-                dependencies=["node_register"]
-            )
+                dependencies=["node_register"],
+            ),
         ]
 
     def step_config_init(self, context: Dict[str, Any]) -> bool:
@@ -165,12 +169,11 @@ Perfect for node operators who want to start earning rewards quickly.
             if wallet_config["use_existing"]:
                 response = self.client.wallet.import_keypair(
                     name=wallet_config["key_name"],
-                    private_key=wallet_config["private_key"]
+                    private_key=wallet_config["private_key"],
                 )
             else:
                 response = self.client.wallet.generate_keypair(
-                    name=wallet_config["key_name"],
-                    key_type=wallet_config["key_type"]
+                    name=wallet_config["key_name"], key_type=wallet_config["key_type"]
                 )
 
             if response.get("success", False):
@@ -178,7 +181,9 @@ Perfect for node operators who want to start earning rewards quickly.
                 print_success(f"Wallet key ready: {response.get('address')}")
                 return True
             else:
-                print_error(f"Wallet setup failed: {response.get('message', 'Unknown error')}")
+                print_error(
+                    f"Wallet setup failed: {response.get('message', 'Unknown error')}"
+                )
                 return False
 
         except Exception as e:
@@ -248,13 +253,15 @@ Perfect for node operators who want to start earning rewards quickly.
                         str(subnet_id),
                         f"{score:.2f}",
                         str(subnet_info.get("total_nodes", 0)),
-                        subnet_info.get("state", "Unknown")
+                        subnet_info.get("state", "Unknown"),
                     )
 
                 self.console.print(table)
 
                 # Let user choose or accept top recommendation
-                if Confirm.ask(f"Join top recommended subnet (ID: {top_subnets[0][1]})?"):
+                if Confirm.ask(
+                    f"Join top recommended subnet (ID: {top_subnets[0][1]})?"
+                ):
                     selected_subnet = top_subnets[0]
                 else:
                     choice = IntPrompt.ask("Enter subnet rank to join (1-5)")
@@ -305,12 +312,14 @@ Perfect for node operators who want to start earning rewards quickly.
                 balance = response.data.get("balance", 0)
                 context["account_balance"] = balance
 
-                min_required = context["stake_amount"] + (10 ** 18)  # Stake + fees
+                min_required = context["stake_amount"] + (10**18)  # Stake + fees
                 if balance >= min_required:
                     print_success(f"Sufficient balance: {format_balance(balance)}")
                     return True
                 else:
-                    print_error(f"Insufficient balance. Required: {format_balance(min_required)}, Available: {format_balance(balance)}")
+                    print_error(
+                        f"Insufficient balance. Required: {format_balance(min_required)}, Available: {format_balance(balance)}"
+                    )
                     return False
             else:
                 print_error(f"Balance check failed: {response.message}")
@@ -327,7 +336,7 @@ Perfect for node operators who want to start earning rewards quickly.
                 subnet_id=context["selected_subnet_id"],
                 hotkey=context["hotkey"],
                 peer_id=context["peer_id"],
-                stake_amount=context["stake_amount"]
+                stake_amount=context["stake_amount"],
             )
 
             response = self.client.node.add_node(request)
@@ -352,13 +361,15 @@ Perfect for node operators who want to start earning rewards quickly.
                 subnet_id=context["selected_subnet_id"],
                 node_id=context["node_id"],
                 hotkey=context["hotkey"],
-                amount=context["stake_amount"]
+                amount=context["stake_amount"],
             )
 
             response = self.client.staking.add_stake(request)
 
             if response.success:
-                print_success(f"Initial stake added: {format_balance(context['stake_amount'])}")
+                print_success(
+                    f"Initial stake added: {format_balance(context['stake_amount'])}"
+                )
                 return True
             else:
                 print_error(f"Stake addition failed: {response.message}")

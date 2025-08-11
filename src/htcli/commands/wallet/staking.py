@@ -19,7 +19,7 @@ def add(
     node_id: int = typer.Argument(..., help="Node ID"),
     amount: float = typer.Argument(..., help="Stake amount in TENSOR"),
     hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey account address"),
-    client = typer.Option(None, help="Client instance")
+    client=typer.Option(None, help="Client instance"),
 ):
     """Add stake to a subnet node."""
     # Get client if not provided
@@ -43,7 +43,7 @@ def add(
             subnet_id=subnet_id,
             node_id=node_id,
             hotkey=hotkey,
-            stake_to_be_added=stake_amount
+            stake_to_be_added=stake_amount,
         )
 
         # Use the proper RPC method according to documentation
@@ -66,7 +66,7 @@ def remove(
     subnet_id: int = typer.Argument(..., help="Subnet ID"),
     amount: float = typer.Argument(..., help="Stake amount to remove in TENSOR"),
     hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey account address"),
-    client = typer.Option(None, help="Client instance")
+    client=typer.Option(None, help="Client instance"),
 ):
     """Remove stake from a subnet."""
     # Get client if not provided
@@ -87,16 +87,16 @@ def remove(
         stake_amount = int(amount * 1e12)
 
         request = StakeRemoveRequest(
-            subnet_id=subnet_id,
-            hotkey=hotkey,
-            stake_to_be_removed=stake_amount
+            subnet_id=subnet_id, hotkey=hotkey, stake_to_be_removed=stake_amount
         )
 
         # Use the proper RPC method according to documentation
         response = client.remove_stake(request)
 
         if response.success:
-            print_success(f"Removed {amount} stake from subnet {subnet_id} successfully!")
+            print_success(
+                f"Removed {amount} stake from subnet {subnet_id} successfully!"
+            )
             if response.transaction_hash:
                 console.print(f"Transaction: {response.transaction_hash}")
         else:
@@ -111,7 +111,7 @@ def remove(
 def info(
     subnet_id: int = typer.Argument(..., help="Subnet ID"),
     hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey account address"),
-    client = typer.Option(None, help="Client instance")
+    client=typer.Option(None, help="Client instance"),
 ):
     """Get stake information for an account."""
     # Get client if not provided

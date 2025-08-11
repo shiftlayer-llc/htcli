@@ -19,7 +19,11 @@ from typing import Dict, Any, List
 from rich.prompt import Prompt, IntPrompt, Confirm
 
 from .base import BaseFlow, FlowStep
-from ..models.requests import SubnetRegisterRequest, SubnetNodeAddRequest, StakeAddRequest
+from ..models.requests import (
+    SubnetRegisterRequest,
+    SubnetNodeAddRequest,
+    StakeAddRequest,
+)
 from ..utils.formatting import print_success, print_error, print_info, format_balance
 from ..utils.validation import validate_address, validate_path
 
@@ -45,16 +49,22 @@ Perfect for subnet creators who want to go from zero to operational subnet quick
 
     def collect_inputs(self) -> Dict[str, Any]:
         """Collect subnet deployment parameters"""
-        self.console.print("Please provide the following information for your subnet deployment:\n")
+        self.console.print(
+            "Please provide the following information for your subnet deployment:\n"
+        )
 
         # Subnet configuration
         subnet_path = Prompt.ask("Subnet path (unique identifier)")
         while not validate_path(subnet_path):
-            print_error("Invalid subnet path. Please use alphanumeric characters and hyphens only.")
+            print_error(
+                "Invalid subnet path. Please use alphanumeric characters and hyphens only."
+            )
             subnet_path = Prompt.ask("Subnet path")
 
         memory_mb = IntPrompt.ask("Memory requirement (MB)", default=2048)
-        registration_blocks = IntPrompt.ask("Registration period (blocks)", default=1000)
+        registration_blocks = IntPrompt.ask(
+            "Registration period (blocks)", default=1000
+        )
         entry_interval = IntPrompt.ask("Entry interval (blocks)", default=100)
 
         # Node configuration
@@ -69,7 +79,9 @@ Perfect for subnet creators who want to go from zero to operational subnet quick
         # Staking configuration
         self.console.print("\nStaking configuration:")
         stake_amount_str = Prompt.ask("Initial stake amount (TENSOR)", default="10.0")
-        stake_amount = int(float(stake_amount_str) * (10 ** 18))  # Convert to smallest units
+        stake_amount = int(
+            float(stake_amount_str) * (10**18)
+        )  # Convert to smallest units
 
         # Wallet configuration
         self.console.print("\nWallet configuration:")
@@ -82,7 +94,9 @@ Perfect for subnet creators who want to go from zero to operational subnet quick
             wallet_config.update({"private_key": private_key, "key_name": key_name})
         else:
             key_name = Prompt.ask("New key name", default="subnet-owner")
-            key_type = Prompt.ask("Key type", choices=["sr25519", "ed25519"], default="sr25519")
+            key_type = Prompt.ask(
+                "Key type", choices=["sr25519", "ed25519"], default="sr25519"
+            )
             wallet_config.update({"key_name": key_name, "key_type": key_type})
 
         return {
@@ -93,7 +107,7 @@ Perfect for subnet creators who want to go from zero to operational subnet quick
             "hotkey": hotkey,
             "peer_id": peer_id,
             "stake_amount": stake_amount,
-            "wallet_config": wallet_config
+            "wallet_config": wallet_config,
         }
 
     def setup_steps(self) -> List[FlowStep]:
@@ -103,57 +117,57 @@ Perfect for subnet creators who want to go from zero to operational subnet quick
                 name="config_init",
                 description="Initialize CLI configuration",
                 function=self.step_config_init,
-                required=True
+                required=True,
             ),
             FlowStep(
                 name="wallet_setup",
                 description="Set up wallet keys",
                 function=self.step_wallet_setup,
                 required=True,
-                dependencies=["config_init"]
+                dependencies=["config_init"],
             ),
             FlowStep(
                 name="balance_check",
                 description="Verify account balance",
                 function=self.step_balance_check,
                 required=True,
-                dependencies=["wallet_setup"]
+                dependencies=["wallet_setup"],
             ),
             FlowStep(
                 name="subnet_register",
                 description="Register new subnet",
                 function=self.step_subnet_register,
                 required=True,
-                dependencies=["balance_check"]
+                dependencies=["balance_check"],
             ),
             FlowStep(
                 name="subnet_activate",
                 description="Activate registered subnet",
                 function=self.step_subnet_activate,
                 required=True,
-                dependencies=["subnet_register"]
+                dependencies=["subnet_register"],
             ),
             FlowStep(
                 name="node_add",
                 description="Add initial node to subnet",
                 function=self.step_node_add,
                 required=True,
-                dependencies=["subnet_activate"]
+                dependencies=["subnet_activate"],
             ),
             FlowStep(
                 name="stake_add",
                 description="Add initial stake to node",
                 function=self.step_stake_add,
                 required=False,
-                dependencies=["node_add"]
+                dependencies=["node_add"],
             ),
             FlowStep(
                 name="verify_deployment",
                 description="Verify deployment success",
                 function=self.step_verify_deployment,
                 required=True,
-                dependencies=["node_add"]
-            )
+                dependencies=["node_add"],
+            ),
         ]
 
     def step_config_init(self, context: Dict[str, Any]) -> bool:
@@ -175,13 +189,12 @@ Perfect for subnet creators who want to go from zero to operational subnet quick
                 # Import existing key
                 response = self.client.wallet.import_keypair(
                     name=wallet_config["key_name"],
-                    private_key=wallet_config["private_key"]
+                    private_key=wallet_config["private_key"],
                 )
             else:
                 # Generate new key
                 response = self.client.wallet.generate_keypair(
-                    name=wallet_config["key_name"],
-                    key_type=wallet_config["key_type"]
+                    name=wallet_config["key_name"], key_type=wallet_config["key_type"]
                 )
 
             if response.get("success", False):
@@ -189,7 +202,9 @@ Perfect for subnet creators who want to go from zero to operational subnet quick
                 print_success(f"Wallet key ready: {response.get('address')}")
                 return True
             else:
-                print_error(f"Wallet setup failed: {response.get('message', 'Unknown error')}")
+                print_error(
+                    f"Wallet setup failed: {response.get('message', 'Unknown error')}"
+                )
                 return False
 
         except Exception as e:
@@ -207,12 +222,14 @@ Perfect for subnet creators who want to go from zero to operational subnet quick
                 context["account_balance"] = balance
 
                 # Check if balance is sufficient for operations
-                min_required = context["stake_amount"] + (10 ** 18)  # Stake + fees
+                min_required = context["stake_amount"] + (10**18)  # Stake + fees
                 if balance >= min_required:
                     print_success(f"Sufficient balance: {format_balance(balance)}")
                     return True
                 else:
-                    print_error(f"Insufficient balance. Required: {format_balance(min_required)}, Available: {format_balance(balance)}")
+                    print_error(
+                        f"Insufficient balance. Required: {format_balance(min_required)}, Available: {format_balance(balance)}"
+                    )
                     return False
             else:
                 print_error(f"Balance check failed: {response.message}")
@@ -229,7 +246,7 @@ Perfect for subnet creators who want to go from zero to operational subnet quick
                 path=context["subnet_path"],
                 memory_mb=context["memory_mb"],
                 registration_blocks=context["registration_blocks"],
-                entry_interval=context["entry_interval"]
+                entry_interval=context["entry_interval"],
             )
 
             response = self.client.subnet.register_subnet(request)
@@ -271,7 +288,7 @@ Perfect for subnet creators who want to go from zero to operational subnet quick
                 subnet_id=context["subnet_id"],
                 hotkey=context["hotkey"],
                 peer_id=context["peer_id"],
-                stake_amount=context["stake_amount"]
+                stake_amount=context["stake_amount"],
             )
 
             response = self.client.node.add_node(request)
@@ -296,13 +313,15 @@ Perfect for subnet creators who want to go from zero to operational subnet quick
                 subnet_id=context["subnet_id"],
                 node_id=context["node_id"],
                 hotkey=context["hotkey"],
-                amount=context["stake_amount"]
+                amount=context["stake_amount"],
             )
 
             response = self.client.staking.add_stake(request)
 
             if response.success:
-                print_success(f"Stake added successfully: {format_balance(context['stake_amount'])}")
+                print_success(
+                    f"Stake added successfully: {format_balance(context['stake_amount'])}"
+                )
                 return True
             else:
                 print_error(f"Stake addition failed: {response.message}")
@@ -339,7 +358,7 @@ Perfect for subnet creators who want to go from zero to operational subnet quick
                 "subnet_path": context["subnet_path"],
                 "node_id": context.get("node_id"),
                 "wallet_address": context["wallet_address"],
-                "stake_amount": context["stake_amount"]
+                "stake_amount": context["stake_amount"],
             }
 
             return True

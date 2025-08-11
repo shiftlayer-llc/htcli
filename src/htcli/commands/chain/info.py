@@ -4,7 +4,12 @@ Chain information commands.
 
 import typer
 from rich.console import Console
-from ...utils.formatting import print_error, format_network_stats, format_account_info, format_epoch_info
+from ...utils.formatting import (
+    print_error,
+    format_network_stats,
+    format_account_info,
+    format_epoch_info,
+)
 from ...dependencies import get_client
 
 app = typer.Typer(name="info", help="Chain information")
@@ -12,9 +17,7 @@ console = Console()
 
 
 @app.command()
-def network(
-    client = typer.Option(None, help="Client instance")
-):
+def network(client=typer.Option(None, help="Client instance")):
     """Get network statistics."""
     # Get client if not provided
     if client is None:
@@ -37,7 +40,7 @@ def network(
 @app.command()
 def account(
     address: str = typer.Argument(..., help="Account address"),
-    client = typer.Option(None, help="Client instance")
+    client=typer.Option(None, help="Client instance"),
 ):
     """Get account information."""
     # Get client if not provided
@@ -59,9 +62,7 @@ def account(
 
 
 @app.command()
-def epoch(
-    client = typer.Option(None, help="Client instance")
-):
+def epoch(client=typer.Option(None, help="Client instance")):
     """Get current epoch information."""
     # Get client if not provided
     if client is None:

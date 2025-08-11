@@ -29,7 +29,9 @@ def get_client() -> HypertensorClient:
 
     if _client is None:
         if _config is None:
-            raise RuntimeError("Configuration not set. Please ensure config is loaded before using client.")
+            raise RuntimeError(
+                "Configuration not set. Please ensure config is loaded before using client."
+            )
 
         # Initialize client only when first requested
         _client = HypertensorClient(_config)

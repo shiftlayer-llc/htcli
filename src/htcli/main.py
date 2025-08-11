@@ -18,6 +18,7 @@ from .config import load_config
 from .client import HypertensorClient
 from .dependencies import set_config
 
+
 def get_ascii_art():
     """Return  ASCII art for the CLI."""
     return """
@@ -29,12 +30,13 @@ def get_ascii_art():
     ╚═╝  ╚═╝   ╚═╝    ╚═════╝╚══════╝╚═╝
     """
 
+
 app = typer.Typer(
     name="htcli",
     help="Hypertensor Blockchain CLI - Manage subnets, wallets, and chain operations.",
     add_completion=True,
     rich_markup_mode="rich",
-    no_args_is_help=False
+    no_args_is_help=False,
 )
 
 console = Console()
@@ -52,14 +54,19 @@ def main(
         None, "--endpoint", "-e", help="Blockchain endpoint"
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
-    output_format: str = typer.Option("table", "--format", "-f", help="Output format (table/json/csv)"),
-    mine: bool = typer.Option(False, "--mine", "-m", help="Filter results to show only your assets")
+    output_format: str = typer.Option(
+        "table", "--format", "-f", help="Output format (table/json/csv)"
+    ),
+    mine: bool = typer.Option(
+        False, "--mine", "-m", help="Filter results to show only your assets"
+    ),
 ):
     """Hypertensor Blockchain CLI - Manage subnets, wallets, and chain operations."""
     global config
 
     # Show beautiful welcome screen when no command is provided
     import sys
+
     if len(sys.argv) == 1:
         from rich.panel import Panel
         from rich.table import Table
@@ -74,20 +81,26 @@ def main(
         welcome_text = Text()
         welcome_text.append("Welcome to ", style="bold white")
         welcome_text.append("Hypertensor CLI", style="bold cyan")
-        welcome_text.append("\nYour gateway to the Hypertensor blockchain ecosystem", style="italic dim")
+        welcome_text.append(
+            "\nYour gateway to the Hypertensor blockchain ecosystem", style="italic dim"
+        )
 
         welcome_panel = Panel(
             welcome_text,
             title="[bold cyan]HTCLI[/bold cyan]",
             border_style="cyan",
-            padding=(1, 2)
+            padding=(1, 2),
         )
 
         console.print(welcome_panel)
         console.print()
 
         # Create command categories table
-        table = Table(title="[bold cyan]Available Commands[/bold cyan]", show_header=True, header_style="bold magenta")
+        table = Table(
+            title="[bold cyan]Available Commands[/bold cyan]",
+            show_header=True,
+            header_style="bold magenta",
+        )
         table.add_column("Category", style="cyan", no_wrap=True)
         table.add_column("Description", style="white")
         table.add_column("Example", style="dim")
@@ -95,7 +108,9 @@ def main(
         table.add_row("config", "Configuration management", "htcli config init")
         table.add_row("subnet", "Subnet operations", "htcli subnet list")
         table.add_row("node", "Node management", "htcli node add --subnet-id 1")
-        table.add_row("stake", "Staking operations", "htcli stake add --subnet-id 1 --amount 100")
+        table.add_row(
+            "stake", "Staking operations", "htcli stake add --subnet-id 1 --amount 100"
+        )
         table.add_row("wallet", "Wallet management", "htcli wallet generate-key")
         table.add_row("chain", "Chain operations", "htcli chain network")
         table.add_row("flow", "Automated workflows", "htcli flow list")
@@ -106,12 +121,13 @@ def main(
         # Quick tips section
         tips_panel = Panel(
             "[bold yellow]Quick Tips:[/bold yellow]\n"
-            "• Use [cyan]--mine[/cyan] to filter results to your assets only\n"
-            "• Use [cyan]--help[/cyan] with any command for detailed information\n"
-            "• Use [cyan]--format json[/cyan] for machine-readable output\n"
-            "• Use [cyan]--verbose[/cyan] for detailed operation logs",
-            title="[bold yellow]💡 Tips[/bold yellow]",
-            border_style="yellow"
+            "• [bold cyan]🔑 Setup Keys:[/bold cyan] htcli wallet generate-key --name my-wallet\n"
+            "• [bold cyan]Check Identity:[/bold cyan] htcli wallet status\n"
+            "• [bold cyan]Filter Assets:[/bold cyan] Use --mine to see only your assets\n"
+            "• [bold cyan]Get Help:[/bold cyan] Use --help with any command\n"
+            "• [bold cyan]JSON Output:[/bold cyan] Use --format json for scripts",
+            title="[bold yellow]💡 Getting Started[/bold yellow]",
+            border_style="yellow",
         )
 
         console.print(tips_panel)
@@ -142,7 +158,6 @@ app.add_typer(stake_app, name="stake", help="Staking operations and management")
 app.add_typer(wallet_app, name="wallet", help="Wallet and key management")
 app.add_typer(chain_app, name="chain", help="Chain operations")
 app.add_typer(flow_app, name="flow", help="Automated workflows for common tasks")
-
 
 
 if __name__ == "__main__":

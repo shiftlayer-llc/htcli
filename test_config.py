@@ -7,6 +7,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+
 def test_config_system():
     """Test the configuration system with proper inputs."""
 
@@ -21,8 +22,9 @@ def test_config_system():
 
     # Test config path command
     print("\n1. Testing config path command...")
-    result = subprocess.run(["uv", "run", "htcli", "config", "path"],
-                          capture_output=True, text=True)
+    result = subprocess.run(
+        ["uv", "run", "htcli", "config", "path"], capture_output=True, text=True
+    )
     if result.returncode == 0:
         print("✅ Config path command works")
         print(f"   Output: {result.stdout.strip()}")
@@ -83,15 +85,16 @@ wallet:
   encryption_enabled: true
 """
 
-    with open(config_path, 'w') as f:
+    with open(config_path, "w") as f:
         f.write(test_config)
 
     print("✅ Test configuration created")
 
     # Test config show command
     print("\n3. Testing config show command...")
-    result = subprocess.run(["uv", "run", "htcli", "config", "show"],
-                          capture_output=True, text=True)
+    result = subprocess.run(
+        ["uv", "run", "htcli", "config", "show"], capture_output=True, text=True
+    )
     if result.returncode == 0:
         print("✅ Config show command works")
         print("   Configuration loaded successfully")
@@ -102,8 +105,9 @@ wallet:
 
     # Test config validate command
     print("\n4. Testing config validate command...")
-    result = subprocess.run(["uv", "run", "htcli", "config", "validate"],
-                          capture_output=True, text=True)
+    result = subprocess.run(
+        ["uv", "run", "htcli", "config", "validate"], capture_output=True, text=True
+    )
     if result.returncode == 0:
         print("✅ Config validate command works")
         print("   Configuration is valid")
@@ -114,8 +118,11 @@ wallet:
 
     # Test config show with different formats
     print("\n5. Testing config show with YAML format...")
-    result = subprocess.run(["uv", "run", "htcli", "config", "show", "--format", "yaml"],
-                          capture_output=True, text=True)
+    result = subprocess.run(
+        ["uv", "run", "htcli", "config", "show", "--format", "yaml"],
+        capture_output=True,
+        text=True,
+    )
     if result.returncode == 0:
         print("✅ Config show YAML format works")
     else:
@@ -124,8 +131,11 @@ wallet:
         return False
 
     print("\n6. Testing config show with JSON format...")
-    result = subprocess.run(["uv", "run", "htcli", "config", "show", "--format", "json"],
-                          capture_output=True, text=True)
+    result = subprocess.run(
+        ["uv", "run", "htcli", "config", "show", "--format", "json"],
+        capture_output=True,
+        text=True,
+    )
     if result.returncode == 0:
         print("✅ Config show JSON format works")
     else:
@@ -135,8 +145,9 @@ wallet:
 
     # Test that the CLI now uses the configuration
     print("\n7. Testing that CLI uses the configuration...")
-    result = subprocess.run(["uv", "run", "htcli", "--help"],
-                          capture_output=True, text=True)
+    result = subprocess.run(
+        ["uv", "run", "htcli", "--help"], capture_output=True, text=True
+    )
     if result.returncode == 0 and "config" in result.stdout:
         print("✅ CLI includes config commands")
     else:
@@ -148,6 +159,7 @@ wallet:
     print("✅ Configuration system is working correctly")
 
     return True
+
 
 if __name__ == "__main__":
     success = test_config_system()

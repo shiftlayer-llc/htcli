@@ -50,7 +50,7 @@ Perfect for users migrating from other tools or recovering from issues.
         recovery_type = Prompt.ask(
             "Recovery type",
             choices=["full-migration", "partial-recovery", "config-restore"],
-            default="full-migration"
+            default="full-migration",
         )
 
         # Wallet recovery
@@ -88,7 +88,7 @@ Perfect for users migrating from other tools or recovering from issues.
             "discover_stakes": discover_stakes,
             "discover_nodes": discover_nodes,
             "verify_assets": verify_assets,
-            "create_backup": create_backup
+            "create_backup": create_backup,
         }
 
     def setup_steps(self) -> List[FlowStep]:
@@ -98,43 +98,43 @@ Perfect for users migrating from other tools or recovering from issues.
                 name="config_restore",
                 description="Restore configuration",
                 function=self.step_config_restore,
-                required=True
+                required=True,
             ),
             FlowStep(
                 name="wallet_recovery",
                 description="Recover wallet keys",
                 function=self.step_wallet_recovery,
                 required=True,
-                dependencies=["config_restore"]
+                dependencies=["config_restore"],
             ),
             FlowStep(
                 name="asset_discovery",
                 description="Discover existing assets",
                 function=self.step_asset_discovery,
                 required=True,
-                dependencies=["wallet_recovery"]
+                dependencies=["wallet_recovery"],
             ),
             FlowStep(
                 name="state_reconstruction",
                 description="Reconstruct portfolio state",
                 function=self.step_state_reconstruction,
                 required=True,
-                dependencies=["asset_discovery"]
+                dependencies=["asset_discovery"],
             ),
             FlowStep(
                 name="asset_verification",
                 description="Verify discovered assets",
                 function=self.step_asset_verification,
                 required=False,
-                dependencies=["state_reconstruction"]
+                dependencies=["state_reconstruction"],
             ),
             FlowStep(
                 name="recovery_validation",
                 description="Validate recovery success",
                 function=self.step_recovery_validation,
                 required=True,
-                dependencies=["state_reconstruction"]
-            )
+                dependencies=["state_reconstruction"],
+            ),
         ]
 
     def step_config_restore(self, context: Dict[str, Any]) -> bool:
@@ -144,7 +144,9 @@ Perfect for users migrating from other tools or recovering from issues.
 
             if recovery_type == "config-restore":
                 # Restore from backup or manual input
-                restore_from_backup = Confirm.ask("Restore configuration from backup file?")
+                restore_from_backup = Confirm.ask(
+                    "Restore configuration from backup file?"
+                )
 
                 if restore_from_backup:
                     backup_path = Prompt.ask("Backup file path")
@@ -207,8 +209,7 @@ Perfect for users migrating from other tools or recovering from issues.
             key_name = Prompt.ask("Key name for storage", default="recovered-key")
 
             response = self.client.wallet.import_keypair(
-                name=key_name,
-                private_key=private_key
+                name=key_name, private_key=private_key
             )
 
             if response.get("success", False):
@@ -216,7 +217,9 @@ Perfect for users migrating from other tools or recovering from issues.
                 print_success(f"Recovered key: {address}")
                 return True, address
             else:
-                print_error(f"Private key recovery failed: {response.get('message', 'Unknown error')}")
+                print_error(
+                    f"Private key recovery failed: {response.get('message', 'Unknown error')}"
+                )
                 return False, ""
 
         except Exception as e:
@@ -251,7 +254,9 @@ Perfect for users migrating from other tools or recovering from issues.
             balance_response = self.client.chain.get_balance(address)
             if balance_response.success:
                 balance = balance_response.data.get("balance", 0)
-                print_success(f"Address verified: {address} (Balance: {format_balance(balance)})")
+                print_success(
+                    f"Address verified: {address} (Balance: {format_balance(balance)})"
+                )
                 return True, address
             else:
                 print_error("Could not verify address")
@@ -265,11 +270,7 @@ Perfect for users migrating from other tools or recovering from issues.
         """Discover existing assets"""
         try:
             recovered_addresses = context["recovered_addresses"]
-            discovered_assets = {
-                "subnets": [],
-                "stakes": [],
-                "nodes": []
-            }
+            discovered_assets = {"subnets": [], "stakes": [], "nodes": []}
 
             for method, address in recovered_addresses:
                 if context.get("discover_subnets"):
@@ -285,16 +286,32 @@ Perfect for users migrating from other tools or recovering from issues.
                     discovered_assets["nodes"].extend(nodes)
 
             # Remove duplicates
-            discovered_assets["subnets"] = list({s["subnet_id"]: s for s in discovered_assets["subnets"]}.values())
-            discovered_assets["stakes"] = list({(s["subnet_id"], s["node_id"]): s for s in discovered_assets["stakes"]}.values())
-            discovered_assets["nodes"] = list({(n["subnet_id"], n["node_id"]): n for n in discovered_assets["nodes"]}.values())
+            discovered_assets["subnets"] = list(
+                {s["subnet_id"]: s for s in discovered_assets["subnets"]}.values()
+            )
+            discovered_assets["stakes"] = list(
+                {
+                    (s["subnet_id"], s["node_id"]): s
+                    for s in discovered_assets["stakes"]
+                }.values()
+            )
+            discovered_assets["nodes"] = list(
+                {
+                    (n["subnet_id"], n["node_id"]): n
+                    for n in discovered_assets["nodes"]
+                }.values()
+            )
 
             context["discovered_assets"] = discovered_assets
 
             # Display discovery results
             self.display_discovery_results(discovered_assets)
 
-            total_assets = len(discovered_assets["subnets"]) + len(discovered_assets["stakes"]) + len(discovered_assets["nodes"])
+            total_assets = (
+                len(discovered_assets["subnets"])
+                + len(discovered_assets["stakes"])
+                + len(discovered_assets["nodes"])
+            )
             if total_assets > 0:
                 print_success(f"Discovered {total_assets} total assets")
                 return True
@@ -323,12 +340,16 @@ Perfect for users migrating from other tools or recovering from issues.
                     if detail_response.success:
                         subnet_detail = detail_response.data
                         if subnet_detail.get("owner") == address:
-                            owned_subnets.append({
-                                "subnet_id": subnet_id,
-                                "path": subnet_detail.get("name", f"subnet-{subnet_id}"),
-                                "state": subnet_detail.get("state", "Unknown"),
-                                "owner": address
-                            })
+                            owned_subnets.append(
+                                {
+                                    "subnet_id": subnet_id,
+                                    "path": subnet_detail.get(
+                                        "name", f"subnet-{subnet_id}"
+                                    ),
+                                    "state": subnet_detail.get("state", "Unknown"),
+                                    "owner": address,
+                                }
+                            )
 
             return owned_subnets
 
@@ -346,13 +367,15 @@ Perfect for users migrating from other tools or recovering from issues.
             stake_positions = []
 
             for stake in stakes:
-                stake_positions.append({
-                    "subnet_id": stake.get("subnet_id"),
-                    "node_id": stake.get("node_id"),
-                    "amount": stake.get("amount", 0),
-                    "status": stake.get("status", "active"),
-                    "address": address
-                })
+                stake_positions.append(
+                    {
+                        "subnet_id": stake.get("subnet_id"),
+                        "node_id": stake.get("node_id"),
+                        "amount": stake.get("amount", 0),
+                        "status": stake.get("status", "active"),
+                        "address": address,
+                    }
+                )
 
             return stake_positions
 
@@ -385,9 +408,7 @@ Perfect for users migrating from other tools or recovering from issues.
 
             for subnet in assets["subnets"]:
                 subnet_table.add_row(
-                    str(subnet["subnet_id"]),
-                    subnet["path"],
-                    subnet["state"]
+                    str(subnet["subnet_id"]), subnet["path"], subnet["state"]
                 )
 
             self.console.print(subnet_table)
@@ -405,7 +426,7 @@ Perfect for users migrating from other tools or recovering from issues.
                     str(stake["subnet_id"]),
                     str(stake["node_id"]),
                     format_balance(stake["amount"]),
-                    stake["status"]
+                    stake["status"],
                 )
 
             self.console.print(stakes_table)
@@ -421,7 +442,7 @@ Perfect for users migrating from other tools or recovering from issues.
                 nodes_table.add_row(
                     str(node["subnet_id"]),
                     str(node["node_id"]),
-                    node.get("status", "unknown")
+                    node.get("status", "unknown"),
                 )
 
             self.console.print(nodes_table)
@@ -438,8 +459,10 @@ Perfect for users migrating from other tools or recovering from issues.
                 "total_subnets": len(discovered_assets["subnets"]),
                 "total_stakes": len(discovered_assets["stakes"]),
                 "total_nodes": len(discovered_assets["nodes"]),
-                "total_staked_amount": sum(stake["amount"] for stake in discovered_assets["stakes"]),
-                "asset_summary": discovered_assets
+                "total_staked_amount": sum(
+                    stake["amount"] for stake in discovered_assets["stakes"]
+                ),
+                "asset_summary": discovered_assets,
             }
 
             context["portfolio_state"] = portfolio_state
@@ -474,7 +497,7 @@ Portfolio Reconstruction Summary:
                 "subnets_verified": 0,
                 "stakes_verified": 0,
                 "nodes_verified": 0,
-                "failed_verifications": []
+                "failed_verifications": [],
             }
 
             # Verify subnets
@@ -484,9 +507,13 @@ Portfolio Reconstruction Summary:
                     if response.success:
                         verification_results["subnets_verified"] += 1
                     else:
-                        verification_results["failed_verifications"].append(f"Subnet {subnet['subnet_id']}")
+                        verification_results["failed_verifications"].append(
+                            f"Subnet {subnet['subnet_id']}"
+                        )
                 except Exception:
-                    verification_results["failed_verifications"].append(f"Subnet {subnet['subnet_id']}")
+                    verification_results["failed_verifications"].append(
+                        f"Subnet {subnet['subnet_id']}"
+                    )
 
             # Verify stakes
             for stake in discovered_assets["stakes"]:
@@ -495,14 +522,20 @@ Portfolio Reconstruction Summary:
                     if response.success:
                         verification_results["stakes_verified"] += 1
                     else:
-                        verification_results["failed_verifications"].append(f"Stake {stake['subnet_id']}/{stake['node_id']}")
+                        verification_results["failed_verifications"].append(
+                            f"Stake {stake['subnet_id']}/{stake['node_id']}"
+                        )
                 except Exception:
-                    verification_results["failed_verifications"].append(f"Stake {stake['subnet_id']}/{stake['node_id']}")
+                    verification_results["failed_verifications"].append(
+                        f"Stake {stake['subnet_id']}/{stake['node_id']}"
+                    )
 
             context["verification_results"] = verification_results
 
             if verification_results["failed_verifications"]:
-                print_info(f"Verification completed with {len(verification_results['failed_verifications'])} failures")
+                print_info(
+                    f"Verification completed with {len(verification_results['failed_verifications'])} failures"
+                )
             else:
                 print_success("All assets verified successfully")
 
@@ -552,9 +585,11 @@ Portfolio Reconstruction Summary:
             recovery_summary = {
                 "recovery_type": context["recovery_type"],
                 "addresses_recovered": len(portfolio_state["addresses"]),
-                "assets_discovered": portfolio_state["total_subnets"] + portfolio_state["total_stakes"] + portfolio_state["total_nodes"],
+                "assets_discovered": portfolio_state["total_subnets"]
+                + portfolio_state["total_stakes"]
+                + portfolio_state["total_nodes"],
                 "validation_checks": validation_checks,
-                "success": all("✓" in check for check in validation_checks)
+                "success": all("✓" in check for check in validation_checks),
             }
 
             context["recovery_summary"] = recovery_summary

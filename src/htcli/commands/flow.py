@@ -26,11 +26,27 @@ def list():
     table.add_column("Use Case", style="yellow", width=25)
 
     flow_info = [
-        ("subnet-deployment", "Complete subnet creation with node and stake", "Subnet creators"),
+        (
+            "subnet-deployment",
+            "Complete subnet creation with node and stake",
+            "Subnet creators",
+        ),
         ("node-onboarding", "Join existing subnet as node operator", "Node operators"),
-        ("staking-portfolio", "Set up diversified staking across multiple targets", "Investors"),
-        ("development-setup", "Create development environment for testing", "Developers"),
-        ("migration-recovery", "Migrate assets or recover from configuration issues", "Migration/Recovery")
+        (
+            "staking-portfolio",
+            "Set up diversified staking across multiple targets",
+            "Investors",
+        ),
+        (
+            "development-setup",
+            "Create development environment for testing",
+            "Developers",
+        ),
+        (
+            "migration-recovery",
+            "Migrate assets or recover from configuration issues",
+            "Migration/Recovery",
+        ),
     ]
 
     for flow_key, description, use_case in flow_info:
@@ -85,7 +101,7 @@ htcli flow run {flow_name}
     panel = Panel(
         info_content,
         title=f"Flow Information: {flow_instance.name}",
-        border_style="blue"
+        border_style="blue",
     )
 
     console.print(panel)
@@ -94,7 +110,9 @@ htcli flow run {flow_name}
 @app.command()
 def run(
     flow_name: str = typer.Argument(..., help="Flow name to execute"),
-    skip_confirmation: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompts where possible")
+    skip_confirmation: bool = typer.Option(
+        False, "--yes", "-y", help="Skip confirmation prompts where possible"
+    ),
 ):
     """Execute an automated flow"""
     if flow_name not in AVAILABLE_FLOWS:
@@ -121,10 +139,12 @@ def run(
 
             # Show any relevant output data
             if result.data:
-                summary_data = result.data.get("deployment_summary") or \
-                              result.data.get("portfolio_summary") or \
-                              result.data.get("testing_summary") or \
-                              result.data.get("recovery_summary")
+                summary_data = (
+                    result.data.get("deployment_summary")
+                    or result.data.get("portfolio_summary")
+                    or result.data.get("testing_summary")
+                    or result.data.get("recovery_summary")
+                )
 
                 if summary_data:
                     console.print("\nFlow Results:")
@@ -175,11 +195,7 @@ For help with flows:
 - Run flow: htcli flow run <name>
     """.strip()
 
-    panel = Panel(
-        status_info,
-        title="Flow System Status",
-        border_style="green"
-    )
+    panel = Panel(status_info, title="Flow System Status", border_style="green")
 
     console.print(panel)
 

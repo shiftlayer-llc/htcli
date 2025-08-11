@@ -38,8 +38,8 @@ class BlockchainInterface:
                 "System", "Account", [address]
             )
 
-            if account_info and 'data' in account_info:
-                balance = account_info['data']['free']
+            if account_info and "data" in account_info:
+                balance = account_info["data"]["free"]
                 # Convert from raw units to TENSOR (assuming 10^9 decimals)
                 return float(balance) / 1_000_000_000
             return 0.0
@@ -65,10 +65,7 @@ class BlockchainInterface:
         call = self.substrate.compose_call(
             call_module="Balances",
             call_function="transfer",
-            call_params={
-                'dest': to_address,
-                'value': amount_raw
-            }
+            call_params={"dest": to_address, "value": amount_raw},
         )
 
         return call
@@ -90,15 +87,14 @@ class BlockchainInterface:
         call = self.substrate.compose_call(
             call_module="SubnetRegistry",
             call_function="stake",
-            call_params={
-                'subnet_id': subnet_id,
-                'amount': amount_raw
-            }
+            call_params={"subnet_id": subnet_id, "amount": amount_raw},
         )
 
         return call
 
-    def create_delegate_call(self, subnet_id: int, validator: str, amount: float) -> Dict[str, Any]:
+    def create_delegate_call(
+        self, subnet_id: int, validator: str, amount: float
+    ) -> Dict[str, Any]:
         """
         Create a delegate call.
 
@@ -117,15 +113,17 @@ class BlockchainInterface:
             call_module="SubnetRegistry",
             call_function="delegate",
             call_params={
-                'subnet_id': subnet_id,
-                'validator': validator,
-                'amount': amount_raw
-            }
+                "subnet_id": subnet_id,
+                "validator": validator,
+                "amount": amount_raw,
+            },
         )
 
         return call
 
-    def sign_and_submit_transaction(self, keypair: Keypair, call: Dict[str, Any]) -> Optional[str]:
+    def sign_and_submit_transaction(
+        self, keypair: Keypair, call: Dict[str, Any]
+    ) -> Optional[str]:
         """
         Sign and submit a transaction.
 
@@ -139,14 +137,12 @@ class BlockchainInterface:
         try:
             # Create extrinsic
             extrinsic = self.substrate.create_signed_extrinsic(
-                call=call,
-                keypair=keypair
+                call=call, keypair=keypair
             )
 
             # Submit transaction
             result = self.substrate.submit_extrinsic(
-                extrinsic=extrinsic,
-                wait_for_inclusion=True
+                extrinsic=extrinsic, wait_for_inclusion=True
             )
 
             if result.is_success:
@@ -176,21 +172,21 @@ class BlockchainInterface:
             # You might need to query events or use a different approach
 
             # Example implementation:
-            events = self.substrate.query_runtime_state(
-                "System", "Events", []
-            )
+            events = self.substrate.query_runtime_state("System", "Events", [])
 
             # Filter events for the address
             address_transactions = []
             for event in events[:limit]:
                 # Filter logic depends on event structure
-                if hasattr(event, 'address') and event.address == address:
-                    address_transactions.append({
-                        'hash': event.extrinsic_hash,
-                        'block': event.block_number,
-                        'type': event.event_type,
-                        'data': event.data
-                    })
+                if hasattr(event, "address") and event.address == address:
+                    address_transactions.append(
+                        {
+                            "hash": event.extrinsic_hash,
+                            "block": event.block_number,
+                            "type": event.event_type,
+                            "data": event.data,
+                        }
+                    )
 
             return address_transactions
 

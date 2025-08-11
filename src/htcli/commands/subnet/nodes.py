@@ -18,7 +18,7 @@ def add(
     subnet_id: int = typer.Argument(..., help="Subnet ID"),
     peer_id: str = typer.Argument(..., help="Peer ID"),
     hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey account address"),
-    client = typer.Option(None, help="Client instance")
+    client=typer.Option(None, help="Client instance"),
 ):
     """Add a node to a subnet."""
     # Get client if not provided
@@ -36,9 +36,7 @@ def add(
 
     try:
         request = SubnetNodeAddRequest(
-            subnet_id=subnet_id,
-            peer_id=peer_id,
-            hotkey=hotkey
+            subnet_id=subnet_id, peer_id=peer_id, hotkey=hotkey
         )
 
         # Use the proper RPC method according to documentation
@@ -59,7 +57,7 @@ def add(
 @app.command()
 def list(
     subnet_id: int = typer.Argument(..., help="Subnet ID"),
-    client = typer.Option(None, help="Client instance")
+    client=typer.Option(None, help="Client instance"),
 ):
     """List all nodes in a subnet."""
     # Get client if not provided

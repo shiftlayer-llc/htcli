@@ -15,19 +15,19 @@ TENSOR_DECIMALS = 18
 
 def tensor_to_smallest_unit(tensor_amount: float) -> int:
     """Convert TENSOR amount to smallest unit (18 decimals)."""
-    return int(tensor_amount * (10 ** TENSOR_DECIMALS))
+    return int(tensor_amount * (10**TENSOR_DECIMALS))
 
 
 def smallest_unit_to_tensor(smallest_unit: int) -> float:
     """Convert smallest unit to TENSOR amount (18 decimals)."""
-    return smallest_unit / (10 ** TENSOR_DECIMALS)
+    return smallest_unit / (10**TENSOR_DECIMALS)
 
 
 def validate_tensor_amount(amount: float) -> bool:
     """Validate TENSOR amount has proper precision."""
     # Check if amount has more than 18 decimal places
     str_amount = f"{amount:.18f}"
-    if len(str_amount.split('.')[-1]) > TENSOR_DECIMALS:
+    if len(str_amount.split(".")[-1]) > TENSOR_DECIMALS:
         return False
     return True
 
@@ -93,8 +93,8 @@ def format_balance(amount: int, decimals: int = TENSOR_DECIMALS) -> str:
         return "0 TENSOR"
 
     # Convert from smallest unit (18 decimals for TENSOR)
-    balance = amount / (10 ** decimals)
-    return f"{balance:.18f} TENSOR".rstrip('0').rstrip('.')
+    balance = amount / (10**decimals)
+    return f"{balance:.18f} TENSOR".rstrip("0").rstrip(".")
 
 
 def format_address(address: str, max_length: int = 20) -> str:
@@ -134,7 +134,7 @@ def create_subnet_table(subnets: List[Dict[str, Any]]) -> Table:
             subnet.get("path", "N/A"),
             status,
             str(subnet.get("node_count", 0)),
-            stake
+            stake,
         )
 
     return table
@@ -155,13 +155,15 @@ def create_node_table(nodes: List[Dict[str, Any]], subnet_id: int) -> Table:
             str(node.get("node_id", "N/A")),
             format_address(node.get("peer_id", "N/A")),
             format_address(node.get("hotkey", "N/A")),
-            stake
+            stake,
         )
 
     return table
 
 
-def create_stake_info_panel(stake_data: Dict[str, Any], subnet_id: int, hotkey: str) -> Panel:
+def create_stake_info_panel(
+    stake_data: Dict[str, Any], subnet_id: int, hotkey: str
+) -> Panel:
     """Create a panel for stake information."""
     stake_amount = format_balance(stake_data.get("stake", 0))
     unbonding = format_balance(stake_data.get("unbonding", 0))
@@ -231,13 +233,13 @@ def format_subnet_list(subnets: List[Dict[str, Any]]):
     table.add_column("Total Stake", style="magenta")
 
     for subnet in subnets:
-        status = "Active" if subnet.get('activated', 0) > 0 else "Inactive"
+        status = "Active" if subnet.get("activated", 0) > 0 else "Inactive"
         table.add_row(
-            str(subnet.get('subnet_id', 'N/A')),
-            subnet.get('path', 'N/A'),
+            str(subnet.get("subnet_id", "N/A")),
+            subnet.get("path", "N/A"),
             status,
-            str(subnet.get('node_count', 0)),
-            format_balance(subnet.get('total_stake', 0))
+            str(subnet.get("node_count", 0)),
+            format_balance(subnet.get("total_stake", 0)),
         )
 
     console.print(table)
@@ -250,8 +252,8 @@ def format_subnet_info(subnet_info: Dict[str, Any]):
         return
 
     # Check data completeness
-    data_completeness = subnet_info.get('data_completeness', 'unknown')
-    is_partial = data_completeness == 'partial'
+    data_completeness = subnet_info.get("data_completeness", "unknown")
+    is_partial = data_completeness == "partial"
 
     # Basic Information Section
     basic_info = f"""[bold cyan]Basic Information:[/bold cyan]
@@ -274,10 +276,10 @@ Node Activation Interval: {subnet_info.get('node_activation_interval', 0)}
 Churn Limit: {subnet_info.get('churn_limit', 0)}"""
 
     # Staking Information Section
-    min_stake = subnet_info.get('min_stake', 0)
-    max_stake = subnet_info.get('max_stake', 0)
-    delegate_stake_balance = subnet_info.get('total_delegate_stake_balance', 0)
-    delegate_stake_shares = subnet_info.get('total_delegate_stake_shares', 0)
+    min_stake = subnet_info.get("min_stake", 0)
+    max_stake = subnet_info.get("max_stake", 0)
+    delegate_stake_balance = subnet_info.get("total_delegate_stake_balance", 0)
+    delegate_stake_shares = subnet_info.get("total_delegate_stake_shares", 0)
 
     staking_info = f"""[bold yellow]Staking Information:[/bold yellow]
 Minimum Stake: {format_balance(min_stake)}
@@ -296,7 +298,7 @@ Data Completeness: {data_completeness.title()}"""
     full_info = f"{basic_info}\n\n{node_info}\n\n{staking_info}\n\n{system_info}"
 
     # Additional info section
-    misc = subnet_info.get('misc', '')
+    misc = subnet_info.get("misc", "")
     if misc:
         full_info += f"\n\n[bold blue]Additional Information:[/bold blue]\n{misc}"
 
@@ -329,11 +331,11 @@ def format_node_list(nodes: List[Dict[str, Any]]):
 
     for node in nodes:
         table.add_row(
-            str(node.get('node_id', 'N/A')),
-            format_address(node.get('peer_id', 'N/A')),
-            format_address(node.get('hotkey', 'N/A')),
-            format_balance(node.get('stake', 0)),
-            node.get('status', 'N/A')
+            str(node.get("node_id", "N/A")),
+            format_address(node.get("peer_id", "N/A")),
+            format_address(node.get("hotkey", "N/A")),
+            format_balance(node.get("stake", 0)),
+            node.get("status", "N/A"),
         )
 
     console.print(table)
@@ -422,7 +424,7 @@ def show_progress(description: str):
     with Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
-        console=console
+        console=console,
     ) as progress:
         task = progress.add_task(description, total=None)
         return progress, task

@@ -54,7 +54,9 @@ class TestNetworkConnectivity:
         assert result.exit_code in [0, 1]  # 0 for success, 1 for network error
 
         if result.exit_code == 0:
-            assert "Network stats" in result.stdout or "network" in result.stdout.lower()
+            assert (
+                "Network stats" in result.stdout or "network" in result.stdout.lower()
+            )
         else:
             # Network error is acceptable for tests
             assert "error" in result.stdout.lower() or "failed" in result.stdout.lower()
@@ -128,7 +130,9 @@ class TestNetworkConnectivity:
         assert result.exit_code in [0, 1]
 
         if result.exit_code == 0:
-            assert "account" in result.stdout.lower() or "balance" in result.stdout.lower()
+            assert (
+                "account" in result.stdout.lower() or "balance" in result.stdout.lower()
+            )
         else:
             # Network error is acceptable for tests
             assert "error" in result.stdout.lower() or "failed" in result.stdout.lower()
@@ -136,7 +140,7 @@ class TestNetworkConnectivity:
     def test_endpoint_configuration(self):
         """Test endpoint configuration loading."""
         config = load_config()
-        
+
         # Test that configuration loads correctly
         assert config.network.endpoint is not None
         assert config.network.ws_endpoint is not None
@@ -207,14 +211,14 @@ class TestNetworkConnectivity:
     def test_environment_variables(self):
         """Test environment variable configuration."""
         import os
-        
+
         # Test that environment variables can be set
         test_endpoint = "wss://test.endpoint:9944"
         os.environ["HTCLI_NETWORK_ENDPOINT"] = test_endpoint
-        
+
         config = load_config()
         assert config.network.endpoint == test_endpoint
-        
+
         # Clean up
         if "HTCLI_NETWORK_ENDPOINT" in os.environ:
             del os.environ["HTCLI_NETWORK_ENDPOINT"]

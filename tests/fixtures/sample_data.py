@@ -7,7 +7,7 @@ Provides realistic test data for various scenarios.
 SAMPLE_ADDRESSES = {
     "alice": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
     "bob": "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty",
-    "charlie": "5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y"
+    "charlie": "5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y",
 }
 
 # Sample subnet data
@@ -24,7 +24,7 @@ SAMPLE_SUBNET_DATA = {
         "node_queue_period": 40,
         "max_node_penalties": 5,
         "coldkey_whitelist": [],
-        "active": True
+        "active": True,
     },
     "subnet_2": {
         "subnet_id": 2,
@@ -38,8 +38,8 @@ SAMPLE_SUBNET_DATA = {
         "node_queue_period": 80,
         "max_node_penalties": 10,
         "coldkey_whitelist": [],
-        "active": False
-    }
+        "active": False,
+    },
 }
 
 # Sample node data
@@ -54,7 +54,7 @@ SAMPLE_NODE_DATA = {
         "stake_to_be_added": 1000000000000000000,  # 1 TENSOR with 18 decimals
         "a": "1000000000000",
         "b": "1000",
-        "c": "1"
+        "c": "1",
     },
     "node_2": {
         "subnet_id": 1,
@@ -66,8 +66,8 @@ SAMPLE_NODE_DATA = {
         "stake_to_be_added": 2000000000000000000,  # 2 TENSOR with 18 decimals
         "a": "2000000000000",
         "b": "2000",
-        "c": "1"
-    }
+        "c": "1",
+    },
 }
 
 # Sample stake data
@@ -77,15 +77,15 @@ SAMPLE_STAKE_DATA = {
         "node_id": 1,
         "hotkey": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
         "stake_to_be_added": 1000000000000000000,  # 1 TENSOR with 18 decimals
-        "stake_to_be_removed": 500000000000000000   # 0.5 TENSOR with 18 decimals
+        "stake_to_be_removed": 500000000000000000,  # 0.5 TENSOR with 18 decimals
     },
     "stake_2": {
         "subnet_id": 2,
         "node_id": 1,
         "hotkey": "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty",
         "stake_to_be_added": 2000000000000000000,  # 2 TENSOR with 18 decimals
-        "stake_to_be_removed": 1000000000000000000  # 1 TENSOR with 18 decimals
-    }
+        "stake_to_be_removed": 1000000000000000000,  # 1 TENSOR with 18 decimals
+    },
 }
 
 # Sample network statistics
@@ -95,7 +95,7 @@ SAMPLE_NETWORK_STATS = {
     "total_active_nodes": 150,
     "total_stake": 5000000000000000000,  # 5 TENSOR with 18 decimals
     "current_epoch": 1234,
-    "block_height": 567890
+    "block_height": 567890,
 }
 
 # Sample account data
@@ -108,7 +108,7 @@ SAMPLE_ACCOUNT_DATA = {
         "reserved": 0,
         "misc_frozen": 0,
         "fee_frozen": 0,
-        "formatted_balance": "31.6621 TENSOR"
+        "formatted_balance": "31.6621 TENSOR",
     },
     "bob_account": {
         "address": "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty",
@@ -118,8 +118,8 @@ SAMPLE_ACCOUNT_DATA = {
         "reserved": 0,
         "misc_frozen": 0,
         "fee_frozen": 0,
-        "formatted_balance": "1.0000 TENSOR"
-    }
+        "formatted_balance": "1.0000 TENSOR",
+    },
 }
 
 # Sample block data
@@ -130,26 +130,14 @@ SAMPLE_BLOCK_DATA = {
     "state_root": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
     "extrinsics_root": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "extrinsics_count": 5,
-    "timestamp": 1640995200000
+    "timestamp": 1640995200000,
 }
 
 # Sample peers data
 SAMPLE_PEERS_DATA = [
-    {
-        "peer_id": "QmPeer1",
-        "address": "127.0.0.1:30333",
-        "protocol": "substrate"
-    },
-    {
-        "peer_id": "QmPeer2",
-        "address": "127.0.0.2:30333",
-        "protocol": "substrate"
-    },
-    {
-        "peer_id": "QmPeer3",
-        "address": "127.0.0.3:30333",
-        "protocol": "substrate"
-    }
+    {"peer_id": "QmPeer1", "address": "127.0.0.1:30333", "protocol": "substrate"},
+    {"peer_id": "QmPeer2", "address": "127.0.0.2:30333", "protocol": "substrate"},
+    {"peer_id": "QmPeer3", "address": "127.0.0.3:30333", "protocol": "substrate"},
 ]
 
 # Sample runtime version data
@@ -161,7 +149,7 @@ SAMPLE_RUNTIME_VERSION = {
     "impl_version": 1,
     "apis": [],
     "transaction_version": 1,
-    "state_version": 1
+    "state_version": 1,
 }
 
 # Sample keypair data
@@ -172,7 +160,7 @@ SAMPLE_KEYPAIR_DATA = {
         "public_key": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
         "private_key": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
         "ss58_address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
-        "mnemonic": "test test test test test test test test test test test junk"
+        "mnemonic": "test test test test test test test test test test test junk",
     },
     "ed25519": {
         "name": "test-key-ed25519",
@@ -180,8 +168,8 @@ SAMPLE_KEYPAIR_DATA = {
         "public_key": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
         "private_key": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
         "ss58_address": "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty",
-        "mnemonic": "test test test test test test test test test test test junk"
-    }
+        "mnemonic": "test test test test test test test test test test test junk",
+    },
 }
 
 # Sample error responses
@@ -189,23 +177,23 @@ SAMPLE_ERROR_RESPONSES = {
     "connection_error": {
         "success": False,
         "message": "Failed to connect to blockchain",
-        "error": "Connection timeout"
+        "error": "Connection timeout",
     },
     "invalid_address": {
         "success": False,
         "message": "Invalid address format",
-        "error": "Invalid character 'l'"
+        "error": "Invalid character 'l'",
     },
     "subnet_not_found": {
         "success": False,
         "message": "Subnet not found",
-        "error": "Subnet with ID 999999 does not exist"
+        "error": "Subnet with ID 999999 does not exist",
     },
     "insufficient_balance": {
         "success": False,
         "message": "Insufficient balance",
-        "error": "Account balance too low for transaction"
-    }
+        "error": "Account balance too low for transaction",
+    },
 }
 
 # Sample success responses
@@ -214,25 +202,18 @@ SAMPLE_SUCCESS_RESPONSES = {
         "success": True,
         "message": "Subnet registered successfully",
         "transaction_hash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-        "data": {
-            "subnet_id": 1,
-            "call_data": "0x1234567890abcdef"
-        }
+        "data": {"subnet_id": 1, "call_data": "0x1234567890abcdef"},
     },
     "stake_added": {
         "success": True,
         "message": "Stake added successfully",
         "transaction_hash": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-        "data": {
-            "call_data": "0xabcdef1234567890"
-        }
+        "data": {"call_data": "0xabcdef1234567890"},
     },
     "node_added": {
         "success": True,
         "message": "Node added successfully",
         "transaction_hash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-        "data": {
-            "call_data": "0x1234567890abcdef"
-        }
-    }
+        "data": {"call_data": "0x1234567890abcdef"},
+    },
 }

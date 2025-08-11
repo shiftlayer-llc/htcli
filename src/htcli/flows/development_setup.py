@@ -47,18 +47,20 @@ Perfect for developers who need a quick testing environment.
 
         # Project information
         self.console.print("Project information:")
-        project_name = Prompt.ask("Project name (for subnet naming)", default="dev-project")
+        project_name = Prompt.ask(
+            "Project name (for subnet naming)", default="dev-project"
+        )
 
         # Development configuration
         environment_type = Prompt.ask(
-            "Environment type",
-            choices=["local", "testnet", "staging"],
-            default="local"
+            "Environment type", choices=["local", "testnet", "staging"], default="local"
         )
 
         # Subnet configuration (minimal for development)
         self.console.print("\nTest subnet configuration:")
-        memory_mb = IntPrompt.ask("Memory requirement (MB)", default=512)  # Minimal for testing
+        memory_mb = IntPrompt.ask(
+            "Memory requirement (MB)", default=512
+        )  # Minimal for testing
 
         # Node configuration
         self.console.print("\nDevelopment node configuration:")
@@ -73,7 +75,9 @@ Perfect for developers who need a quick testing environment.
         # Development tools
         self.console.print("\nDevelopment tools:")
         setup_monitoring = Confirm.ask("Set up development monitoring?", default=True)
-        create_test_scripts = Confirm.ask("Create test automation scripts?", default=True)
+        create_test_scripts = Confirm.ask(
+            "Create test automation scripts?", default=True
+        )
 
         return {
             "project_name": project_name,
@@ -81,7 +85,7 @@ Perfect for developers who need a quick testing environment.
             "memory_mb": memory_mb,
             "node_config": node_config,
             "setup_monitoring": setup_monitoring,
-            "create_test_scripts": create_test_scripts
+            "create_test_scripts": create_test_scripts,
         }
 
     def setup_steps(self) -> List[FlowStep]:
@@ -91,43 +95,43 @@ Perfect for developers who need a quick testing environment.
                 name="config_init",
                 description="Initialize development configuration",
                 function=self.step_config_init,
-                required=True
+                required=True,
             ),
             FlowStep(
                 name="dev_wallet_setup",
                 description="Set up development wallet",
                 function=self.step_dev_wallet_setup,
                 required=True,
-                dependencies=["config_init"]
+                dependencies=["config_init"],
             ),
             FlowStep(
                 name="test_subnet_create",
                 description="Create test subnet",
                 function=self.step_test_subnet_create,
                 required=True,
-                dependencies=["dev_wallet_setup"]
+                dependencies=["dev_wallet_setup"],
             ),
             FlowStep(
                 name="dev_node_setup",
                 description="Set up development node",
                 function=self.step_dev_node_setup,
                 required=True,
-                dependencies=["test_subnet_create"]
+                dependencies=["test_subnet_create"],
             ),
             FlowStep(
                 name="testing_verification",
                 description="Verify testing environment",
                 function=self.step_testing_verification,
                 required=True,
-                dependencies=["dev_node_setup"]
+                dependencies=["dev_node_setup"],
             ),
             FlowStep(
                 name="dev_tools_setup",
                 description="Configure development tools",
                 function=self.step_dev_tools_setup,
                 required=False,
-                dependencies=["testing_verification"]
-            )
+                dependencies=["testing_verification"],
+            ),
         ]
 
     def step_config_init(self, context: Dict[str, Any]) -> bool:
@@ -140,11 +144,13 @@ Perfect for developers who need a quick testing environment.
                 "environment": env_type,
                 "debug_mode": True,
                 "verbose_logging": True,
-                "test_mode": True
+                "test_mode": True,
             }
 
             context["dev_config"] = dev_config
-            print_success(f"Development configuration initialized for {env_type} environment")
+            print_success(
+                f"Development configuration initialized for {env_type} environment"
+            )
             return True
 
         except Exception as e:
@@ -158,8 +164,7 @@ Perfect for developers who need a quick testing environment.
             dev_key_name = f"dev-{context['project_name']}"
 
             response = self.client.wallet.generate_keypair(
-                name=dev_key_name,
-                key_type="sr25519"  # Standard for development
+                name=dev_key_name, key_type="sr25519"  # Standard for development
             )
 
             if response.get("success", False):
@@ -168,10 +173,14 @@ Perfect for developers who need a quick testing environment.
                 print_success(f"Development wallet created: {response.get('address')}")
 
                 # For development, we might need test tokens
-                print_info("Note: For testing, ensure this address has sufficient test tokens")
+                print_info(
+                    "Note: For testing, ensure this address has sufficient test tokens"
+                )
                 return True
             else:
-                print_error(f"Development wallet setup failed: {response.get('message', 'Unknown error')}")
+                print_error(
+                    f"Development wallet setup failed: {response.get('message', 'Unknown error')}"
+                )
                 return False
 
         except Exception as e:
@@ -192,12 +201,12 @@ Perfect for developers who need a quick testing environment.
                 path=subnet_path,
                 memory_mb=context["memory_mb"],
                 registration_blocks=100,  # Minimal for testing
-                entry_interval=10,        # Fast for development
+                entry_interval=10,  # Fast for development
                 max_node_registration_epochs=10,
                 node_registration_interval=10,
                 node_activation_interval=10,
                 node_queue_period=10,
-                max_node_penalties=3
+                max_node_penalties=3,
             )
 
             response = self.client.subnet.register_subnet(request)
@@ -206,7 +215,9 @@ Perfect for developers who need a quick testing environment.
                 subnet_id = response.data.get("subnet_id")
                 context["test_subnet_id"] = subnet_id
                 context["subnet_path"] = subnet_path
-                print_success(f"Test subnet created: ID {subnet_id}, Path: {subnet_path}")
+                print_success(
+                    f"Test subnet created: ID {subnet_id}, Path: {subnet_path}"
+                )
 
                 # Activate immediately for development
                 activate_response = self.client.subnet.activate_subnet(subnet_id)
@@ -214,7 +225,9 @@ Perfect for developers who need a quick testing environment.
                     print_success(f"Test subnet {subnet_id} activated")
                     return True
                 else:
-                    print_error(f"Test subnet activation failed: {activate_response.message}")
+                    print_error(
+                        f"Test subnet activation failed: {activate_response.message}"
+                    )
                     return False
             else:
                 print_error(f"Test subnet creation failed: {response.message}")
@@ -236,7 +249,7 @@ Perfect for developers who need a quick testing environment.
                     "type": "mock",
                     "hotkey": context["dev_wallet_address"],
                     "peer_id": f"QmMockDev{hash(context['project_name']) % 10000}",
-                    "status": "active"
+                    "status": "active",
                 }
 
                 context["dev_node_config"] = mock_node_config
@@ -248,7 +261,7 @@ Perfect for developers who need a quick testing environment.
                     subnet_id=context["test_subnet_id"],
                     hotkey=node_config["hotkey"],
                     peer_id=node_config["peer_id"],
-                    stake_amount=10 ** 18  # Minimal stake for development
+                    stake_amount=10**18,  # Minimal stake for development
                 )
 
                 response = self.client.node.add_node(request)
@@ -291,7 +304,7 @@ Perfect for developers who need a quick testing environment.
                 "subnet_path": context["subnet_path"],
                 "wallet_address": context["dev_wallet_address"],
                 "environment_type": context["environment_type"],
-                "node_type": "mock" if context["node_config"]["use_mock"] else "real"
+                "node_type": "mock" if context["node_config"]["use_mock"] else "real",
             }
 
             context["testing_summary"] = testing_summary
@@ -344,7 +357,6 @@ htcli subnet info --subnet-id {subnet_id}
 echo "Testing wallet access..."
 htcli chain balance --address {wallet_address}
                     """.strip(),
-
                     "stake_test": f"""
 #!/bin/bash
 # Staking test script for {project_name}
@@ -352,7 +364,7 @@ echo "Testing stake operations..."
 htcli stake info --address {wallet_address}
 echo "Checking portfolio..."
 htcli --mine stake info
-                    """.strip()
+                    """.strip(),
                 }
 
                 dev_tools["test_scripts"] = test_scripts

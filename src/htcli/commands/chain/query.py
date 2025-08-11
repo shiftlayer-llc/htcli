@@ -16,7 +16,7 @@ console = Console()
 @app.command()
 def balance(
     address: str = typer.Argument(..., help="Account address"),
-    client = typer.Option(None, help="Client instance")
+    client=typer.Option(None, help="Client instance"),
 ):
     """Get account balance."""
     # Get client if not provided
@@ -43,9 +43,7 @@ def balance(
 
 
 @app.command()
-def peers(
-    client = typer.Option(None, help="Client instance")
-):
+def peers(client=typer.Option(None, help="Client instance")):
     """Get connected peers."""
     # Get client if not provided
     if client is None:
@@ -58,11 +56,13 @@ def peers(
             headers = ["Peer ID", "Address", "Protocol"]
             rows = []
             for peer in response.data["peers"]:
-                rows.append([
-                    peer.get("peer_id", "N/A"),
-                    peer.get("address", "N/A"),
-                    peer.get("protocol", "N/A")
-                ])
+                rows.append(
+                    [
+                        peer.get("peer_id", "N/A"),
+                        peer.get("address", "N/A"),
+                        peer.get("protocol", "N/A"),
+                    ]
+                )
 
             table = format_table(headers, rows, "Connected Peers")
             console.print(table)
@@ -76,8 +76,10 @@ def peers(
 
 @app.command()
 def block(
-    block_number: Optional[int] = typer.Argument(None, help="Block number (default: latest)"),
-    client = typer.Option(None, help="Client instance")
+    block_number: Optional[int] = typer.Argument(
+        None, help="Block number (default: latest)"
+    ),
+    client=typer.Option(None, help="Client instance"),
 ):
     """Get block information."""
     # Get client if not provided
@@ -94,6 +96,7 @@ def block(
 
         if response.data:
             from rich.panel import Panel
+
             block_data = response.data
             info_text = f"""
 Block Number: {block_data.get('number', 'N/A')}

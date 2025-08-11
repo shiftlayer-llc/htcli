@@ -7,8 +7,11 @@ from rich.console import Console
 from typing import Optional
 from ..utils.validation import validate_address, validate_block_number, validate_limit
 from ..utils.formatting import (
-    print_error, format_network_stats, format_account_info,
-    format_epoch_info, format_table
+    print_error,
+    format_network_stats,
+    format_account_info,
+    format_epoch_info,
+    format_table,
 )
 from ..dependencies import get_client
 
@@ -18,7 +21,9 @@ console = Console()
 
 @app.command()
 def network(
-    format_type: str = typer.Option("table", "--format", "-f", help="Output format (table/json)")
+    format_type: str = typer.Option(
+        "table", "--format", "-f", help="Output format (table/json)"
+    )
 ):
     """Get network statistics."""
     client = get_client()
@@ -40,7 +45,9 @@ def network(
 
 @app.command()
 def epoch(
-    format_type: str = typer.Option("table", "--format", "-f", help="Output format (table/json)")
+    format_type: str = typer.Option(
+        "table", "--format", "-f", help="Output format (table/json)"
+    )
 ):
     """Get current epoch information."""
     client = get_client()
@@ -63,7 +70,9 @@ def epoch(
 @app.command()
 def account(
     address: str = typer.Option(..., "--address", "-a", help="Account address"),
-    format_type: str = typer.Option("table", "--format", "-f", help="Output format (table/json)")
+    format_type: str = typer.Option(
+        "table", "--format", "-f", help="Output format (table/json)"
+    ),
 ):
     """Get account information."""
     client = get_client()
@@ -91,7 +100,9 @@ def account(
 @app.command()
 def balance(
     address: str = typer.Option(..., "--address", "-a", help="Account address"),
-    format_type: str = typer.Option("table", "--format", "-f", help="Output format (table/json)")
+    format_type: str = typer.Option(
+        "table", "--format", "-f", help="Output format (table/json)"
+    ),
 ):
     """Get account balance."""
     client = get_client()
@@ -109,7 +120,9 @@ def balance(
                 console.print_json(data=balance_data)
             else:
                 console.print(f"Address: {address}")
-                console.print(f"Balance: {balance_data.get('formatted_balance', 'N/A')}")
+                console.print(
+                    f"Balance: {balance_data.get('formatted_balance', 'N/A')}"
+                )
                 console.print(f"Raw Balance: {balance_data.get('balance', 'N/A')}")
         else:
             print_error(f"Failed to retrieve balance: {response.message}")
@@ -120,8 +133,12 @@ def balance(
 
 @app.command()
 def peers(
-    limit: int = typer.Option(10, "--limit", "-l", help="Maximum number of peers to show"),
-    format_type: str = typer.Option("table", "--format", "-f", help="Output format (table/json)")
+    limit: int = typer.Option(
+        10, "--limit", "-l", help="Maximum number of peers to show"
+    ),
+    format_type: str = typer.Option(
+        "table", "--format", "-f", help="Output format (table/json)"
+    ),
 ):
     """Get network peers information."""
     client = get_client()
@@ -134,7 +151,7 @@ def peers(
     try:
         response = client.get_peers()
         if response.success:
-            peers = response.data.get('peers', [])
+            peers = response.data.get("peers", [])
             # Limit the number of peers shown
             peers = peers[:limit]
 
@@ -145,13 +162,17 @@ def peers(
                 headers = ["Peer ID", "Address", "Protocol"]
                 rows = []
                 for peer in peers:
-                    rows.append([
-                        peer.get("peer_id", "N/A"),
-                        peer.get("address", "N/A"),
-                        peer.get("protocol", "N/A")
-                    ])
+                    rows.append(
+                        [
+                            peer.get("peer_id", "N/A"),
+                            peer.get("address", "N/A"),
+                            peer.get("protocol", "N/A"),
+                        ]
+                    )
 
-                table = format_table(headers, rows, f"Network Peers (showing {len(peers)})")
+                table = format_table(
+                    headers, rows, f"Network Peers (showing {len(peers)})"
+                )
                 console.print(table)
         else:
             print_error(f"Failed to retrieve peers: {response.message}")
@@ -163,8 +184,12 @@ def peers(
 @app.command()
 def block(
     block_hash: Optional[str] = typer.Option(None, "--hash", "-h", help="Block hash"),
-    block_number: Optional[int] = typer.Option(None, "--number", "-n", help="Block number"),
-    format_type: str = typer.Option("table", "--format", "-f", help="Output format (table/json)")
+    block_number: Optional[int] = typer.Option(
+        None, "--number", "-n", help="Block number"
+    ),
+    format_type: str = typer.Option(
+        "table", "--format", "-f", help="Output format (table/json)"
+    ),
 ):
     """Get block information."""
     client = get_client()
@@ -195,7 +220,9 @@ def block(
                 console.print(f"Block Hash: {block_data.get('block_hash', 'N/A')}")
                 console.print(f"Parent Hash: {block_data.get('parent_hash', 'N/A')}")
                 console.print(f"State Root: {block_data.get('state_root', 'N/A')}")
-                console.print(f"Extrinsics Count: {block_data.get('extrinsics_count', 'N/A')}")
+                console.print(
+                    f"Extrinsics Count: {block_data.get('extrinsics_count', 'N/A')}"
+                )
                 console.print(f"Timestamp: {block_data.get('timestamp', 'N/A')}")
         else:
             print_error(f"Failed to retrieve block info: {response.message}")
@@ -206,7 +233,9 @@ def block(
 
 @app.command()
 def head(
-    format_type: str = typer.Option("table", "--format", "-f", help="Output format (table/json)")
+    format_type: str = typer.Option(
+        "table", "--format", "-f", help="Output format (table/json)"
+    )
 ):
     """Get chain head information."""
     client = get_client()
@@ -222,7 +251,9 @@ def head(
                 console.print(f"Block Hash: {head_data.get('block_hash', 'N/A')}")
                 console.print(f"Parent Hash: {head_data.get('parent_hash', 'N/A')}")
                 console.print(f"State Root: {head_data.get('state_root', 'N/A')}")
-                console.print(f"Extrinsics Root: {head_data.get('extrinsics_root', 'N/A')}")
+                console.print(
+                    f"Extrinsics Root: {head_data.get('extrinsics_root', 'N/A')}"
+                )
         else:
             print_error(f"Failed to retrieve chain head: {response.message}")
     except Exception as e:
@@ -232,7 +263,9 @@ def head(
 
 @app.command()
 def runtime_version(
-    format_type: str = typer.Option("table", "--format", "-f", help="Output format (table/json)")
+    format_type: str = typer.Option(
+        "table", "--format", "-f", help="Output format (table/json)"
+    )
 ):
     """Get runtime version information."""
     client = get_client()
@@ -245,10 +278,16 @@ def runtime_version(
                 console.print_json(data=version_data)
             else:
                 console.print(f"Spec Name: {version_data.get('spec_name', 'N/A')}")
-                console.print(f"Spec Version: {version_data.get('spec_version', 'N/A')}")
+                console.print(
+                    f"Spec Version: {version_data.get('spec_version', 'N/A')}"
+                )
                 console.print(f"Impl Name: {version_data.get('impl_name', 'N/A')}")
-                console.print(f"Impl Version: {version_data.get('impl_version', 'N/A')}")
-                console.print(f"Authoring Version: {version_data.get('authoring_version', 'N/A')}")
+                console.print(
+                    f"Impl Version: {version_data.get('impl_version', 'N/A')}"
+                )
+                console.print(
+                    f"Authoring Version: {version_data.get('authoring_version', 'N/A')}"
+                )
         else:
             print_error(f"Failed to retrieve runtime version: {response.message}")
     except Exception as e:

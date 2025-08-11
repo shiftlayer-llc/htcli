@@ -8,16 +8,20 @@ from typing import Optional, Dict, Any
 
 class ErrorResponse(BaseModel):
     """Standard error response model."""
+
     success: bool = Field(False, description="Always false for errors")
     error: str = Field(..., description="Error type")
     message: str = Field(..., description="Human-readable error message")
     code: int = Field(..., description="Error code")
-    details: Optional[Dict[str, Any]] = Field(None, description="Optional error details")
+    details: Optional[Dict[str, Any]] = Field(
+        None, description="Optional error details"
+    )
     timestamp: str = Field(..., description="ISO timestamp")
 
 
 class ValidationError(BaseModel):
     """Validation error model."""
+
     field: str = Field(..., description="Field name")
     value: Any = Field(..., description="Invalid value")
     constraint: str = Field(..., description="Constraint that was violated")
@@ -25,6 +29,7 @@ class ValidationError(BaseModel):
 
 class NetworkError(BaseModel):
     """Network error model."""
+
     endpoint: str = Field(..., description="Failed endpoint")
     status_code: Optional[int] = Field(None, description="HTTP status code")
     timeout: bool = Field(False, description="Whether the error was due to timeout")
@@ -32,6 +37,7 @@ class NetworkError(BaseModel):
 
 class RPCError(BaseModel):
     """RPC error model."""
+
     method: str = Field(..., description="RPC method that failed")
     params: Optional[Dict[str, Any]] = Field(None, description="RPC parameters")
     error_code: Optional[int] = Field(None, description="RPC error code")
@@ -39,6 +45,7 @@ class RPCError(BaseModel):
 
 class BusinessLogicError(BaseModel):
     """Business logic error model."""
+
     operation: str = Field(..., description="Operation that failed")
     reason: str = Field(..., description="Reason for failure")
     recoverable: bool = Field(True, description="Whether the error is recoverable")
@@ -69,13 +76,11 @@ SPECIFIC_ERROR_CODES = {
     "SUBNET_ALREADY_ACTIVATED": 2002,
     "INSUFFICIENT_NODES_FOR_ACTIVATION": 2003,
     "REGISTRATION_PERIOD_NOT_COMPLETED": 2004,
-
     # Node errors
     "SUBNET_NOT_ACTIVATED": 4002,
     "NODE_ALREADY_EXISTS": 4003,
     "INVALID_PEER_ID_FORMAT": 4004,
     "INSUFFICIENT_STAKE_FOR_NODE": 4005,
-
     # Staking errors
     "NODE_NOT_FOUND": 5002,
     "INSUFFICIENT_BALANCE": 5003,
@@ -83,12 +88,10 @@ SPECIFIC_ERROR_CODES = {
     "STAKE_LIMIT_EXCEEDED": 5005,
     "INSUFFICIENT_STAKE_TO_REMOVE": 6002,
     "STAKE_STILL_IN_UNBONDING_PERIOD": 6003,
-
     # Validation errors
     "SUBNET_NOT_ACTIVE": 7002,
     "INVALID_VALIDATION_DATA": 7003,
     "VALIDATION_RATE_LIMIT_EXCEEDED": 7004,
-
     # Governance errors
     "INVALID_PROPOSAL_DATA": 8003,
     "INSUFFICIENT_STAKE_FOR_PROPOSAL": 8004,

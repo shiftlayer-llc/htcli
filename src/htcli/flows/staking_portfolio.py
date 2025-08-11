@@ -56,27 +56,35 @@ Perfect for investors who want to maximize returns through diversification.
             wallet_config.update({"private_key": private_key, "key_name": key_name})
         else:
             key_name = Prompt.ask("New key name", default="portfolio-manager")
-            key_type = Prompt.ask("Key type", choices=["sr25519", "ed25519"], default="sr25519")
+            key_type = Prompt.ask(
+                "Key type", choices=["sr25519", "ed25519"], default="sr25519"
+            )
             wallet_config.update({"key_name": key_name, "key_type": key_type})
 
         # Portfolio strategy
         self.console.print("\nPortfolio strategy:")
         total_stake_str = Prompt.ask("Total amount to stake (TENSOR)", default="100.0")
-        total_stake = int(float(total_stake_str) * (10 ** 18))
+        total_stake = int(float(total_stake_str) * (10**18))
 
         strategy = Prompt.ask(
             "Portfolio strategy",
             choices=["conservative", "balanced", "aggressive"],
-            default="balanced"
+            default="balanced",
         )
 
         max_positions = IntPrompt.ask("Maximum number of staking positions", default=5)
-        min_stake_per_position_str = Prompt.ask("Minimum stake per position (TENSOR)", default="10.0")
-        min_stake_per_position = int(float(min_stake_per_position_str) * (10 ** 18))
+        min_stake_per_position_str = Prompt.ask(
+            "Minimum stake per position (TENSOR)", default="10.0"
+        )
+        min_stake_per_position = int(float(min_stake_per_position_str) * (10**18))
 
         # Risk preferences
-        diversify_subnets = Confirm.ask("Diversify across multiple subnets?", default=True)
-        include_new_subnets = Confirm.ask("Include newer subnets (higher risk/reward)?", default=False)
+        diversify_subnets = Confirm.ask(
+            "Diversify across multiple subnets?", default=True
+        )
+        include_new_subnets = Confirm.ask(
+            "Include newer subnets (higher risk/reward)?", default=False
+        )
 
         return {
             "wallet_config": wallet_config,
@@ -85,7 +93,7 @@ Perfect for investors who want to maximize returns through diversification.
             "max_positions": max_positions,
             "min_stake_per_position": min_stake_per_position,
             "diversify_subnets": diversify_subnets,
-            "include_new_subnets": include_new_subnets
+            "include_new_subnets": include_new_subnets,
         }
 
     def setup_steps(self) -> List[FlowStep]:
@@ -95,50 +103,50 @@ Perfect for investors who want to maximize returns through diversification.
                 name="config_init",
                 description="Initialize CLI configuration",
                 function=self.step_config_init,
-                required=True
+                required=True,
             ),
             FlowStep(
                 name="wallet_setup",
                 description="Set up wallet keys",
                 function=self.step_wallet_setup,
                 required=True,
-                dependencies=["config_init"]
+                dependencies=["config_init"],
             ),
             FlowStep(
                 name="balance_check",
                 description="Verify account balance",
                 function=self.step_balance_check,
                 required=True,
-                dependencies=["wallet_setup"]
+                dependencies=["wallet_setup"],
             ),
             FlowStep(
                 name="market_analysis",
                 description="Analyze staking opportunities",
                 function=self.step_market_analysis,
                 required=True,
-                dependencies=["balance_check"]
+                dependencies=["balance_check"],
             ),
             FlowStep(
                 name="portfolio_allocation",
                 description="Calculate optimal stake allocation",
                 function=self.step_portfolio_allocation,
                 required=True,
-                dependencies=["market_analysis"]
+                dependencies=["market_analysis"],
             ),
             FlowStep(
                 name="execute_stakes",
                 description="Execute stake distribution",
                 function=self.step_execute_stakes,
                 required=True,
-                dependencies=["portfolio_allocation"]
+                dependencies=["portfolio_allocation"],
             ),
             FlowStep(
                 name="monitoring_setup",
                 description="Set up portfolio monitoring",
                 function=self.step_monitoring_setup,
                 required=False,
-                dependencies=["execute_stakes"]
-            )
+                dependencies=["execute_stakes"],
+            ),
         ]
 
     def step_config_init(self, context: Dict[str, Any]) -> bool:
@@ -158,12 +166,11 @@ Perfect for investors who want to maximize returns through diversification.
             if wallet_config["use_existing"]:
                 response = self.client.wallet.import_keypair(
                     name=wallet_config["key_name"],
-                    private_key=wallet_config["private_key"]
+                    private_key=wallet_config["private_key"],
                 )
             else:
                 response = self.client.wallet.generate_keypair(
-                    name=wallet_config["key_name"],
-                    key_type=wallet_config["key_type"]
+                    name=wallet_config["key_name"], key_type=wallet_config["key_type"]
                 )
 
             if response.get("success", False):
@@ -171,7 +178,9 @@ Perfect for investors who want to maximize returns through diversification.
                 print_success(f"Wallet key ready: {response.get('address')}")
                 return True
             else:
-                print_error(f"Wallet setup failed: {response.get('message', 'Unknown error')}")
+                print_error(
+                    f"Wallet setup failed: {response.get('message', 'Unknown error')}"
+                )
                 return False
 
         except Exception as e:
@@ -188,12 +197,14 @@ Perfect for investors who want to maximize returns through diversification.
                 balance = response.data.get("balance", 0)
                 context["account_balance"] = balance
 
-                required_amount = context["total_stake"] + (10 ** 18)  # Stakes + fees
+                required_amount = context["total_stake"] + (10**18)  # Stakes + fees
                 if balance >= required_amount:
                     print_success(f"Sufficient balance: {format_balance(balance)}")
                     return True
                 else:
-                    print_error(f"Insufficient balance. Required: {format_balance(required_amount)}, Available: {format_balance(balance)}")
+                    print_error(
+                        f"Insufficient balance. Required: {format_balance(required_amount)}, Available: {format_balance(balance)}"
+                    )
                     return False
             else:
                 print_error(f"Balance check failed: {response.message}")
@@ -257,7 +268,9 @@ Perfect for investors who want to maximize returns through diversification.
             print_error(f"Market analysis failed: {str(e)}")
             return False
 
-    def analyze_staking_opportunity(self, subnet_info: Dict[str, Any], node_info: Dict[str, Any]) -> Dict[str, Any]:
+    def analyze_staking_opportunity(
+        self, subnet_info: Dict[str, Any], node_info: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Analyze individual staking opportunity"""
         opportunity = {
             "subnet_id": subnet_info.get("subnet_id"),
@@ -267,7 +280,7 @@ Perfect for investors who want to maximize returns through diversification.
             "current_stake": node_info.get("total_stake", 0),
             "performance_score": node_info.get("performance_score", 0.5),
             "reward_rate": node_info.get("reward_rate", 0.1),
-            "risk_score": 0.5  # Default risk score
+            "risk_score": 0.5,  # Default risk score
         }
 
         # Calculate risk score based on various factors
@@ -310,23 +323,25 @@ Perfect for investors who want to maximize returns through diversification.
 
         # Stake size factor (prefer moderate stakes)
         stake = opportunity["current_stake"]
-        if stake < 10 * (10 ** 18):  # Less than 10 TENSOR
+        if stake < 10 * (10**18):  # Less than 10 TENSOR
             stake_score = 0.8  # Slightly lower for very low stakes
-        elif stake > 1000 * (10 ** 18):  # More than 1000 TENSOR
+        elif stake > 1000 * (10**18):  # More than 1000 TENSOR
             stake_score = 0.6  # Lower for very high stakes
         else:
             stake_score = 1.0
 
         total_score = (
-            performance_score * performance_weight +
-            reward_score * reward_weight +
-            risk_score * risk_weight +
-            stake_score * stake_weight
+            performance_score * performance_weight
+            + reward_score * reward_weight
+            + risk_score * risk_weight
+            + stake_score * stake_weight
         )
 
         return total_score
 
-    def filter_opportunities_by_strategy(self, opportunities: List[Dict[str, Any]], context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def filter_opportunities_by_strategy(
+        self, opportunities: List[Dict[str, Any]], context: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """Filter opportunities based on user strategy"""
         strategy = context["strategy"]
         include_new = context["include_new_subnets"]
@@ -371,7 +386,9 @@ Perfect for investors who want to maximize returns through diversification.
 
             if diversify_subnets:
                 # Ensure subnet diversity
-                selected_opportunities = self.ensure_subnet_diversity(selected_opportunities)
+                selected_opportunities = self.ensure_subnet_diversity(
+                    selected_opportunities
+                )
 
             # Calculate allocation
             allocations = self.calculate_allocations(
@@ -396,7 +413,9 @@ Perfect for investors who want to maximize returns through diversification.
             print_error(f"Portfolio allocation failed: {str(e)}")
             return False
 
-    def ensure_subnet_diversity(self, opportunities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def ensure_subnet_diversity(
+        self, opportunities: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """Ensure diversity across subnets"""
         seen_subnets = set()
         diverse_opportunities = []
@@ -419,7 +438,9 @@ Perfect for investors who want to maximize returns through diversification.
 
         return diverse_opportunities
 
-    def calculate_allocations(self, opportunities: List[Dict[str, Any]], total_stake: int, min_stake: int) -> List[Dict[str, Any]]:
+    def calculate_allocations(
+        self, opportunities: List[Dict[str, Any]], total_stake: int, min_stake: int
+    ) -> List[Dict[str, Any]]:
         """Calculate stake allocations"""
         if not opportunities:
             return []
@@ -450,7 +471,7 @@ Perfect for investors who want to maximize returns through diversification.
                     "amount": allocated_amount,
                     "percentage": (allocated_amount / total_stake) * 100,
                     "risk_score": opp["risk_score"],
-                    "expected_reward": opp["reward_rate"]
+                    "expected_reward": opp["reward_rate"],
                 }
                 allocations.append(allocation)
                 remaining_stake -= allocated_amount
@@ -477,7 +498,7 @@ Perfect for investors who want to maximize returns through diversification.
                 format_balance(allocation["amount"]),
                 f"{allocation['percentage']:.1f}%",
                 f"{allocation['risk_score']:.2f}",
-                f"{allocation['expected_reward']*100:.1f}%"
+                f"{allocation['expected_reward']*100:.1f}%",
             )
 
         self.console.print(table)
@@ -495,21 +516,27 @@ Perfect for investors who want to maximize returns through diversification.
                     subnet_id=allocation["subnet_id"],
                     node_id=allocation["node_id"],
                     hotkey=wallet_address,
-                    amount=allocation["amount"]
+                    amount=allocation["amount"],
                 )
 
                 response = self.client.staking.add_stake(request)
 
                 if response.success:
                     executed_stakes.append(allocation)
-                    print_success(f"Staked {format_balance(allocation['amount'])} to subnet {allocation['subnet_id']}, node {allocation['node_id']}")
+                    print_success(
+                        f"Staked {format_balance(allocation['amount'])} to subnet {allocation['subnet_id']}, node {allocation['node_id']}"
+                    )
                 else:
-                    print_error(f"Failed to stake to subnet {allocation['subnet_id']}: {response.message}")
+                    print_error(
+                        f"Failed to stake to subnet {allocation['subnet_id']}: {response.message}"
+                    )
                     # Continue with other stakes even if one fails
 
             if executed_stakes:
                 context["executed_stakes"] = executed_stakes
-                print_success(f"Successfully executed {len(executed_stakes)} stake positions")
+                print_success(
+                    f"Successfully executed {len(executed_stakes)} stake positions"
+                )
                 return True
             else:
                 print_error("No stakes were executed successfully")
@@ -537,7 +564,9 @@ Portfolio monitoring commands:
             context["portfolio_summary"] = {
                 "total_positions": len(executed_stakes),
                 "total_staked": sum(stake["amount"] for stake in executed_stakes),
-                "diversification": len(set(stake["subnet_id"] for stake in executed_stakes))
+                "diversification": len(
+                    set(stake["subnet_id"] for stake in executed_stakes)
+                ),
             }
 
             return True

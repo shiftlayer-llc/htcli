@@ -22,6 +22,7 @@ from ..utils.formatting import print_error, print_info
 
 class FlowStatus(Enum):
     """Flow execution status"""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -32,6 +33,7 @@ class FlowStatus(Enum):
 @dataclass
 class FlowStep:
     """Individual step within a flow"""
+
     name: str
     description: str
     function: Callable
@@ -48,6 +50,7 @@ class FlowStep:
 @dataclass
 class FlowResult:
     """Result of flow execution"""
+
     status: FlowStatus
     completed_steps: List[str]
     failed_step: Optional[str] = None
@@ -131,7 +134,7 @@ class BaseFlow(ABC):
             return FlowResult(
                 status=FlowStatus.CANCELLED,
                 completed_steps=[],
-                error_message="Flow cancelled during initialization"
+                error_message="Flow cancelled during initialization",
             )
 
         self.start_time = time.time()
@@ -140,7 +143,7 @@ class BaseFlow(ABC):
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
-            console=self.console
+            console=self.console,
         ) as progress:
 
             for step in self.steps:
@@ -150,7 +153,7 @@ class BaseFlow(ABC):
                         completed_steps=completed_steps,
                         failed_step=step.name,
                         error_message=f"Dependencies not met for step: {step.name}",
-                        execution_time=time.time() - self.start_time
+                        execution_time=time.time() - self.start_time,
                     )
 
                 task = progress.add_task(f"Executing: {step.description}", total=None)
@@ -161,7 +164,9 @@ class BaseFlow(ABC):
 
                     if success:
                         completed_steps.append(step.name)
-                        progress.update(task, description=f"Completed: {step.description}")
+                        progress.update(
+                            task, description=f"Completed: {step.description}"
+                        )
                         time.sleep(0.5)  # Brief pause for user feedback
                     else:
                         if step.required:
@@ -170,7 +175,7 @@ class BaseFlow(ABC):
                                 completed_steps=completed_steps,
                                 failed_step=step.name,
                                 error_message=f"Required step failed: {step.name}",
-                                execution_time=time.time() - self.start_time
+                                execution_time=time.time() - self.start_time,
                             )
                         else:
                             print_info(f"Optional step skipped: {step.name}")
@@ -181,7 +186,7 @@ class BaseFlow(ABC):
                         completed_steps=completed_steps,
                         failed_step=step.name,
                         error_message="Flow cancelled by user",
-                        execution_time=time.time() - self.start_time
+                        execution_time=time.time() - self.start_time,
                     )
 
                 progress.remove_task(task)
@@ -192,7 +197,7 @@ class BaseFlow(ABC):
             status=FlowStatus.COMPLETED,
             completed_steps=completed_steps,
             data=self.context,
-            execution_time=execution_time
+            execution_time=execution_time,
         )
 
         self.show_completion_summary(result)
@@ -205,11 +210,15 @@ class BaseFlow(ABC):
                 return step.function(self.context)
             except Exception as e:
                 if attempt == step.retry_count - 1:
-                    print_error(f"Step '{step.name}' failed after {step.retry_count} attempts: {str(e)}")
+                    print_error(
+                        f"Step '{step.name}' failed after {step.retry_count} attempts: {str(e)}"
+                    )
                     return False
                 else:
-                    print_info(f"Step '{step.name}' failed, retrying... (attempt {attempt + 1}/{step.retry_count})")
-                    time.sleep(2 ** attempt)  # Exponential backoff
+                    print_info(
+                        f"Step '{step.name}' failed, retrying... (attempt {attempt + 1}/{step.retry_count})"
+                    )
+                    time.sleep(2**attempt)  # Exponential backoff
 
         return False
 

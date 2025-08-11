@@ -13,8 +13,10 @@ console = Console()
 
 @app.command()
 def list(
-    active_only: bool = typer.Option(False, "--active", "-a", help="Show only active subnets"),
-    client = typer.Option(None, help="Client instance")
+    active_only: bool = typer.Option(
+        False, "--active", "-a", help="Show only active subnets"
+    ),
+    client=typer.Option(None, help="Client instance"),
 ):
     """List all subnets."""
     # Get client if not provided
@@ -38,7 +40,7 @@ def list(
 @app.command()
 def info(
     subnet_id: int = typer.Argument(..., help="Subnet ID"),
-    client = typer.Option(None, help="Client instance")
+    client=typer.Option(None, help="Client instance"),
 ):
     """Get detailed subnet information."""
     # Get client if not provided

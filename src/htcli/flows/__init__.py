@@ -12,18 +12,18 @@ from .development_setup import DevelopmentSetupFlow
 from .migration_recovery import MigrationRecoveryFlow
 
 __all__ = [
-    'SubnetDeploymentFlow',
-    'NodeOnboardingFlow',
-    'StakingPortfolioFlow',
-    'DevelopmentSetupFlow',
-    'MigrationRecoveryFlow'
+    "SubnetDeploymentFlow",
+    "NodeOnboardingFlow",
+    "StakingPortfolioFlow",
+    "DevelopmentSetupFlow",
+    "MigrationRecoveryFlow",
 ]
 
 # Flow registry for dynamic access
 AVAILABLE_FLOWS = {
-    'subnet-deployment': SubnetDeploymentFlow,
-    'node-onboarding': NodeOnboardingFlow,
-    'staking-portfolio': StakingPortfolioFlow,
-    'development-setup': DevelopmentSetupFlow,
-    'migration-recovery': MigrationRecoveryFlow
+    "subnet-deployment": SubnetDeploymentFlow,
+    "node-onboarding": NodeOnboardingFlow,
+    "staking-portfolio": StakingPortfolioFlow,
+    "development-setup": DevelopmentSetupFlow,
+    "migration-recovery": MigrationRecoveryFlow,
 }

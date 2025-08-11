@@ -25,7 +25,7 @@ def mock_config():
             endpoint="wss://hypertensor.duckdns.org",
             ws_endpoint="wss://hypertensor.duckdns.org",
             timeout=30,
-            retry_attempts=3
+            retry_attempts=3,
         )
     )
     return config
@@ -75,7 +75,7 @@ def sample_keypair():
         "name": "test-key",
         "public_key": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
         "private_key": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-        "key_type": "sr25519"
+        "key_type": "sr25519",
     }
 
 
@@ -94,9 +94,9 @@ def sample_subnet_data():
                 "node_id": 1,
                 "peer_id": "QmTestPeerId1234567890abcdef",
                 "hotkey": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
-                "stake": 1000
+                "stake": 1000,
             }
-        ]
+        ],
     }
 
 
@@ -110,7 +110,7 @@ def sample_account_data():
         "free": 1000000000000,
         "reserved": 0,
         "misc_frozen": 0,
-        "fee_frozen": 0
+        "fee_frozen": 0,
     }
 
 
@@ -123,7 +123,7 @@ def sample_network_stats():
         "total_nodes": 150,
         "total_stake": 5000000000000000000,  # 5 TENSOR with 18 decimals
         "current_epoch": 1234,
-        "block_height": 567890
+        "block_height": 567890,
     }
 
 
@@ -144,7 +144,7 @@ def env_vars():
         "HTCLI_OUTPUT_COLOR": "true",
         "HTCLI_WALLET_PATH": str(Path.home() / ".htcli" / "wallets"),
         "HTCLI_WALLET_DEFAULT_NAME": "default",
-        "HTCLI_WALLET_ENCRYPTION_ENABLED": "true"
+        "HTCLI_WALLET_ENCRYPTION_ENABLED": "true",
     }
 
     # Update environment
@@ -160,18 +160,10 @@ def env_vars():
 
 def pytest_configure(config):
     """Configure pytest with custom markers."""
-    config.addinivalue_line(
-        "markers", "integration: marks tests as integration tests"
-    )
-    config.addinivalue_line(
-        "markers", "unit: marks tests as unit tests"
-    )
-    config.addinivalue_line(
-        "markers", "slow: marks tests as slow running"
-    )
-    config.addinivalue_line(
-        "markers", "network: marks tests as network tests"
-    )
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")
+    config.addinivalue_line("markers", "unit: marks tests as unit tests")
+    config.addinivalue_line("markers", "slow: marks tests as slow running")
+    config.addinivalue_line("markers", "network: marks tests as network tests")
 
 
 def pytest_collection_modifyitems(config, items):

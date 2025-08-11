@@ -9,7 +9,7 @@ from ...utils.validation import (
     validate_subnet_path,
     validate_memory_mb,
     validate_registration_blocks,
-    validate_entry_interval
+    validate_entry_interval,
 )
 from ...utils.formatting import print_success, print_error
 from ...dependencies import get_client
@@ -21,10 +21,16 @@ console = Console()
 @app.command()
 def create(
     path: str = typer.Argument(..., help="Subnet path"),
-    memory_mb: int = typer.Option(..., "--memory", "-m", help="Memory requirement in MB"),
-    registration_blocks: int = typer.Option(..., "--blocks", "-b", help="Registration period in blocks"),
-    entry_interval: int = typer.Option(..., "--interval", "-i", help="Entry interval in blocks"),
-    client = typer.Option(None, help="Client instance")
+    memory_mb: int = typer.Option(
+        ..., "--memory", "-m", help="Memory requirement in MB"
+    ),
+    registration_blocks: int = typer.Option(
+        ..., "--blocks", "-b", help="Registration period in blocks"
+    ),
+    entry_interval: int = typer.Option(
+        ..., "--interval", "-i", help="Entry interval in blocks"
+    ),
+    client=typer.Option(None, help="Client instance"),
 ):
     """Register a new subnet."""
     # Get client if not provided
@@ -33,7 +39,9 @@ def create(
 
     # Validate inputs
     if not validate_subnet_path(path):
-        print_error("Invalid subnet path. Use alphanumeric characters, hyphens, and underscores only.")
+        print_error(
+            "Invalid subnet path. Use alphanumeric characters, hyphens, and underscores only."
+        )
         raise typer.Exit(1)
 
     if not validate_memory_mb(memory_mb):
@@ -41,7 +49,9 @@ def create(
         raise typer.Exit(1)
 
     if not validate_registration_blocks(registration_blocks):
-        print_error("Invalid registration blocks. Must be between 1 and 1000000 blocks.")
+        print_error(
+            "Invalid registration blocks. Must be between 1 and 1000000 blocks."
+        )
         raise typer.Exit(1)
 
     if not validate_entry_interval(entry_interval):
@@ -53,7 +63,7 @@ def create(
             path=path,
             memory_mb=memory_mb,
             registration_blocks=registration_blocks,
-            entry_interval=entry_interval
+            entry_interval=entry_interval,
         )
 
         response = client.register_subnet(request)
@@ -67,7 +77,7 @@ def create(
 @app.command()
 def activate(
     subnet_id: int = typer.Argument(..., help="Subnet ID to activate"),
-    client = typer.Option(None, help="Client instance")
+    client=typer.Option(None, help="Client instance"),
 ):
     """Activate a registered subnet."""
     # Get client if not provided

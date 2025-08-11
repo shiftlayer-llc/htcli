@@ -11,6 +11,7 @@ from ..models.responses import *
 
 logger = logging.getLogger(__name__)
 
+
 class ChainClient:
     """Client for chain operations."""
 
@@ -25,38 +26,34 @@ class ChainClient:
 
             # Query various network statistics
             total_subnets = self.substrate.query(
-                module='Network',
-                storage_function='TotalSubnetUids',
-                params=[]
+                module="Network", storage_function="TotalSubnetUids", params=[]
             )
 
             total_active_subnets = self.substrate.query(
-                module='Network',
-                storage_function='TotalActiveSubnets',
-                params=[]
+                module="Network", storage_function="TotalActiveSubnets", params=[]
             )
 
             total_active_nodes = self.substrate.query(
-                module='Network',
-                storage_function='TotalActiveNodes',
-                params=[]
+                module="Network", storage_function="TotalActiveNodes", params=[]
             )
 
             total_stake = self.substrate.query(
-                module='Network',
-                storage_function='TotalStake',
-                params=[]
+                module="Network", storage_function="TotalStake", params=[]
             )
 
             return NetworkStatsResponse(
                 success=True,
                 message="Network statistics retrieved successfully",
                 data={
-                    'total_subnets': total_subnets.value if total_subnets else 0,
-                    'total_active_subnets': total_active_subnets.value if total_active_subnets else 0,
-                    'total_active_nodes': total_active_nodes.value if total_active_nodes else 0,
-                    'total_stake': total_stake.value if total_stake else 0
-                }
+                    "total_subnets": total_subnets.value if total_subnets else 0,
+                    "total_active_subnets": (
+                        total_active_subnets.value if total_active_subnets else 0
+                    ),
+                    "total_active_nodes": (
+                        total_active_nodes.value if total_active_nodes else 0
+                    ),
+                    "total_stake": total_stake.value if total_stake else 0,
+                },
             )
         except Exception as e:
             logger.error(f"Failed to get network stats: {str(e)}")
@@ -72,9 +69,7 @@ class ChainClient:
             try:
                 # Try Network.CurrentEpoch first
                 current_epoch = self.substrate.query(
-                    module='Network',
-                    storage_function='CurrentEpoch',
-                    params=[]
+                    module="Network", storage_function="CurrentEpoch", params=[]
                 )
                 epoch_value = current_epoch.value if current_epoch else 0
             except:
@@ -84,9 +79,7 @@ class ChainClient:
             return EpochInfoResponse(
                 success=True,
                 message="Current epoch retrieved successfully",
-                data={
-                    'current_epoch': epoch_value
-                }
+                data={"current_epoch": epoch_value},
             )
         except Exception as e:
             logger.error(f"Failed to get current epoch: {str(e)}")
@@ -100,12 +93,14 @@ class ChainClient:
 
             # Query account balance using the System pallet
             account_info = self.substrate.query(
-                module='System',
-                storage_function='Account',
-                params=[address]
+                module="System", storage_function="Account", params=[address]
             )
 
-            balance = account_info.value["data"]["free"] if account_info and account_info.value else 0
+            balance = (
+                account_info.value["data"]["free"]
+                if account_info and account_info.value
+                else 0
+            )
 
             return BalanceResponse(
                 success=True,
@@ -113,8 +108,8 @@ class ChainClient:
                 data={
                     "address": address,
                     "balance": balance,
-                    "formatted_balance": f"{balance / 1e12:.6f} TENSOR"
-                }
+                    "formatted_balance": f"{balance / 1e12:.6f} TENSOR",
+                },
             )
         except Exception as e:
             logger.error(f"Failed to get balance: {str(e)}")
@@ -127,12 +122,12 @@ class ChainClient:
                 raise Exception("Not connected to blockchain")
 
             # Query network peers using RPC
-            peers = self.substrate.rpc_request('system_peers', [])
+            peers = self.substrate.rpc_request("system_peers", [])
 
             return PeersResponse(
                 success=True,
                 message="Peers retrieved successfully",
-                data={"peers": peers.get('result', [])}
+                data={"peers": peers.get("result", [])},
             )
         except Exception as e:
             logger.error(f"Failed to get peers: {str(e)}")
@@ -160,14 +155,18 @@ class ChainClient:
                 success=True,
                 message="Block info retrieved successfully",
                 data={
-                    "block_number": block_header.get("number", 0),  # Use get() for safety
+                    "block_number": block_header.get(
+                        "number", 0
+                    ),  # Use get() for safety
                     "block_hash": str(block_hash),
                     "parent_hash": str(block_header.get("parentHash", "")),
                     "state_root": str(block_header.get("stateRoot", "")),
                     "extrinsics_root": str(block_header.get("extrinsicsRoot", "")),
                     "timestamp": block_header.get("timestamp", 0),
-                    "extrinsics_count": len(block.get("extrinsics", [])) if block else 0
-                }
+                    "extrinsics_count": (
+                        len(block.get("extrinsics", [])) if block else 0
+                    ),
+                },
             )
         except Exception as e:
             logger.error(f"Failed to get block info: {str(e)}")
@@ -180,28 +179,21 @@ class ChainClient:
             if not self.substrate:
                 raise Exception("Not connected to blockchain")
 
-            call_params = {
-                'subnet_id': subnet_id,
-                'data': data
-            }
+            call_params = {"subnet_id": subnet_id, "data": data}
             if args:
-                call_params['args'] = args
+                call_params["args"] = args
 
             call_data = self.substrate.compose_call(
-                call_module='Network',
-                call_function='validate',
-                call_params=call_params
+                call_module="Network", call_function="validate", call_params=call_params
             )
 
             if keypair:
                 extrinsic = self.substrate.create_signed_extrinsic(
-                    call=call_data,
-                    keypair=keypair
+                    call=call_data, keypair=keypair
                 )
 
                 receipt = self.substrate.submit_extrinsic(
-                    extrinsic=extrinsic,
-                    wait_for_inclusion=True
+                    extrinsic=extrinsic, wait_for_inclusion=True
                 )
 
                 return ValidationResponse(
@@ -209,15 +201,15 @@ class ChainClient:
                     message="Validation submitted successfully",
                     transaction_hash=receipt.extrinsic_hash,
                     block_number=receipt.block_number,
-                    data={'receipt': receipt}
+                    data={"receipt": receipt},
                 )
             else:
                 return ValidationResponse(
                     success=True,
                     message="Validation call composed successfully",
-                    transaction_hash="0x" + "0" * 64,
+                    transaction_hash=None,
                     block_number=None,
-                    data={'call_data': call_data}
+                    data={"call_data": call_data},
                 )
         except Exception as e:
             logger.error(f"Failed to validate: {str(e)}")
@@ -230,20 +222,18 @@ class ChainClient:
                 raise Exception("Not connected to blockchain")
 
             call_data = self.substrate.compose_call(
-                call_module='Network',
-                call_function='attest',
-                call_params={'subnet_id': subnet_id}
+                call_module="Network",
+                call_function="attest",
+                call_params={"subnet_id": subnet_id},
             )
 
             if keypair:
                 extrinsic = self.substrate.create_signed_extrinsic(
-                    call=call_data,
-                    keypair=keypair
+                    call=call_data, keypair=keypair
                 )
 
                 receipt = self.substrate.submit_extrinsic(
-                    extrinsic=extrinsic,
-                    wait_for_inclusion=True
+                    extrinsic=extrinsic, wait_for_inclusion=True
                 )
 
                 return AttestationResponse(
@@ -251,46 +241,46 @@ class ChainClient:
                     message="Attestation submitted successfully",
                     transaction_hash=receipt.extrinsic_hash,
                     block_number=receipt.block_number,
-                    data={'receipt': receipt}
+                    data={"receipt": receipt},
                 )
             else:
                 return AttestationResponse(
                     success=True,
                     message="Attestation call composed successfully",
-                    transaction_hash="0x" + "0" * 64,
+                    transaction_hash=None,
                     block_number=None,
-                    data={'call_data': call_data}
+                    data={"call_data": call_data},
                 )
         except Exception as e:
             logger.error(f"Failed to attest: {str(e)}")
             raise
 
-    def propose(self, subnet_id: int, subnet_node_id: int, peer_id: str, data: str, keypair=None):
+    def propose(
+        self, subnet_id: int, subnet_node_id: int, peer_id: str, data: str, keypair=None
+    ):
         """Propose using Network.propose."""
         try:
             if not self.substrate:
                 raise Exception("Not connected to blockchain")
 
             call_data = self.substrate.compose_call(
-                call_module='Network',
-                call_function='propose',
+                call_module="Network",
+                call_function="propose",
                 call_params={
-                    'subnet_id': subnet_id,
-                    'subnet_node_id': subnet_node_id,
-                    'peer_id': peer_id,
-                    'data': data
-                }
+                    "subnet_id": subnet_id,
+                    "subnet_node_id": subnet_node_id,
+                    "peer_id": peer_id,
+                    "data": data,
+                },
             )
 
             if keypair:
                 extrinsic = self.substrate.create_signed_extrinsic(
-                    call=call_data,
-                    keypair=keypair
+                    call=call_data, keypair=keypair
                 )
 
                 receipt = self.substrate.submit_extrinsic(
-                    extrinsic=extrinsic,
-                    wait_for_inclusion=True
+                    extrinsic=extrinsic, wait_for_inclusion=True
                 )
 
                 return ProposalResponse(
@@ -298,46 +288,51 @@ class ChainClient:
                     message="Proposal submitted successfully",
                     transaction_hash=receipt.extrinsic_hash,
                     block_number=receipt.block_number,
-                    data={'receipt': receipt}
+                    data={"receipt": receipt},
                 )
             else:
                 return ProposalResponse(
                     success=True,
                     message="Proposal call composed successfully",
-                    transaction_hash="0x" + "0" * 64,
+                    transaction_hash=None,
                     block_number=None,
-                    data={'call_data': call_data}
+                    data={"call_data": call_data},
                 )
         except Exception as e:
             logger.error(f"Failed to propose: {str(e)}")
             raise
 
-    def vote(self, subnet_id: int, subnet_node_id: int, proposal_id: int, vote: str, keypair=None):
+    def vote(
+        self,
+        subnet_id: int,
+        subnet_node_id: int,
+        proposal_id: int,
+        vote: str,
+        keypair=None,
+    ):
         """Vote using Network.vote."""
         try:
             if not self.substrate:
                 raise Exception("Not connected to blockchain")
 
             call_data = self.substrate.compose_call(
-                call_module='Network',
-                call_function='vote',
+                call_module="Network",
+                call_function="vote",
                 call_params={
-                    'subnet_id': subnet_id,
-                    'subnet_node_id': subnet_node_id,
-                    'proposal_id': proposal_id,
-                    'vote': vote
-                }
+                    "subnet_id": subnet_id,
+                    "subnet_node_id": subnet_node_id,
+                    "proposal_id": proposal_id,
+                    "vote": vote,
+                },
             )
 
             if keypair:
                 extrinsic = self.substrate.create_signed_extrinsic(
-                    call=call_data,
-                    keypair=keypair
+                    call=call_data, keypair=keypair
                 )
 
                 receipt = self.substrate.submit_extrinsic(
-                    extrinsic=extrinsic,
-                    wait_for_inclusion=True
+                    extrinsic=extrinsic, wait_for_inclusion=True
                 )
 
                 return VoteResponse(
@@ -345,15 +340,15 @@ class ChainClient:
                     message="Vote submitted successfully",
                     transaction_hash=receipt.extrinsic_hash,
                     block_number=receipt.block_number,
-                    data={'receipt': receipt}
+                    data={"receipt": receipt},
                 )
             else:
                 return VoteResponse(
                     success=True,
                     message="Vote call composed successfully",
-                    transaction_hash="0x" + "0" * 64,
+                    transaction_hash=None,
                     block_number=None,
-                    data={'call_data': call_data}
+                    data={"call_data": call_data},
                 )
         except Exception as e:
             logger.error(f"Failed to vote: {str(e)}")
@@ -367,24 +362,24 @@ class ChainClient:
 
             # Get account balance
             account_info = self.substrate.query(
-                module='System',
-                storage_function='Account',
-                params=[address]
+                module="System", storage_function="Account", params=[address]
             )
 
             # Try to get account nonce - handle missing storage function
             try:
                 nonce = self.substrate.query(
-                    module='System',
-                    storage_function='AccountNonce',
-                    params=[address]
+                    module="System", storage_function="AccountNonce", params=[address]
                 )
                 nonce_value = nonce.value if nonce else 0
             except Exception:
                 # If AccountNonce doesn't exist, use a default value
                 nonce_value = 0
 
-            balance = account_info.value["data"]["free"] if account_info and account_info.value else 0
+            balance = (
+                account_info.value["data"]["free"]
+                if account_info and account_info.value
+                else 0
+            )
 
             return AccountInfoResponse(
                 success=True,
@@ -393,8 +388,10 @@ class ChainClient:
                     "address": address,
                     "balance": balance,
                     "nonce": nonce_value,
-                    "formatted_balance": f"{(balance / 1e12):.6f} TENSOR" if balance > 0 else "0 TENSOR"
-                }
+                    "formatted_balance": (
+                        f"{(balance / 1e12):.6f} TENSOR" if balance > 0 else "0 TENSOR"
+                    ),
+                },
             )
         except Exception as e:
             logger.error(f"Failed to get account info: {str(e)}")
@@ -415,8 +412,8 @@ class ChainClient:
                 data={
                     "block_number": block_header.get("number", 0),
                     "block_hash": str(block_hash),
-                    "parent_hash": str(block_header.get("parentHash", ""))
-                }
+                    "parent_hash": str(block_header.get("parentHash", "")),
+                },
             )
         except Exception as e:
             logger.error(f"Failed to get chain head: {str(e)}")
@@ -442,7 +439,7 @@ class ChainClient:
                     "authoring_version": 0,
                     "spec_version": 0,
                     "impl_version": 0,
-                    "transaction_version": 0
+                    "transaction_version": 0,
                 }
 
             return RuntimeVersionResponse(
@@ -454,8 +451,8 @@ class ChainClient:
                     "authoring_version": version_data.get("authoring_version", 0),
                     "spec_version": version_data.get("spec_version", 0),
                     "impl_version": version_data.get("impl_version", 0),
-                    "transaction_version": version_data.get("transaction_version", 0)
-                }
+                    "transaction_version": version_data.get("transaction_version", 0),
+                },
             )
         except Exception as e:
             logger.error(f"Failed to get runtime version: {str(e)}")

@@ -269,12 +269,12 @@ class WalletClient:
 
     def transfer_delegate_stake(
         self,
-        from_subnet_id: int,
-        to_subnet_id: int,
-        delegate_stake_shares_to_be_switched: int,
+        subnet_id: int,
+        to_account_id: str,
+        delegate_stake_shares_to_transfer: int,
         keypair=None,
     ):
-        """Transfer delegate stake using Network.transfer_delegate_stake."""
+        """Transfer delegate stake shares from one account to another using Network.transfer_delegate_stake."""
         try:
             if not self.substrate:
                 raise Exception("Not connected to blockchain")
@@ -283,9 +283,9 @@ class WalletClient:
                 call_module="Network",
                 call_function="transfer_delegate_stake",
                 call_params={
-                    "from_subnet_id": from_subnet_id,
-                    "to_subnet_id": to_subnet_id,
-                    "delegate_stake_shares_to_be_switched": delegate_stake_shares_to_be_switched,
+                    "subnet_id": subnet_id,
+                    "to_account_id": to_account_id,
+                    "delegate_stake_shares_to_transfer": delegate_stake_shares_to_transfer,
                 },
             )
 
@@ -354,12 +354,57 @@ class WalletClient:
                 return DelegateStakeRemoveResponse(
                     success=True,
                     message="Delegate stake removal call composed successfully",
-                    transaction_hash="0x" + "0" * 64,
+                    transaction_hash=None,
                     block_number=None,
                     data={"call_data": call_data},
                 )
         except Exception as e:
             logger.error(f"Failed to remove delegate stake: {str(e)}")
+            raise
+
+    def increase_delegate_stake(
+        self, subnet_id: int, amount: int, keypair=None
+    ):
+        """Increase delegate stake pool using Network.increase_delegate_stake."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="increase_delegate_stake",
+                call_params={
+                    "subnet_id": subnet_id,
+                    "amount": amount,
+                },
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return DelegateStakeIncreaseResponse(
+                    success=True,
+                    message="Delegate stake pool increased successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return DelegateStakeIncreaseResponse(
+                    success=True,
+                    message="Delegate stake pool increase call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to increase delegate stake pool: {str(e)}")
             raise
 
     def update_coldkey(self, hotkey: str, new_coldkey: str, keypair=None):

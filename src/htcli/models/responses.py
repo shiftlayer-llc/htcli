@@ -68,6 +68,24 @@ class SubnetUnpauseResponse(BaseModel):
     data: Dict[str, Any] = Field(default_factory=dict, description="Additional data")
 
 
+class SubnetOwnershipTransferResponse(BaseModel):
+    """Response model for subnet ownership transfer operations."""
+    success: bool = Field(..., description="Whether the operation was successful")
+    message: str = Field(..., description="Response message")
+    transaction_hash: str = Field(..., description="Transaction hash")
+    block_number: Optional[int] = Field(None, description="Block number")
+    data: Dict[str, Any] = Field(default_factory=dict, description="Additional data")
+
+
+class SubnetOwnerUpdateResponse(BaseModel):
+    """Response model for subnet owner update operations."""
+    success: bool = Field(..., description="Whether the operation was successful")
+    message: str = Field(..., description="Response message")
+    transaction_hash: str = Field(..., description="Transaction hash")
+    block_number: Optional[int] = Field(None, description="Block number")
+    data: Dict[str, Any] = Field(default_factory=dict, description="Additional data")
+
+
 # Node responses
 class NodeAddResponse(BaseResponse):
     """Response for node addition."""
@@ -134,6 +152,15 @@ class DelegateStakeRemoveResponse(BaseResponse):
     """Response for delegate stake removal."""
 
     pass
+
+
+class DelegateStakeIncreaseResponse(BaseModel):
+    """Response model for delegate stake pool increase operations."""
+    success: bool = Field(..., description="Whether the operation was successful")
+    message: str = Field(..., description="Response message")
+    transaction_hash: str = Field(..., description="Transaction hash")
+    block_number: Optional[int] = Field(None, description="Block number")
+    data: Dict[str, Any] = Field(default_factory=dict, description="Additional data")
 
 
 # Key management responses

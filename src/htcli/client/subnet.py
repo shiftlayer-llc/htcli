@@ -651,3 +651,809 @@ class SubnetClient:
         except Exception as e:
             logger.error(f"Failed to remove subnet node: {str(e)}")
             raise
+
+    # ============================================================================
+    # SUBNET OWNER OPERATIONS
+    # ============================================================================
+
+    def owner_update_name(self, subnet_id: int, name: str, key_name: str = None, keypair=None):
+        """Update subnet name using Network.owner_update_name."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="owner_update_name",
+                call_params={"subnet_id": subnet_id, "value": name},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet name updated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet name update call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to update subnet name: {str(e)}")
+            raise
+
+    def owner_update_repo(self, subnet_id: int, repo: str, key_name: str = None, keypair=None):
+        """Update subnet repository using Network.owner_update_repo."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="owner_update_repo",
+                call_params={"subnet_id": subnet_id, "value": repo},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet repository updated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet repository update call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to update subnet repository: {str(e)}")
+            raise
+
+    def owner_update_description(self, subnet_id: int, description: str, key_name: str = None, keypair=None):
+        """Update subnet description using Network.owner_update_description."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="owner_update_description",
+                call_params={"subnet_id": subnet_id, "value": description},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet description updated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet description update call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to update subnet description: {str(e)}")
+            raise
+
+    def transfer_subnet_ownership(self, subnet_id: int, new_owner: str, key_name: str = None, keypair=None):
+        """Transfer subnet ownership using Network.transfer_subnet_ownership."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="transfer_subnet_ownership",
+                call_params={"subnet_id": subnet_id, "new_owner": new_owner},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return SubnetOwnershipTransferResponse(
+                    success=True,
+                    message="Subnet ownership transfer initiated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return SubnetOwnershipTransferResponse(
+                    success=True,
+                    message="Subnet ownership transfer call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to transfer subnet ownership: {str(e)}")
+            raise
+
+    def accept_subnet_ownership(self, subnet_id: int, key_name: str = None, keypair=None):
+        """Accept subnet ownership using Network.accept_subnet_ownership."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="accept_subnet_ownership",
+                call_params={"subnet_id": subnet_id},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return SubnetOwnershipTransferResponse(
+                    success=True,
+                    message="Subnet ownership accepted successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return SubnetOwnershipTransferResponse(
+                    success=True,
+                    message="Subnet ownership acceptance call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to accept subnet ownership: {str(e)}")
+            raise
+
+    def undo_subnet_ownership_transfer(self, subnet_id: int, key_name: str = None, keypair=None):
+        """Undo subnet ownership transfer using Network.transfer_subnet_ownership with zero address."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            # Use zero address to undo transfer
+            zero_address = "5C4hrfjw9DjXZTzV3MwzrrAr9P1MJhSrvWGWqi1eSuyUpnhM"
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="transfer_subnet_ownership",
+                call_params={"subnet_id": subnet_id, "new_owner": zero_address},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return SubnetOwnershipTransferResponse(
+                    success=True,
+                    message="Subnet ownership transfer undone successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return SubnetOwnershipTransferResponse(
+                    success=True,
+                    message="Subnet ownership transfer undo call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to undo subnet ownership transfer: {str(e)}")
+            raise
+
+    def owner_remove_subnet_node(self, subnet_id: int, node_id: int, key_name: str = None, keypair=None):
+        """Remove a subnet node using Network.owner_remove_subnet_node."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="owner_remove_subnet_node",
+                call_params={"subnet_id": subnet_id, "subnet_node_id": node_id},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return NodeRemoveResponse(
+                    success=True,
+                    message="Subnet node removed successfully by owner",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return NodeRemoveResponse(
+                    success=True,
+                    message="Subnet node removal call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to remove subnet node: {str(e)}")
+            raise
+
+    def owner_update_churn_limit(self, subnet_id: int, churn_limit: int, key_name: str = None, keypair=None):
+        """Update churn limit using Network.owner_update_churn_limit."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="owner_update_churn_limit",
+                call_params={"subnet_id": subnet_id, "value": churn_limit},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet churn limit updated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet churn limit update call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to update churn limit: {str(e)}")
+            raise
+
+    def owner_update_min_stake(self, subnet_id: int, min_stake: int, key_name: str = None, keypair=None):
+        """Update minimum stake using Network.owner_update_min_stake."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="owner_update_min_stake",
+                call_params={"subnet_id": subnet_id, "value": min_stake},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet minimum stake updated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet minimum stake update call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to update minimum stake: {str(e)}")
+            raise
+
+    def owner_update_max_stake(self, subnet_id: int, max_stake: int, key_name: str = None, keypair=None):
+        """Update maximum stake using Network.owner_update_max_stake."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="owner_update_max_stake",
+                call_params={"subnet_id": subnet_id, "value": max_stake},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet maximum stake updated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet maximum stake update call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to update maximum stake: {str(e)}")
+            raise
+
+    def owner_update_registration_epochs(self, subnet_id: int, epochs: int, key_name: str = None, keypair=None):
+        """Update registration queue epochs using Network.owner_update_registration_classification_epochs."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="owner_update_registration_classification_epochs",
+                call_params={"subnet_id": subnet_id, "value": epochs},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet registration epochs updated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet registration epochs update call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to update registration epochs: {str(e)}")
+            raise
+
+    def owner_update_activation_grace_epochs(self, subnet_id: int, epochs: int, key_name: str = None, keypair=None):
+        """Update activation grace epochs using Network.owner_update_activation_grace_epochs."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="owner_update_activation_grace_epochs",
+                call_params={"subnet_id": subnet_id, "value": epochs},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet activation grace epochs updated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet activation grace epochs update call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to update activation grace epochs: {str(e)}")
+            raise
+
+    def owner_update_idle_epochs(self, subnet_id: int, epochs: int, key_name: str = None, keypair=None):
+        """Update idle classification epochs using Network.owner_update_idle_classification_epochs."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="owner_update_idle_classification_epochs",
+                call_params={"subnet_id": subnet_id, "value": epochs},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet idle classification epochs updated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet idle classification epochs update call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to update idle classification epochs: {str(e)}")
+            raise
+
+    def owner_update_included_epochs(self, subnet_id: int, epochs: int, key_name: str = None, keypair=None):
+        """Update included classification epochs using Network.owner_update_included_classification_epochs."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="owner_update_included_classification_epochs",
+                call_params={"subnet_id": subnet_id, "value": epochs},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet included classification epochs updated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet included classification epochs update call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to update included classification epochs: {str(e)}")
+            raise
+
+    def owner_update_max_penalties(self, subnet_id: int, max_penalties: int, key_name: str = None, keypair=None):
+        """Update maximum node penalties using Network.owner_max_node_penalties."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="owner_max_node_penalties",
+                call_params={"subnet_id": subnet_id, "value": max_penalties},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet maximum node penalties updated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Subnet maximum node penalties update call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to update maximum node penalties: {str(e)}")
+            raise
+
+    def owner_add_initial_coldkeys(self, subnet_id: int, coldkeys: list, key_name: str = None, keypair=None):
+        """Add initial coldkeys using Network.owner_add_initial_coldkeys."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="owner_add_initial_coldkeys",
+                call_params={"subnet_id": subnet_id, "coldkeys": coldkeys},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Initial coldkeys added successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Initial coldkeys addition call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to add initial coldkeys: {str(e)}")
+            raise
+
+    def owner_remove_initial_coldkeys(self, subnet_id: int, coldkeys: list, key_name: str = None, keypair=None):
+        """Remove initial coldkeys using Network.owner_remove_initial_coldkeys."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # TODO: Get password from user or config
+                password = "default_password_12345"  # This should be improved
+                keypair = load_keypair(key_name, password)
+
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="owner_remove_initial_coldkeys",
+                call_params={"subnet_id": subnet_id, "coldkeys": coldkeys},
+            )
+
+            if keypair:
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Initial coldkeys removed successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                return SubnetOwnerUpdateResponse(
+                    success=True,
+                    message="Initial coldkeys removal call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to remove initial coldkeys: {str(e)}")
+            raise

@@ -623,19 +623,35 @@ def delegate_add(
         True, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
 ):
-    """Add delegate stake with comprehensive guidance."""
+    """Add delegate stake to a subnet for a portion of each epoch's emissions."""
     client = get_client()
 
     # Show comprehensive guidance
     if show_guidance:
-        show_staking_guidance(
-            "delegate",
-            {
-                "Subnet ID": subnet_id,
-                "Delegate Amount": format_balance(amount),
-                "Operation": "Add Delegate Stake",
-            },
+        from rich.panel import Panel
+        guidance_panel = Panel(
+            f"[bold cyan]🤝 Delegate Staking Guide[/bold cyan]\n\n"
+            f"This will add {format_balance(amount)} delegate stake to subnet {subnet_id}:\n\n"
+            f"[bold]What is Delegate Staking:[/bold]\n"
+            f"• Stake tokens directly to a subnet (not a specific node)\n"
+            f"• Earn a portion of each epoch's emissions\n"
+            f"• Share in subnet performance rewards\n"
+            f"• Can transfer shares between subnets\n\n"
+            f"[bold]Benefits:[/bold]\n"
+            f"• Diversified exposure to subnet performance\n"
+            f"• No need to choose specific nodes\n"
+            f"• Automatic reward distribution\n"
+            f"• Flexible share management\n\n"
+            f"[yellow]⚠️ Important:[/yellow]\n"
+            f"• Tokens are locked in the subnet's delegate pool\n"
+            f"• Rewards depend on subnet performance\n"
+            f"• Shares can be transferred or removed\n"
+            f"• Monitor subnet performance regularly",
+            title="[bold green]🤝 Add Delegate Stake[/bold green]",
+            border_style="green"
         )
+        console.print(guidance_panel)
+        console.print()
 
         # Ask for confirmation
         if not typer.confirm("Do you want to add this delegate stake?"):
@@ -659,7 +675,10 @@ def delegate_add(
         # Get keypair for signing if provided
         keypair = None
         if key_name:
-            # TODO: Load keypair from storage
+            from ..utils.crypto import load_keypair
+            # TODO: Get password from user or config
+            password = "default_password_12345"  # This should be improved
+            keypair = load_keypair(key_name, password)
             print_info(f"🔑 Using key: {key_name}")
 
         response = client.add_to_delegate_stake(subnet_id, amount, keypair)
@@ -681,11 +700,12 @@ def delegate_add(
                     f"[bold green]🤝 Delegate Stake Added![/bold green]\n\n"
                     f"Added {format_balance(amount)} delegate stake to subnet {subnet_id}.\n"
                     f"• Earning delegate rewards based on subnet performance\n"
-                    f"• Can transfer to other subnets if needed\n"
+                    f"• Can transfer shares to other subnets if needed\n"
                     f"• Monitor performance and rewards regularly\n\n"
                     f"[yellow]💡 Management:[/yellow]\n"
                     f"• Transfer: [bold]htcli stake delegate-transfer[/bold]\n"
-                    f"• Remove: [bold]htcli stake delegate-remove[/bold]",
+                    f"• Remove: [bold]htcli stake delegate-remove[/bold]\n"
+                    f"• Info: [bold]htcli stake info --subnet-id {subnet_id}[/bold]",
                     title="Delegate Staking Active",
                     border_style="green",
                 )
@@ -712,25 +732,38 @@ def delegate_remove(
         True, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
 ):
-    """Remove delegate stake with comprehensive guidance."""
+    """Remove delegate stake shares from a subnet (shares converted to balance internally)."""
     client = get_client()
 
     # Show comprehensive guidance
     if show_guidance:
-        show_staking_guidance(
-            "delegate",
-            {
-                "Subnet ID": subnet_id,
-                "Shares to Remove": shares,
-                "Operation": "Remove Delegate Stake",
-            },
+        from rich.panel import Panel
+        guidance_panel = Panel(
+            f"[bold cyan]📤 Remove Delegate Stake Guide[/bold cyan]\n\n"
+            f"This will remove {shares} delegate stake shares from subnet {subnet_id}:\n\n"
+            f"[bold]What Happens:[/bold]\n"
+            f"• Shares are converted to balance internally\n"
+            f"• Balance becomes available in your account\n"
+            f"• Reduced exposure to subnet performance\n"
+            f"• Stops earning rewards on removed shares\n\n"
+            f"[bold]Share System:[/bold]\n"
+            f"• Shares represent your portion of the delegate pool\n"
+            f"• More shares = higher rewards\n"
+            f"• Shares can be transferred between subnets\n"
+            f"• Balance conversion happens automatically\n\n"
+            f"[yellow]⚠️ Important:[/yellow]\n"
+            f"• This reduces your stake in the subnet\n"
+            f"• Lower rewards from this subnet\n"
+            f"• Consider transferring instead of removing\n"
+            f"• Monitor your total portfolio balance",
+            title="[bold yellow]📤 Remove Delegate Stake[/bold yellow]",
+            border_style="yellow"
         )
+        console.print(guidance_panel)
+        console.print()
 
         # Ask for confirmation
-        console.print(
-            "[bold red]⚠️ WARNING: Removing delegate stake will stop earning rewards![/bold red]"
-        )
-        if not typer.confirm("Are you sure you want to remove this delegate stake?"):
+        if not typer.confirm("Do you want to remove this delegate stake?"):
             print_info("Delegate stake removal cancelled.")
             return
 
@@ -749,7 +782,10 @@ def delegate_remove(
         # Get keypair for signing if provided
         keypair = None
         if key_name:
-            # TODO: Load keypair from storage
+            from ..utils.crypto import load_keypair
+            # TODO: Get password from user or config
+            password = "default_password_12345"  # This should be improved
+            keypair = load_keypair(key_name, password)
             print_info(f"🔑 Using key: {key_name}")
 
         response = client.remove_delegate_stake(subnet_id, shares, keypair)
@@ -787,12 +823,121 @@ def delegate_remove(
 
 
 @app.command()
-def delegate_transfer(
-    from_subnet: int = typer.Option(
-        ..., "--from-subnet", "-f", help="Source subnet ID"
+def delegate_increase(
+    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
+    amount: int = typer.Option(
+        ..., "--amount", "-a", help="Amount to add to delegate stake pool (in smallest units)"
     ),
-    to_subnet: int = typer.Option(
-        ..., "--to-subnet", "-t", help="Destination subnet ID"
+    key_name: Optional[str] = typer.Option(
+        None, "--key-name", "-k", help="Key name for signing"
+    ),
+    show_guidance: bool = typer.Option(
+        True, "--guidance/--no-guidance", help="Show comprehensive guidance"
+    ),
+):
+    """Increase the overall delegate stake balance in a subnet's pool (useful for airdropping rewards)."""
+    client = get_client()
+
+    # Show comprehensive guidance
+    if show_guidance:
+        from rich.panel import Panel
+        guidance_panel = Panel(
+            f"[bold cyan]💰 Increase Delegate Stake Pool Guide[/bold cyan]\n\n"
+            f"This will increase the delegate stake pool for subnet {subnet_id} by {format_balance(amount)}:\n\n"
+            f"[bold]What This Does:[/bold]\n"
+            f"• Increases the total delegate stake balance in the subnet\n"
+            f"• Benefits ALL current delegate stakers proportionally\n"
+            f"• Does NOT increase your personal balance\n"
+            f"• Useful for airdropping rewards to stakers\n\n"
+            f"[bold]Impact:[/bold]\n"
+            f"• All current stakers get more rewards\n"
+            f"• Pool becomes more attractive to new stakers\n"
+            f"• Subnet gains more delegate stake support\n"
+            f"• Your contribution benefits the entire community\n\n"
+            f"[yellow]⚠️ Important:[/yellow]\n"
+            f"• This is a community contribution\n"
+            f"• You don't get direct personal benefit\n"
+            f"• Tokens are added to the pool permanently\n"
+            f"• Consider this carefully before proceeding",
+            title="[bold magenta]💰 Increase Delegate Pool[/bold magenta]",
+            border_style="magenta"
+        )
+        console.print(guidance_panel)
+        console.print()
+
+        # Ask for confirmation
+        if not typer.confirm(
+            f"Increase delegate stake pool for subnet {subnet_id} by {format_balance(amount)}?"
+        ):
+            print_info("Delegate stake pool increase cancelled.")
+            return
+
+    # Validate inputs
+    if not validate_subnet_id(subnet_id):
+        print_error("❌ Invalid subnet ID. Must be a positive integer.")
+        raise typer.Exit(1)
+
+    if not validate_amount(amount):
+        print_error("❌ Invalid amount. Must be positive.")
+        raise typer.Exit(1)
+
+    try:
+        print_info(
+            f"🔄 Increasing delegate stake pool for subnet {subnet_id} by {format_balance(amount)}..."
+        )
+
+        # Get keypair for signing if provided
+        keypair = None
+        if key_name:
+            from ..utils.crypto import load_keypair
+            # TODO: Get password from user or config
+            password = "default_password_12345"  # This should be improved
+            keypair = load_keypair(key_name, password)
+            print_info(f"🔑 Using key: {key_name}")
+
+        response = client.increase_delegate_stake(subnet_id, amount, keypair)
+
+        if response.success:
+            print_success(f"✅ Successfully increased delegate stake pool by {format_balance(amount)}!")
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
+            if response.block_number:
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
+
+            console.print(
+                Panel(
+                    f"[bold magenta]💰 Delegate Pool Increased![/bold magenta]\n\n"
+                    f"Increased delegate stake pool for subnet {subnet_id} by {format_balance(amount)}.\n"
+                    f"• All current delegate stakers benefit\n"
+                    f"• Pool becomes more attractive to new stakers\n"
+                    f"• Subnet gains stronger delegate support\n"
+                    f"• Community contribution successful\n\n"
+                    f"[yellow]💡 Impact:[/yellow]\n"
+                    f"• Higher rewards for all stakers\n"
+                    f"• More attractive to potential stakers\n"
+                    f"• Stronger subnet performance\n"
+                    f"• Community growth supported",
+                    title="Delegate Pool Increase Complete",
+                    border_style="magenta",
+                )
+            )
+        else:
+            print_error(f"❌ Failed to increase delegate stake pool: {response.message}")
+            raise typer.Exit(1)
+
+    except Exception as e:
+        print_error(f"❌ Failed to increase delegate stake pool: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def delegate_transfer(
+    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
+    to_account: str = typer.Option(
+        ..., "--to-account", "-t", help="Destination account address"
     ),
     shares: int = typer.Option(
         ..., "--shares", "-sh", help="Number of shares to transfer"
@@ -804,39 +949,50 @@ def delegate_transfer(
         True, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
 ):
-    """Transfer delegate stake between subnets with comprehensive guidance."""
+    """Transfer delegate stake shares from one account to another within a subnet."""
     client = get_client()
 
     # Show comprehensive guidance
     if show_guidance:
-        show_staking_guidance(
-            "delegate",
-            {
-                "From Subnet": from_subnet,
-                "To Subnet": to_subnet,
-                "Shares to Transfer": shares,
-                "Operation": "Transfer Delegate Stake",
-            },
+        from rich.panel import Panel
+        guidance_panel = Panel(
+            f"[bold cyan]🔄 Transfer Delegate Stake Guide[/bold cyan]\n\n"
+            f"This will transfer {shares} delegate stake shares from subnet {subnet_id}:\n\n"
+            f"[bold]Transfer Details:[/bold]\n"
+            f"• From: Your account\n"
+            f"• To: {to_account}\n"
+            f"• Subnet: {subnet_id}\n"
+            f"• Shares: {shares}\n\n"
+            f"[bold]What Happens:[/bold]\n"
+            f"• Shares are transferred to the destination account\n"
+            f"• Destination account gains stake in the subnet\n"
+            f"• Your stake in the subnet is reduced\n"
+            f"• No change in total subnet delegate pool\n\n"
+            f"[yellow]⚠️ Important:[/yellow]\n"
+            f"• This is a permanent transfer\n"
+            f"• Destination account will earn rewards\n"
+            f"• You lose stake and rewards\n"
+            f"• Verify destination address carefully",
+            title="[bold blue]🔄 Transfer Delegate Stake[/bold blue]",
+            border_style="blue"
         )
+        console.print(guidance_panel)
+        console.print()
 
         # Ask for confirmation
         if not typer.confirm(
-            f"Transfer {shares} shares from subnet {from_subnet} to {to_subnet}?"
+            f"Transfer {shares} shares to {to_account} in subnet {subnet_id}?"
         ):
             print_info("Delegate stake transfer cancelled.")
             return
 
     # Validate inputs
-    if not validate_subnet_id(from_subnet):
-        print_error("❌ Invalid source subnet ID. Must be a positive integer.")
+    if not validate_subnet_id(subnet_id):
+        print_error("❌ Invalid subnet ID. Must be a positive integer.")
         raise typer.Exit(1)
 
-    if not validate_subnet_id(to_subnet):
-        print_error("❌ Invalid destination subnet ID. Must be a positive integer.")
-        raise typer.Exit(1)
-
-    if from_subnet == to_subnet:
-        print_error("❌ Source and destination subnets cannot be the same.")
+    if not validate_address(to_account):
+        print_error("❌ Invalid destination account address.")
         raise typer.Exit(1)
 
     if shares <= 0:
@@ -845,17 +1001,20 @@ def delegate_transfer(
 
     try:
         print_info(
-            f"🔄 Transferring {shares} shares from subnet {from_subnet} to {to_subnet}..."
+            f"🔄 Transferring {shares} shares to {to_account} in subnet {subnet_id}..."
         )
 
         # Get keypair for signing if provided
         keypair = None
         if key_name:
-            # TODO: Load keypair from storage
+            from ..utils.crypto import load_keypair
+            # TODO: Get password from user or config
+            password = "default_password_12345"  # This should be improved
+            keypair = load_keypair(key_name, password)
             print_info(f"🔑 Using key: {key_name}")
 
         response = client.transfer_delegate_stake(
-            from_subnet, to_subnet, shares, keypair
+            subnet_id, to_account, shares, keypair
         )
 
         if response.success:
@@ -872,12 +1031,15 @@ def delegate_transfer(
                 Panel(
                     f"[bold green]🔄 Delegate Stake Transferred![/bold green]\n\n"
                     f"Transferred {shares} shares:\n"
-                    f"• From: Subnet {from_subnet}\n"
-                    f"• To: Subnet {to_subnet}\n"
-                    f"• Now earning rewards from destination subnet\n"
+                    f"• From: Your account\n"
+                    f"• To: {to_account}\n"
+                    f"• Subnet: {subnet_id}\n"
+                    f"• Destination account now has stake in subnet\n"
                     f"• Transfer completed in single transaction\n\n"
-                    f"[yellow]💡 Monitor Performance:[/yellow]\n"
-                    f"Track rewards in the new subnet position.",
+                    f"[yellow]💡 Impact:[/yellow]\n"
+                    f"• Destination account will earn rewards\n"
+                    f"• Your stake in subnet is reduced\n"
+                    f"• Monitor your remaining positions",
                     title="Transfer Complete",
                     border_style="green",
                 )

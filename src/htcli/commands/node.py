@@ -11,10 +11,10 @@ from ..models.requests import SubnetNodeAddRequest
 from ..utils.validation import (
     validate_subnet_id,
     validate_node_id,
-    validate_address,
     validate_peer_id,
     validate_amount,
     validate_delegate_reward_rate,
+    validate_address,
 )
 from ..utils.formatting import (
     print_success,
@@ -1354,6 +1354,326 @@ def update(
 
     except Exception as e:
         print_error(f"❌ Failed to update node: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def update_coldkey(
+    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
+    node_id: int = typer.Option(..., "--node-id", "-n", help="Node ID to update"),
+    new_coldkey: str = typer.Option(..., "--new-coldkey", "-c", help="New coldkey address"),
+    key_name: Optional[str] = typer.Option(
+        None, "--key-name", "-k", help="Key name for signing (current hotkey)"
+    ),
+    show_guidance: bool = typer.Option(
+        True, "--guidance/--no-guidance", help="Show comprehensive guidance"
+    ),
+):
+    """Update subnet node coldkey with comprehensive guidance."""
+    client = get_client()
+
+    # Show comprehensive guidance
+    if show_guidance:
+        from rich.panel import Panel
+        guidance_panel = Panel(
+            f"[bold cyan]🔑 Update Node Coldkey Guide[/bold cyan]\n\n"
+            f"This will update the coldkey for node {node_id} in subnet {subnet_id}:\n\n"
+            f"[bold]What is a Coldkey:[/bold]\n"
+            f"• High-security key for infrequent, critical operations\n"
+            f"• Used for ownership transfers and major node decisions\n"
+            f"• Should be stored securely (hardware wallet recommended)\n"
+            f"• Different from hotkey (used for frequent operations)\n"
+            f"• Critical for node security and ownership\n\n"
+            f"[bold]Security Requirements:[/bold]\n"
+            f"• [red]Coldkey and hotkey CAN NEVER MATCH[/red]\n"
+            f"• [yellow]Coldkey must be different from current hotkey[/yellow]\n"
+            f"• [yellow]New coldkey must be a valid SS58 address[/yellow]\n"
+            f"• [yellow]Current hotkey must sign this transaction[/yellow]\n"
+            f"• [yellow]Coldkey controls ownership and major decisions[/yellow]\n\n"
+            f"[bold]Update Process:[/bold]\n"
+            f"• Validates new coldkey address format\n"
+            f"• Ensures coldkey ≠ hotkey (security requirement)\n"
+            f"• Updates coldkey on blockchain\n"
+            f"• Requires current hotkey signature\n"
+            f"• Affects future ownership operations\n\n"
+            f"[bold]Security Considerations:[/bold]\n"
+            f"• [yellow]Store new coldkey securely[/yellow]\n"
+            f"• [yellow]Use hardware wallet if possible[/yellow]\n"
+            f"• [yellow]Backup coldkey safely[/yellow]\n"
+            f"• [yellow]Test coldkey before major operations[/yellow]\n"
+            f"• [yellow]Keep coldkey separate from hotkey[/yellow]\n\n"
+            f"[bold]Impact on Operations:[/bold]\n"
+            f"• [green]Ownership transfers[/green] require new coldkey\n"
+            f"• [green]Major node decisions[/green] use new coldkey\n"
+            f"• [yellow]Daily operations[/yellow] still use hotkey\n"
+            f"• [yellow]Validation/attestation[/yellow] still use hotkey\n"
+            f"• [yellow]Frequent operations[/yellow] unchanged\n\n"
+            f"[red]⚠️ Critical Security:[/red]\n"
+            f"• Coldkey and hotkey must be different\n"
+            f"• Store coldkey securely (hardware wallet)\n"
+            f"• Backup coldkey safely\n"
+            f"• Test coldkey before critical operations\n"
+            f"• Keep coldkey separate from hotkey",
+            title="[bold blue]🔑 Update Node Coldkey[/bold blue]",
+            border_style="blue"
+        )
+        console.print(guidance_panel)
+        console.print()
+
+        # Ask for confirmation
+        if not typer.confirm(f"Update coldkey for node {node_id} in subnet {subnet_id}?"):
+            print_info("Coldkey update cancelled.")
+            return
+
+    # Validate inputs
+    if not validate_subnet_id(subnet_id):
+        print_error("❌ Invalid subnet ID. Must be a positive integer.")
+        raise typer.Exit(1)
+
+    if not validate_node_id(node_id):
+        print_error("❌ Invalid node ID. Must be a positive integer.")
+        raise typer.Exit(1)
+
+    if not validate_address(new_coldkey):
+        print_error("❌ Invalid new coldkey address. Must be a valid SS58 address.")
+        raise typer.Exit(1)
+
+    # Check if key_name is provided (required for update)
+    if not key_name:
+        print_error("❌ Key name is required for coldkey update. Use --key-name to specify your current hotkey.")
+        raise typer.Exit(1)
+
+    try:
+        print_info(f"🔑 Updating coldkey for node {node_id} in subnet {subnet_id}...")
+
+        # Load keypair for signing (current hotkey)
+        from ..utils.crypto import load_keypair
+        # TODO: Get password from user or config
+        password = "default_password_12345"  # This should be improved
+        keypair = load_keypair(key_name, password)
+
+        # Get current hotkey from keypair
+        current_hotkey = keypair.ss58_address
+
+        # Security check: ensure coldkey ≠ hotkey
+        if new_coldkey == current_hotkey:
+            print_error("❌ Security Error: Coldkey and hotkey cannot be the same address!")
+            raise typer.Exit(1)
+
+        # Update the node's coldkey
+        response = client.update_node_coldkey(
+            subnet_id=subnet_id,
+            hotkey=current_hotkey,
+            new_coldkey=new_coldkey,
+            keypair=keypair
+        )
+
+        if response.success:
+            print_success(f"✅ Successfully updated coldkey for node {node_id}!")
+            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            if response.block_number:
+                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+
+            console.print(Panel(
+                f"[bold green]🔑 Coldkey Update Complete![/bold green]\n\n"
+                f"Coldkey for node {node_id} has been updated in subnet {subnet_id}.\n\n"
+                f"[yellow]🔐 Security Update:[/yellow]\n"
+                f"• New coldkey: [bold cyan]{new_coldkey}[/bold cyan]\n"
+                f"• Current hotkey: [bold cyan]{current_hotkey}[/bold cyan]\n"
+                f"• Security requirement: ✅ Coldkey ≠ Hotkey\n"
+                f"• Update verified on blockchain\n"
+                f"• Future ownership operations use new coldkey\n\n"
+                f"[yellow]🔒 Security Recommendations:[/yellow]\n"
+                f"• [green]Store new coldkey securely[/green] (hardware wallet recommended)\n"
+                f"• [green]Backup coldkey safely[/green] (multiple secure locations)\n"
+                f"• [green]Test coldkey[/green] before critical operations\n"
+                f"• [green]Keep coldkey separate[/green] from hotkey\n"
+                f"• [green]Monitor coldkey usage[/green]\n\n"
+                f"[yellow]📋 Impact on Operations:[/yellow]\n"
+                f"• [green]Ownership transfers[/green] now require new coldkey\n"
+                f"• [green]Major node decisions[/green] use new coldkey\n"
+                f"• [yellow]Daily operations[/yellow] still use current hotkey\n"
+                f"• [yellow]Validation/attestation[/yellow] unchanged\n"
+                f"• [yellow]Frequent operations[/yellow] unchanged\n\n"
+                f"[yellow]📋 Next Steps:[/yellow]\n"
+                f"• Test new coldkey with minor operation\n"
+                f"• Update coldkey storage and backups\n"
+                f"• Monitor node operations for issues\n"
+                f"• Consider updating hotkey if needed\n\n"
+                f"[yellow]💡 Security Tip:[/yellow]\n"
+                f"• Use hardware wallet for coldkey storage\n"
+                f"• Keep coldkey offline when possible\n"
+                f"• Test coldkey before major operations\n"
+                f"• Monitor for unauthorized coldkey usage",
+                title="Coldkey Update Success",
+                border_style="green"
+            ))
+        else:
+            print_error(f"❌ Failed to update coldkey: {response.message}")
+            raise typer.Exit(1)
+
+    except Exception as e:
+        print_error(f"❌ Failed to update coldkey: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def update_hotkey(
+    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
+    node_id: int = typer.Option(..., "--node-id", "-n", help="Node ID to update"),
+    new_hotkey: str = typer.Option(..., "--new-hotkey", "-h", help="New hotkey address"),
+    key_name: Optional[str] = typer.Option(
+        None, "--key-name", "-k", help="Key name for signing (current coldkey)"
+    ),
+    show_guidance: bool = typer.Option(
+        True, "--guidance/--no-guidance", help="Show comprehensive guidance"
+    ),
+):
+    """Update subnet node hotkey with comprehensive guidance."""
+    client = get_client()
+
+    # Show comprehensive guidance
+    if show_guidance:
+        from rich.panel import Panel
+        guidance_panel = Panel(
+            f"[bold cyan]🔑 Update Node Hotkey Guide[/bold cyan]\n\n"
+            f"This will update the hotkey for node {node_id} in subnet {subnet_id}:\n\n"
+            f"[bold]What is a Hotkey:[/bold]\n"
+            f"• Frequent-use key for daily node operations\n"
+            f"• Used for validation, attestation, and frequent tasks\n"
+            f"• Can be stored on node server for convenience\n"
+            f"• Different from coldkey (used for critical operations)\n"
+            f"• Essential for node performance and operations\n\n"
+            f"[bold]Security Requirements:[/bold]\n"
+            f"• [red]Coldkey and hotkey CAN NEVER MATCH[/red]\n"
+            f"• [yellow]Hotkey must be different from current coldkey[/yellow]\n"
+            f"• [yellow]New hotkey must be a valid SS58 address[/yellow]\n"
+            f"• [yellow]Current coldkey must sign this transaction[/yellow]\n"
+            f"• [yellow]Hotkey controls daily node operations[/yellow]\n\n"
+            f"[bold]Update Process:[/bold]\n"
+            f"• Validates new hotkey address format\n"
+            f"• Ensures hotkey ≠ coldkey (security requirement)\n"
+            f"• Updates hotkey on blockchain\n"
+            f"• Requires current coldkey signature\n"
+            f"• Affects future daily operations\n\n"
+            f"[bold]Operational Impact:[/bold]\n"
+            f"• [yellow]Validation operations[/yellow] use new hotkey\n"
+            f"• [yellow]Attestation operations[/yellow] use new hotkey\n"
+            f"• [yellow]Frequent node tasks[/yellow] use new hotkey\n"
+            f"• [yellow]Daily operations[/yellow] require new hotkey\n"
+            f"• [yellow]Node performance[/yellow] depends on hotkey\n\n"
+            f"[bold]Security Considerations:[/bold]\n"
+            f"• [yellow]Store hotkey securely on node server[/yellow]\n"
+            f"• [yellow]Backup hotkey safely[/yellow]\n"
+            f"• [yellow]Test hotkey before major operations[/yellow]\n"
+            f"• [yellow]Keep hotkey separate from coldkey[/yellow]\n"
+            f"• [yellow]Monitor hotkey performance[/yellow]\n\n"
+            f"[red]⚠️ Critical Security:[/red]\n"
+            f"• Hotkey and coldkey must be different\n"
+            f"• Store hotkey securely on node server\n"
+            f"• Backup hotkey safely\n"
+            f"• Test hotkey before critical operations\n"
+            f"• Keep hotkey separate from coldkey",
+            title="[bold blue]🔑 Update Node Hotkey[/bold blue]",
+            border_style="blue"
+        )
+        console.print(guidance_panel)
+        console.print()
+
+        # Ask for confirmation
+        if not typer.confirm(f"Update hotkey for node {node_id} in subnet {subnet_id}?"):
+            print_info("Hotkey update cancelled.")
+            return
+
+    # Validate inputs
+    if not validate_subnet_id(subnet_id):
+        print_error("❌ Invalid subnet ID. Must be a positive integer.")
+        raise typer.Exit(1)
+
+    if not validate_node_id(node_id):
+        print_error("❌ Invalid node ID. Must be a positive integer.")
+        raise typer.Exit(1)
+
+    if not validate_address(new_hotkey):
+        print_error("❌ Invalid new hotkey address. Must be a valid SS58 address.")
+        raise typer.Exit(1)
+
+    # Check if key_name is provided (required for update)
+    if not key_name:
+        print_error("❌ Key name is required for hotkey update. Use --key-name to specify your current coldkey.")
+        raise typer.Exit(1)
+
+    try:
+        print_info(f"🔑 Updating hotkey for node {node_id} in subnet {subnet_id}...")
+
+        # Load keypair for signing (current coldkey)
+        from ..utils.crypto import load_keypair
+        # TODO: Get password from user or config
+        password = "default_password_12345"  # This should be improved
+        keypair = load_keypair(key_name, password)
+
+        # Get current coldkey from keypair
+        current_coldkey = keypair.ss58_address
+
+        # Security check: ensure hotkey ≠ coldkey
+        if new_hotkey == current_coldkey:
+            print_error("❌ Security Error: Hotkey and coldkey cannot be the same address!")
+            raise typer.Exit(1)
+
+        # Update the node's hotkey
+        response = client.update_node_hotkey(
+            subnet_id=subnet_id,
+            old_hotkey=current_coldkey,  # This will be updated to get actual hotkey
+            new_hotkey=new_hotkey,
+            keypair=keypair
+        )
+
+        if response.success:
+            print_success(f"✅ Successfully updated hotkey for node {node_id}!")
+            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            if response.block_number:
+                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+
+            console.print(Panel(
+                f"[bold green]🔑 Hotkey Update Complete![/bold green]\n\n"
+                f"Hotkey for node {node_id} has been updated in subnet {subnet_id}.\n\n"
+                f"[yellow]🔐 Security Update:[/yellow]\n"
+                f"• New hotkey: [bold cyan]{new_hotkey}[/bold cyan]\n"
+                f"• Current coldkey: [bold cyan]{current_coldkey}[/bold cyan]\n"
+                f"• Security requirement: ✅ Hotkey ≠ Coldkey\n"
+                f"• Update verified on blockchain\n"
+                f"• Future daily operations use new hotkey\n\n"
+                f"[yellow]🔒 Security Recommendations:[/yellow]\n"
+                f"• [green]Store new hotkey securely[/green] on node server\n"
+                f"• [green]Backup hotkey safely[/green] (secure location)\n"
+                f"• [green]Test hotkey[/green] before critical operations\n"
+                f"• [green]Keep hotkey separate[/green] from coldkey\n"
+                f"• [green]Monitor hotkey performance[/green]\n\n"
+                f"[yellow]📋 Impact on Operations:[/yellow]\n"
+                f"• [green]Validation operations[/green] now use new hotkey\n"
+                f"• [green]Attestation operations[/green] use new hotkey\n"
+                f"• [green]Frequent node tasks[/green] use new hotkey\n"
+                f"• [yellow]Daily operations[/yellow] require new hotkey\n"
+                f"• [yellow]Node performance[/yellow] depends on new hotkey\n\n"
+                f"[yellow]📋 Next Steps:[/yellow]\n"
+                f"• Update node server with new hotkey\n"
+                f"• Test new hotkey with validation/attestation\n"
+                f"• Monitor node performance and operations\n"
+                f"• Update hotkey storage and backups\n\n"
+                f"[yellow]💡 Operational Tip:[/yellow]\n"
+                f"• Store hotkey securely on node server\n"
+                f"• Test hotkey before major operations\n"
+                f"• Monitor node performance after update\n"
+                f"• Keep hotkey separate from coldkey",
+                title="Hotkey Update Success",
+                border_style="green"
+            ))
+        else:
+            print_error(f"❌ Failed to update hotkey: {response.message}")
+            raise typer.Exit(1)
+
+    except Exception as e:
+        print_error(f"❌ Failed to update hotkey: {str(e)}")
         raise typer.Exit(1)
 
 

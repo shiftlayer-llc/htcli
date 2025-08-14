@@ -157,6 +157,26 @@ class HypertensorClient:
         """Update subnet node delegate reward rate."""
         return self.subnet.update_node_delegate_reward_rate(subnet_id, node_id, new_delegate_reward_rate, keypair)
 
+    def update_node_coldkey(
+        self,
+        subnet_id: int,
+        hotkey: str,
+        new_coldkey: str,
+        keypair=None
+    ):
+        """Update subnet node coldkey."""
+        return self.subnet.update_node_coldkey(subnet_id, hotkey, new_coldkey, keypair)
+
+    def update_node_hotkey(
+        self,
+        subnet_id: int,
+        old_hotkey: str,
+        new_hotkey: str,
+        keypair=None
+    ):
+        """Update subnet node hotkey."""
+        return self.subnet.update_node_hotkey(subnet_id, old_hotkey, new_hotkey, keypair)
+
     def get_subnet_node_status(self, subnet_id: int, node_id: int):
         """Get detailed status of a specific subnet node."""
         return self.subnet.get_subnet_node_status(subnet_id, node_id)

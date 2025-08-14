@@ -791,6 +791,122 @@ class SubnetClient:
             logger.error(f"Failed to update node delegate reward rate: {str(e)}")
             raise
 
+    def update_node_coldkey(
+        self,
+        subnet_id: int,
+        hotkey: str,
+        new_coldkey: str,
+        keypair=None
+    ):
+        """Update subnet node coldkey using Network.update_coldkey."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Prepare call parameters according to official specification
+            call_params = {
+                "hotkey": hotkey,
+                "new_coldkey": new_coldkey,
+            }
+
+            # Compose the call using Network pallet
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="update_coldkey",
+                call_params=call_params,
+            )
+
+            # If keypair provided, submit real transaction
+            if keypair:
+                # Create and submit transaction
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                # Submit and wait for confirmation
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                # Return real transaction details
+                return NodeAddResponse(
+                    success=True,
+                    message="Node coldkey updated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                # Return composed call data for manual submission
+                return NodeAddResponse(
+                    success=True,
+                    message="Node coldkey update call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to update node coldkey: {str(e)}")
+            raise
+
+    def update_node_hotkey(
+        self,
+        subnet_id: int,
+        old_hotkey: str,
+        new_hotkey: str,
+        keypair=None
+    ):
+        """Update subnet node hotkey using Network.update_hotkey."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Prepare call parameters according to official specification
+            call_params = {
+                "old_hotkey": old_hotkey,
+                "new_hotkey": new_hotkey,
+            }
+
+            # Compose the call using Network pallet
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="update_hotkey",
+                call_params=call_params,
+            )
+
+            # If keypair provided, submit real transaction
+            if keypair:
+                # Create and submit transaction
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                # Submit and wait for confirmation
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                # Return real transaction details
+                return NodeAddResponse(
+                    success=True,
+                    message="Node hotkey updated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                # Return composed call data for manual submission
+                return NodeAddResponse(
+                    success=True,
+                    message="Node hotkey update call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to update node hotkey: {str(e)}")
+            raise
+
     def get_subnet_node_status(self, subnet_id: int, node_id: int):
         """Get detailed status of a specific subnet node."""
         try:

@@ -3,7 +3,7 @@ Input validation utility functions for the Hypertensor CLI.
 """
 
 import re
-from typing import Optional, Union
+from typing import Optional, Union, List
 from pathlib import Path
 
 
@@ -418,14 +418,28 @@ def validate_key_types(key_types: list) -> bool:
     return all(kt in valid_types for kt in key_types)
 
 
-def validate_coldkey_addresses(addresses: list) -> bool:
-    """Validate coldkey addresses."""
+def validate_coldkey_addresses(addresses: List[str]) -> bool:
+    """Validate a list of coldkey addresses."""
     if not addresses:
-        return True
-    # Basic SS58 address validation
-    import re
-
-    for addr in addresses:
-        if not re.match(r"^5[A-HJ-NP-Za-km-z1-9]*$", addr):
+        return False
+    
+    for address in addresses:
+        if not validate_ss58_address(address):
             return False
+    
+    return True
+
+
+def validate_delegate_reward_rate(rate: int) -> bool:
+    """Validate delegate reward rate."""
+    if not isinstance(rate, int):
+        return False
+    
+    if rate < 0:
+        return False
+    
+    # Rate should be reasonable (not excessively high)
+    if rate > 1000000000000000000:  # 1 TENSOR in smallest units
+        return False
+    
     return True

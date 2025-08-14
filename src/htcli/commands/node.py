@@ -14,6 +14,7 @@ from ..utils.validation import (
     validate_address,
     validate_peer_id,
     validate_amount,
+    validate_delegate_reward_rate,
 )
 from ..utils.formatting import (
     print_success,
@@ -1204,6 +1205,155 @@ def cleanup_expired(
 
     except Exception as e:
         print_error(f"❌ Failed to cleanup node: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def update(
+    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
+    node_id: int = typer.Option(..., "--node-id", "-n", help="Node ID to update"),
+    delegate_reward_rate: int = typer.Option(
+        ..., "--delegate-reward-rate", "-r", help="New delegate reward rate (in smallest units)"
+    ),
+    key_name: Optional[str] = typer.Option(
+        None, "--key-name", "-k", help="Key name for signing"
+    ),
+    show_guidance: bool = typer.Option(
+        True, "--guidance/--no-guidance", help="Show comprehensive guidance"
+    ),
+):
+    """Update subnet node delegate stake rate with comprehensive guidance."""
+    client = get_client()
+
+    # Show comprehensive guidance
+    if show_guidance:
+        from rich.panel import Panel
+        guidance_panel = Panel(
+            f"[bold cyan]🔄 Update Subnet Node Guide[/bold cyan]\n\n"
+            f"This will update the delegate reward rate for node {node_id} in subnet {subnet_id}:\n\n"
+            f"[bold]What is Delegate Stake Rate:[/bold]\n"
+            f"• Percentage of node's incentives shared with delegators\n"
+            f"• Determines how much delegators earn from node rewards\n"
+            f"• Higher rate = more rewards for delegators\n"
+            f"• Lower rate = more rewards for node operator\n"
+            f"• Affects delegation attractiveness\n\n"
+            f"[bold]Rate Update Rules:[/bold]\n"
+            f"• [green]Increase[/green]: No limitations, can increase anytime\n"
+            f"• [yellow]Decrease[/yellow]: Limited to 1% decrease per 24 hours\n"
+            f"• [yellow]Gradual Changes[/yellow]: Large decreases must be done gradually\n"
+            f"• [yellow]Strategic Planning[/yellow]: Plan rate changes carefully\n\n"
+            f"[bold]Impact on Delegators:[/bold]\n"
+            f"• [green]Rate Increase[/green]: More rewards for delegators\n"
+            f"• [yellow]Rate Decrease[/yellow]: Fewer rewards for delegators\n"
+            f"• [yellow]Delegation Decisions[/yellow]: Rate affects delegation choices\n"
+            f"• [yellow]Competitive Positioning[/yellow]: Rate affects node attractiveness\n\n"
+            f"[bold]Update Process:[/bold]\n"
+            f"• Validates current delegate reward rate\n"
+            f"• Checks rate change limitations\n"
+            f"• Updates rate on blockchain\n"
+            f"• Affects future reward distribution\n"
+            f"• Requires valid signing key\n\n"
+            f"[bold]Strategic Considerations:[/bold]\n"
+            f"• [yellow]Competitive Rates[/yellow]: Balance operator and delegator interests\n"
+            f"• [yellow]Market Conditions[/yellow]: Adjust based on network conditions\n"
+            f"• [yellow]Delegation Growth[/yellow]: Higher rates attract more delegators\n"
+            f"• [yellow]Revenue Optimization[/yellow]: Find optimal rate for your strategy\n\n"
+            f"[yellow]⚠️ Important:[/yellow]\n"
+            f"• Rate decreases are limited to 1% per 24 hours\n"
+            f"• Plan large decreases carefully\n"
+            f"• Rate changes affect delegation decisions\n"
+            f"• Monitor delegation response to rate changes\n"
+            f"• Balance operator and delegator interests",
+            title="[bold blue]🔄 Update Subnet Node[/bold blue]",
+            border_style="blue"
+        )
+        console.print(guidance_panel)
+        console.print()
+
+        # Ask for confirmation
+        if not typer.confirm(f"Update delegate reward rate for node {node_id} in subnet {subnet_id}?"):
+            print_info("Node update cancelled.")
+            return
+
+    # Validate inputs
+    if not validate_subnet_id(subnet_id):
+        print_error("❌ Invalid subnet ID. Must be a positive integer.")
+        raise typer.Exit(1)
+
+    if not validate_node_id(node_id):
+        print_error("❌ Invalid node ID. Must be a positive integer.")
+        raise typer.Exit(1)
+
+    if not validate_delegate_reward_rate(delegate_reward_rate):
+        print_error("❌ Invalid delegate reward rate. Must be a positive integer.")
+        raise typer.Exit(1)
+
+    # Check if key_name is provided (required for update)
+    if not key_name:
+        print_error("❌ Key name is required for node update. Use --key-name to specify your signing key.")
+        raise typer.Exit(1)
+
+    try:
+        print_info(f"🔄 Updating delegate reward rate for node {node_id} in subnet {subnet_id}...")
+
+        # Load keypair for signing
+        from ..utils.crypto import load_keypair
+        # TODO: Get password from user or config
+        password = "default_password_12345"  # This should be improved
+        keypair = load_keypair(key_name, password)
+
+        # Update the node's delegate reward rate
+        response = client.update_node_delegate_reward_rate(
+            subnet_id=subnet_id,
+            node_id=node_id,
+            new_delegate_reward_rate=delegate_reward_rate,
+            keypair=keypair
+        )
+
+        if response.success:
+            print_success(f"✅ Successfully updated delegate reward rate for node {node_id}!")
+            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            if response.block_number:
+                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+
+            console.print(Panel(
+                f"[bold green]🔄 Node Update Complete![/bold green]\n\n"
+                f"Delegate reward rate for node {node_id} has been updated in subnet {subnet_id}.\n\n"
+                f"[yellow]📊 What Happened:[/yellow]\n"
+                f"• Delegate reward rate updated on blockchain\n"
+                f"• New rate: {delegate_reward_rate} (in smallest units)\n"
+                f"• Rate change affects future reward distribution\n"
+                f"• Delegators will see updated rates\n"
+                f"• Node attractiveness may change\n\n"
+                f"[yellow]💰 Impact on Rewards:[/yellow]\n"
+                f"• [green]Future rewards[/green] will use new rate\n"
+                f"• [yellow]Existing delegations[/yellow] affected by new rate\n"
+                f"• [yellow]Delegation decisions[/yellow] may change\n"
+                f"• [yellow]Competitive positioning[/yellow] updated\n\n"
+                f"[yellow]📈 Strategic Impact:[/yellow]\n"
+                f"• [green]Higher rate[/green]: More attractive to delegators\n"
+                f"• [yellow]Lower rate[/yellow]: More rewards for operator\n"
+                f"• [yellow]Market positioning[/yellow]: Affects delegation choices\n"
+                f"• [yellow]Revenue optimization[/yellow]: Balance operator/delegator interests\n\n"
+                f"[yellow]📋 Next Steps:[/yellow]\n"
+                f"• Monitor delegation response: htcli stake info --subnet-id {subnet_id}\n"
+                f"• Check node status: htcli node status --subnet-id {subnet_id} --node-id {node_id}\n"
+                f"• Track reward changes over time\n"
+                f"• Consider further rate adjustments if needed\n\n"
+                f"[yellow]💡 Tip:[/yellow]\n"
+                f"• Monitor how delegators respond to rate changes\n"
+                f"• Balance operator and delegator interests\n"
+                f"• Consider market conditions when setting rates\n"
+                f"• Plan rate decreases carefully (1% per 24 hours limit)",
+                title="Update Success",
+                border_style="green"
+            ))
+        else:
+            print_error(f"❌ Failed to update node: {response.message}")
+            raise typer.Exit(1)
+
+    except Exception as e:
+        print_error(f"❌ Failed to update node: {str(e)}")
         raise typer.Exit(1)
 
 

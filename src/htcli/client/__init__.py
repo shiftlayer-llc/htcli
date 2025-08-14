@@ -147,6 +147,16 @@ class HypertensorClient:
         """Cleanup expired nodes that failed to activate or reactivate."""
         return self.subnet.cleanup_expired_node(subnet_id, node_id, cleanup_type, keypair)
 
+    def update_node_delegate_reward_rate(
+        self,
+        subnet_id: int,
+        node_id: int,
+        new_delegate_reward_rate: int,
+        keypair=None
+    ):
+        """Update subnet node delegate reward rate."""
+        return self.subnet.update_node_delegate_reward_rate(subnet_id, node_id, new_delegate_reward_rate, keypair)
+
     def get_subnet_node_status(self, subnet_id: int, node_id: int):
         """Get detailed status of a specific subnet node."""
         return self.subnet.get_subnet_node_status(subnet_id, node_id)

@@ -732,6 +732,65 @@ class SubnetClient:
             logger.error(f"Failed to cleanup expired {cleanup_type} node: {str(e)}")
             raise
 
+    def update_node_delegate_reward_rate(
+        self,
+        subnet_id: int,
+        node_id: int,
+        new_delegate_reward_rate: int,
+        keypair=None
+    ):
+        """Update subnet node delegate reward rate using Network.update_delegate_reward_rate."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Prepare call parameters according to official specification
+            call_params = {
+                "subnet_id": subnet_id,
+                "subnet_node_id": node_id,
+                "new_delegate_reward_rate": new_delegate_reward_rate,
+            }
+
+            # Compose the call using Network pallet
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="update_delegate_reward_rate",
+                call_params=call_params,
+            )
+
+            # If keypair provided, submit real transaction
+            if keypair:
+                # Create and submit transaction
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                # Submit and wait for confirmation
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                # Return real transaction details
+                return NodeAddResponse(
+                    success=True,
+                    message="Node delegate reward rate updated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                # Return composed call data for manual submission
+                return NodeAddResponse(
+                    success=True,
+                    message="Node delegate reward rate update call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to update node delegate reward rate: {str(e)}")
+            raise
+
     def get_subnet_node_status(self, subnet_id: int, node_id: int):
         """Get detailed status of a specific subnet node."""
         try:

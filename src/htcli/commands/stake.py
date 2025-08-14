@@ -371,11 +371,12 @@ def remove(
         # Load keypair for signing
         from ..utils.crypto import load_keypair
         # Get secure password for keypair
-                password = get_secure_password(
-                    key_name,
-                    prompt_message="Enter password to unlock keypair",
-                    allow_default=True
-                )
+
+        password = get_secure_password(
+            key_name,
+            prompt_message="Enter password to unlock keypair",
+            allow_default=True
+        )
         keypair = load_keypair(key_name, password)
 
         # TODO: Implement actual stake removal
@@ -574,7 +575,8 @@ def delegate_add(
         if key_name:
             from ..utils.crypto import load_keypair
             # Get secure password for keypair
-                password = get_secure_password(
+
+            password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for delegate stake addition",
                     allow_default=True
@@ -685,7 +687,8 @@ def delegate_remove(
         if key_name:
             from ..utils.crypto import load_keypair
             # Get secure password for keypair
-                password = get_secure_password(
+
+            password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for delegate stake removal",
                     allow_default=True
@@ -796,7 +799,8 @@ def delegate_increase(
         if key_name:
             from ..utils.crypto import load_keypair
             # Get secure password for keypair
-                password = get_secure_password(
+
+            password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for delegate stake increase",
                     allow_default=True
@@ -918,7 +922,8 @@ def delegate_transfer(
         if key_name:
             from ..utils.crypto import load_keypair
             # Get secure password for keypair
-                password = get_secure_password(
+
+            password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for delegate stake transfer",
                     allow_default=True
@@ -1058,7 +1063,8 @@ def node_add(
         # Load keypair for signing
         from ..utils.crypto import load_keypair
         # Get secure password for keypair
-                password = get_secure_password(
+
+        password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for node delegate stake addition",
                     allow_default=True
@@ -1209,7 +1215,8 @@ def node_remove(
         # Load keypair for signing
         from ..utils.crypto import load_keypair
         # Get secure password for keypair
-                password = get_secure_password(
+
+        password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for node removal",
                     allow_default=True
@@ -1365,7 +1372,8 @@ def node_transfer(
         # Load keypair for signing
         from ..utils.crypto import load_keypair
         # Get secure password for keypair
-                password = get_secure_password(
+
+        password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for node delegate stake transfer",
                     allow_default=True
@@ -1517,7 +1525,8 @@ def node_increase(
         # Load keypair for signing
         from ..utils.crypto import load_keypair
         # Get secure password for keypair
-                password = get_secure_password(
+
+        password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for node delegate stake increase",
                     allow_default=True
@@ -1628,22 +1637,117 @@ def info(
     try:
         print_info("💰 Fetching comprehensive staking information...")
 
+        # Get user address for personalized information
+        user_address = None
+        if config.filter.mine:
+            user_addresses = get_user_addresses()
+            if user_addresses:
+                user_address = user_addresses[0]  # Use first address for now
+
         # Get staking information
         if subnet_id and node_id:
             # Node-specific staking info
             print_info(f"📊 Showing staking information for node {node_id} in subnet {subnet_id}")
-            # TODO: Implement node-specific staking info
-            print_info("Node-specific staking information will be implemented soon.")
+            
+            response = client.get_node_staking_info(subnet_id, node_id, user_address)
+            
+            if response.success:
+                data = response.data
+                console.print(Panel(
+                    f"[bold cyan]🔗 Node Staking Information[/bold cyan]\n\n"
+                    f"[bold]Node Details:[/bold]\n"
+                    f"• [green]Subnet ID[/green]: {data.get('subnet_id', 'N/A')}\n"
+                    f"• [green]Node ID[/green]: {data.get('node_id', 'N/A')}\n"
+                    f"• [green]Classification[/green]: {data.get('node_classification', {}).get('class', 'Unknown')}\n"
+                    f"• [green]Penalties[/green]: {data.get('node_penalties', 0)}\n\n"
+                    f"[bold]Staking Details:[/bold]\n"
+                    f"• [yellow]Total Node Stake[/yellow]: {data.get('node_delegate_stake', 0):,} TENSOR\n"
+                    f"• [yellow]Reward Rate[/yellow]: {data.get('node_reward_rate', 0)}%\n"
+                    f"• [yellow]Total Delegators[/yellow]: {data.get('total_delegators', 0)}\n"
+                    f"• [yellow]Estimated Rewards[/yellow]: {data.get('estimated_rewards', 0):.2f} TENSOR\n\n"
+                    f"[bold]Your Stake:[/bold]\n"
+                    f"• [green]Your Shares[/green]: {data.get('user_node_shares', 0):,}\n"
+                    f"• [green]Your Stake Value[/green]: {data.get('user_stake_value', 0):,} TENSOR\n"
+                    f"• [green]Your Percentage[/green]: {(data.get('user_stake_value', 0) / data.get('node_delegate_stake', 1) * 100):.2f}%\n\n"
+                    f"[yellow]💡 Tip:[/yellow]\n"
+                    f"• Monitor node performance regularly\n"
+                    f"• Check reward rates for optimization\n"
+                    f"• Consider diversifying across multiple nodes",
+                    title="Node Staking Information",
+                    border_style="blue"
+                ))
+            else:
+                print_error(f"❌ Failed to get node staking info: {response.message}")
+                raise typer.Exit(1)
+                
         elif subnet_id:
             # Subnet-specific staking info
             print_info(f"📊 Showing staking information for subnet {subnet_id}")
-            # TODO: Implement subnet-specific staking info
-            print_info("Subnet-specific staking information will be implemented soon.")
+            
+            response = client.get_subnet_staking_info(subnet_id, user_address)
+            
+            if response.success:
+                data = response.data
+                console.print(Panel(
+                    f"[bold cyan]🌐 Subnet Staking Information[/bold cyan]\n\n"
+                    f"[bold]Subnet Details:[/bold]\n"
+                    f"• [green]Subnet ID[/green]: {data.get('subnet_id', 'N/A')}\n"
+                    f"• [green]Total Nodes[/green]: {data.get('total_nodes', 0)}\n"
+                    f"• [green]Active Nodes[/green]: {data.get('active_nodes', 0)}\n\n"
+                    f"[bold]Staking Details:[/bold]\n"
+                    f"• [yellow]Total Subnet Stake[/yellow]: {data.get('subnet_delegate_stake', 0):,} TENSOR\n"
+                    f"• [yellow]Reward Rate[/yellow]: {data.get('subnet_reward_rate', 0)}%\n"
+                    f"• [yellow]Total Delegators[/yellow]: {data.get('total_delegators', 0)}\n"
+                    f"• [yellow]Estimated Rewards[/yellow]: {data.get('estimated_rewards', 0):.2f} TENSOR\n\n"
+                    f"[bold]Your Stake:[/bold]\n"
+                    f"• [green]Your Shares[/green]: {data.get('user_subnet_shares', 0):,}\n"
+                    f"• [green]Your Stake Value[/green]: {data.get('user_stake_value', 0):,} TENSOR\n"
+                    f"• [green]Your Percentage[/green]: {(data.get('user_stake_value', 0) / data.get('subnet_delegate_stake', 1) * 100):.2f}%\n\n"
+                    f"[yellow]💡 Tip:[/yellow]\n"
+                    f"• Subnet staking provides broader exposure\n"
+                    f"• Monitor subnet performance and node activity\n"
+                    f"• Consider both subnet and node staking for diversification",
+                    title="Subnet Staking Information",
+                    border_style="green"
+                ))
+            else:
+                print_error(f"❌ Failed to get subnet staking info: {response.message}")
+                raise typer.Exit(1)
+                
         else:
             # General staking info
             print_info("📊 Showing general staking information")
-            # TODO: Implement general staking info
-            print_info("General staking information will be implemented soon.")
+            
+            response = client.get_general_staking_info(user_address)
+            
+            if response.success:
+                data = response.data
+                network_stats = data.get('network_stats', {})
+                
+                console.print(Panel(
+                    f"[bold cyan]🌍 Network Staking Overview[/bold cyan]\n\n"
+                    f"[bold]Network Statistics:[/bold]\n"
+                    f"• [green]Total Subnets[/green]: {network_stats.get('total_subnets', 0)}\n"
+                    f"• [green]Total Network Stake[/green]: {network_stats.get('total_network_stake', 0):,} TENSOR\n"
+                    f"• [green]Average Reward Rate[/green]: {network_stats.get('average_reward_rate', 0):.2f}%\n\n"
+                    f"[bold]Your Portfolio:[/bold]\n"
+                    f"• [yellow]Total User Stake[/yellow]: {network_stats.get('total_user_stake', 0):,} TENSOR\n"
+                    f"• [yellow]Portfolio Percentage[/yellow]: {network_stats.get('user_stake_percentage', 0):.2f}%\n"
+                    f"• [yellow]Address[/yellow]: {data.get('user_address', 'Not specified')}\n\n"
+                    f"[bold]Top Performing Subnets:[/bold]\n"
+                    f"{chr(10).join([f'• Subnet {s.get(\"subnet_id\", \"N/A\")}: {s.get(\"subnet_reward_rate\", 0)}% rate' for s in network_stats.get('top_performing_subnets', [])[:3]])}\n\n"
+                    f"[bold]Recommendations:[/bold]\n"
+                    f"{chr(10).join([f'• {rec}' for rec in network_stats.get('recommendations', [])])}\n\n"
+                    f"[yellow]💡 Tip:[/yellow]\n"
+                    f"• Diversify across multiple subnets and nodes\n"
+                    f"• Monitor performance and adjust strategy\n"
+                    f"• Consider both high-reward and stable options",
+                    title="Network Staking Overview",
+                    border_style="cyan"
+                ))
+            else:
+                print_error(f"❌ Failed to get general staking info: {response.message}")
+                raise typer.Exit(1)
 
         print_success("✅ Staking information retrieved successfully!")
 

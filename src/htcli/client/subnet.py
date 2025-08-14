@@ -2288,3 +2288,344 @@ class SubnetClient:
         except Exception as e:
             logger.error(f"Failed to remove initial coldkeys: {str(e)}")
             raise
+
+    # ============================================================================
+    # Staking Information Methods
+    # ============================================================================
+
+    def get_node_staking_info(self, subnet_id: int, node_id: int, user_address: str = None):
+        """Get comprehensive staking information for a specific node."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Get node delegate stake balance
+            node_delegate_stake = self._safe_query_value(
+                "NodeDelegateStakeBalance", subnet_id, node_id, 0
+            )
+
+            # Get node delegate reward rate
+            node_reward_rate = self._safe_query_value(
+                "NodeDelegateRewardRate", subnet_id, node_id, 0
+            )
+
+            # Get user's node delegate stake shares (if address provided)
+            user_node_shares = 0
+            if user_address:
+                user_node_shares = self._safe_query_value(
+                    "NodeDelegateStakeShares", subnet_id, node_id, user_address, 0
+                )
+
+            # Get node performance data
+            node_performance = self._safe_query_value(
+                "SubnetNodePerformance", subnet_id, node_id, {}
+            )
+
+            # Get node classification
+            node_classification = self._safe_query_value(
+                "SubnetNodeClassification", subnet_id, node_id, {}
+            )
+
+            # Get node penalties
+            node_penalties = self._safe_query_value(
+                "SubnetNodePenalties", subnet_id, node_id, 0
+            )
+
+            # Calculate user's stake value (if shares available)
+            user_stake_value = 0
+            if user_node_shares > 0 and node_delegate_stake > 0:
+                # Calculate proportional stake value
+                user_stake_value = (user_node_shares / node_delegate_stake) * node_delegate_stake
+
+            staking_info = {
+                "subnet_id": subnet_id,
+                "node_id": node_id,
+                "node_delegate_stake": node_delegate_stake,
+                "node_reward_rate": node_reward_rate,
+                "user_node_shares": user_node_shares,
+                "user_stake_value": user_stake_value,
+                "node_performance": node_performance,
+                "node_classification": node_classification,
+                "node_penalties": node_penalties,
+                "total_delegators": self._get_node_delegator_count(subnet_id, node_id),
+                "estimated_rewards": self._calculate_node_rewards(node_delegate_stake, node_reward_rate),
+            }
+
+            return StakeInfoResponse(
+                success=True,
+                message="Node staking information retrieved successfully",
+                data=staking_info
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to get node staking info: {str(e)}")
+            return StakeInfoResponse(
+                success=False,
+                message=f"Failed to get node staking info: {str(e)}",
+                data={}
+            )
+
+    def get_subnet_staking_info(self, subnet_id: int, user_address: str = None):
+        """Get comprehensive staking information for a subnet."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Get subnet delegate stake balance
+            subnet_delegate_stake = self._safe_query_value(
+                "TotalSubnetDelegateStakeBalance", subnet_id, 0
+            )
+
+            # Get subnet delegate reward rate
+            subnet_reward_rate = self._safe_query_value(
+                "SubnetDelegateRewardRate", subnet_id, 0
+            )
+
+            # Get user's subnet delegate stake shares (if address provided)
+            user_subnet_shares = 0
+            if user_address:
+                user_subnet_shares = self._safe_query_value(
+                    "SubnetDelegateStakeShares", subnet_id, user_address, 0
+                )
+
+            # Get subnet performance data
+            subnet_performance = self._safe_query_value(
+                "SubnetPerformance", subnet_id, {}
+            )
+
+            # Get subnet statistics
+            subnet_stats = self._safe_query_value(
+                "SubnetStatistics", subnet_id, {}
+            )
+
+            # Calculate user's stake value (if shares available)
+            user_stake_value = 0
+            if user_subnet_shares > 0 and subnet_delegate_stake > 0:
+                # Calculate proportional stake value
+                user_stake_value = (user_subnet_shares / subnet_delegate_stake) * subnet_delegate_stake
+
+            # Get subnet nodes for additional context
+            subnet_nodes = self._get_subnet_nodes(subnet_id)
+
+            staking_info = {
+                "subnet_id": subnet_id,
+                "subnet_delegate_stake": subnet_delegate_stake,
+                "subnet_reward_rate": subnet_reward_rate,
+                "user_subnet_shares": user_subnet_shares,
+                "user_stake_value": user_stake_value,
+                "subnet_performance": subnet_performance,
+                "subnet_stats": subnet_stats,
+                "total_delegators": self._get_subnet_delegator_count(subnet_id),
+                "total_nodes": len(subnet_nodes),
+                "active_nodes": len([n for n in subnet_nodes if n.get("classification", {}).get("class") == "Validator"]),
+                "estimated_rewards": self._calculate_subnet_rewards(subnet_delegate_stake, subnet_reward_rate),
+                "nodes": subnet_nodes,
+            }
+
+            return StakeInfoResponse(
+                success=True,
+                message="Subnet staking information retrieved successfully",
+                data=staking_info
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to get subnet staking info: {str(e)}")
+            return StakeInfoResponse(
+                success=False,
+                message=f"Failed to get subnet staking info: {str(e)}",
+                data={}
+            )
+
+    def get_general_staking_info(self, user_address: str = None):
+        """Get general staking information across all subnets."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Get all subnets
+            subnets_response = self.get_subnets_data()
+            if not subnets_response.success:
+                return StakeInfoResponse(
+                    success=False,
+                    message="Failed to retrieve subnets data",
+                    data={}
+                )
+
+            subnets = subnets_response.data.get("subnets", [])
+            
+            # Collect staking information for all subnets
+            all_staking_info = []
+            total_user_stake = 0
+            total_network_stake = 0
+
+            for subnet in subnets:
+                subnet_id = subnet.get("subnet_id")
+                if subnet_id:
+                    # Get subnet staking info
+                    subnet_staking = self.get_subnet_staking_info(subnet_id, user_address)
+                    if subnet_staking.success:
+                        subnet_data = subnet_staking.data
+                        all_staking_info.append(subnet_data)
+                        
+                        # Accumulate totals
+                        total_network_stake += subnet_data.get("subnet_delegate_stake", 0)
+                        if user_address:
+                            total_user_stake += subnet_data.get("user_stake_value", 0)
+
+            # Get network-wide statistics
+            network_stats = {
+                "total_subnets": len(subnets),
+                "total_network_stake": total_network_stake,
+                "total_user_stake": total_user_stake,
+                "user_stake_percentage": (total_user_stake / total_network_stake * 100) if total_network_stake > 0 else 0,
+                "average_reward_rate": self._calculate_average_reward_rate(all_staking_info),
+                "top_performing_subnets": self._get_top_performing_subnets(all_staking_info),
+                "recommendations": self._generate_staking_recommendations(all_staking_info, user_address),
+            }
+
+            general_info = {
+                "network_stats": network_stats,
+                "subnet_staking": all_staking_info,
+                "user_address": user_address,
+            }
+
+            return StakeInfoResponse(
+                success=True,
+                message="General staking information retrieved successfully",
+                data=general_info
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to get general staking info: {str(e)}")
+            return StakeInfoResponse(
+                success=False,
+                message=f"Failed to get general staking info: {str(e)}",
+                data={}
+            )
+
+    # ============================================================================
+    # Helper Methods for Staking Information
+    # ============================================================================
+
+    def _get_node_delegator_count(self, subnet_id: int, node_id: int) -> int:
+        """Get the number of delegators for a specific node."""
+        try:
+            # This would query the actual delegator count from the blockchain
+            # For now, return a placeholder value
+            return 0
+        except Exception:
+            return 0
+
+    def _get_subnet_delegator_count(self, subnet_id: int) -> int:
+        """Get the number of delegators for a subnet."""
+        try:
+            # This would query the actual delegator count from the blockchain
+            # For now, return a placeholder value
+            return 0
+        except Exception:
+            return 0
+
+    def _get_subnet_nodes(self, subnet_id: int) -> list:
+        """Get all nodes for a subnet."""
+        try:
+            # Query subnet nodes from storage
+            nodes_data = self.substrate.query(
+                module="Network", 
+                storage_function="SubnetNodesData", 
+                params=[subnet_id]
+            )
+            
+            if nodes_data and nodes_data.value:
+                return nodes_data.value
+            return []
+        except Exception:
+            return []
+
+    def _calculate_node_rewards(self, stake_amount: int, reward_rate: int) -> float:
+        """Calculate estimated rewards for a node."""
+        try:
+            # Simple reward calculation (this would be more complex in reality)
+            if stake_amount > 0 and reward_rate > 0:
+                return (stake_amount * reward_rate) / 1000000  # Assuming 6 decimal precision
+            return 0.0
+        except Exception:
+            return 0.0
+
+    def _calculate_subnet_rewards(self, stake_amount: int, reward_rate: int) -> float:
+        """Calculate estimated rewards for a subnet."""
+        try:
+            # Simple reward calculation (this would be more complex in reality)
+            if stake_amount > 0 and reward_rate > 0:
+                return (stake_amount * reward_rate) / 1000000  # Assuming 6 decimal precision
+            return 0.0
+        except Exception:
+            return 0.0
+
+    def _calculate_average_reward_rate(self, staking_info: list) -> float:
+        """Calculate average reward rate across subnets."""
+        try:
+            if not staking_info:
+                return 0.0
+            
+            total_rate = sum(info.get("subnet_reward_rate", 0) for info in staking_info)
+            return total_rate / len(staking_info)
+        except Exception:
+            return 0.0
+
+    def _get_top_performing_subnets(self, staking_info: list, limit: int = 5) -> list:
+        """Get top performing subnets based on reward rates."""
+        try:
+            # Sort by reward rate and return top performers
+            sorted_subnets = sorted(
+                staking_info, 
+                key=lambda x: x.get("subnet_reward_rate", 0), 
+                reverse=True
+            )
+            return sorted_subnets[:limit]
+        except Exception:
+            return []
+
+    def _generate_staking_recommendations(self, staking_info: list, user_address: str = None) -> list:
+        """Generate staking recommendations based on current data."""
+        try:
+            recommendations = []
+            
+            if not staking_info:
+                recommendations.append("No subnets available for staking")
+                return recommendations
+
+            # Find subnets with high reward rates
+            high_reward_subnets = [
+                info for info in staking_info 
+                if info.get("subnet_reward_rate", 0) > 5000  # Example threshold
+            ]
+            
+            if high_reward_subnets:
+                recommendations.append(f"Consider staking in {len(high_reward_subnets)} high-reward subnets")
+
+            # Find subnets with low user stake (diversification opportunity)
+            if user_address:
+                low_stake_subnets = [
+                    info for info in staking_info 
+                    if info.get("user_stake_value", 0) < 1000  # Example threshold
+                ]
+                
+                if low_stake_subnets:
+                    recommendations.append(f"Diversify by staking in {len(low_stake_subnets)} additional subnets")
+
+            # Performance-based recommendations
+            active_subnets = [
+                info for info in staking_info 
+                if info.get("active_nodes", 0) > 0
+            ]
+            
+            if active_subnets:
+                recommendations.append(f"Focus on {len(active_subnets)} subnets with active nodes")
+
+            if not recommendations:
+                recommendations.append("Monitor subnets for staking opportunities")
+
+            return recommendations
+
+        except Exception:
+            return ["Unable to generate recommendations"]

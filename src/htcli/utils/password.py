@@ -37,20 +37,20 @@ def get_secure_password(
 ) -> str:
     """
     Get a secure password for a key, with caching and fallback options.
-    
+
     Args:
         key_name: Name of the key requiring password
         prompt_message: Custom prompt message
         allow_default: Whether to allow default password fallback
         use_cache: Whether to use password caching
-        
+
     Returns:
         The password string
     """
     # Check cache first
     if use_cache and key_name in _password_cache:
         return _password_cache[key_name]
-    
+
     # Try to get from environment variable
     env_var = f"HTCLI_PASSWORD_{key_name.upper()}"
     if env_var in os.environ:
@@ -58,14 +58,14 @@ def get_secure_password(
         if use_cache:
             _password_cache[key_name] = password
         return password
-    
+
     # Try to get from stored passwords
     stored_password = get_stored_password(key_name)
     if stored_password:
         if use_cache:
             _password_cache[key_name] = stored_password
         return stored_password
-    
+
     # Prompt user for password
     try:
         password = Prompt.ask(
@@ -73,17 +73,17 @@ def get_secure_password(
             password=True,
             default=DEFAULT_PASSWORD if allow_default else None
         )
-        
+
         # Cache the password
         if use_cache and password:
             _password_cache[key_name] = password
-            
+
         # Store the password for future use
         if password and password != DEFAULT_PASSWORD:
             store_password(key_name, password)
-            
+
         return password
-        
+
     except KeyboardInterrupt:
         console.print("\n[yellow]Password input cancelled. Using default password.[/yellow]")
         return DEFAULT_PASSWORD if allow_default else ""
@@ -96,31 +96,31 @@ def prompt_for_password(
 ) -> str:
     """
     Prompt user for a password with optional confirmation.
-    
+
     Args:
         message: Password prompt message
         confirm: Whether to require password confirmation
         min_length: Minimum password length
-        
+
     Returns:
         The confirmed password
     """
     while True:
         try:
             password = Prompt.ask(message, password=True)
-            
+
             if len(password) < min_length:
                 console.print(f"[red]Password must be at least {min_length} characters long[/red]")
                 continue
-                
+
             if confirm:
                 confirm_password = Prompt.ask("Confirm password", password=True)
                 if password != confirm_password:
                     console.print("[red]Passwords do not match. Please try again.[/red]")
                     continue
-                    
+
             return password
-            
+
         except KeyboardInterrupt:
             console.print("\n[yellow]Password input cancelled.[/yellow]")
             return ""
@@ -129,11 +129,11 @@ def prompt_for_password(
 def store_password(key_name: str, password: str) -> bool:
     """
     Store a password securely for future use.
-    
+
     Args:
         key_name: Name of the key
         password: Password to store
-        
+
     Returns:
         True if stored successfully, False otherwise
     """
@@ -141,19 +141,19 @@ def store_password(key_name: str, password: str) -> bool:
         # Get the config directory
         config_dir = Path.home() / ".htcli"
         config_dir.mkdir(exist_ok=True)
-        
+
         password_file = config_dir / PASSWORD_FILE
-        
+
         # Load existing passwords
         passwords = load_stored_passwords()
         passwords[key_name] = password
-        
+
         # Encrypt and save
         encrypted_data = encrypt_passwords(passwords)
         password_file.write_bytes(encrypted_data)
-        
+
         return True
-        
+
     except Exception as e:
         console.print(f"[red]Failed to store password: {str(e)}[/red]")
         return False
@@ -162,17 +162,17 @@ def store_password(key_name: str, password: str) -> bool:
 def get_stored_password(key_name: str) -> Optional[str]:
     """
     Retrieve a stored password.
-    
+
     Args:
         key_name: Name of the key
-        
+
     Returns:
         The stored password or None if not found
     """
     try:
         passwords = load_stored_passwords()
         return passwords.get(key_name)
-        
+
     except Exception:
         return None
 
@@ -180,20 +180,20 @@ def get_stored_password(key_name: str) -> Optional[str]:
 def load_stored_passwords() -> Dict[str, str]:
     """
     Load all stored passwords.
-    
+
     Returns:
         Dictionary of stored passwords
     """
     try:
         config_dir = Path.home() / ".htcli"
         password_file = config_dir / PASSWORD_FILE
-        
+
         if not password_file.exists():
             return {}
-            
+
         encrypted_data = password_file.read_bytes()
         return decrypt_passwords(encrypted_data)
-        
+
     except Exception:
         return {}
 
@@ -201,19 +201,19 @@ def load_stored_passwords() -> Dict[str, str]:
 def encrypt_passwords(passwords: Dict[str, str]) -> bytes:
     """
     Encrypt passwords for storage.
-    
+
     Args:
         passwords: Dictionary of passwords to encrypt
-        
+
     Returns:
         Encrypted data
     """
     # Generate a key from a master password or system key
     master_key = get_master_key()
-    
+
     # Convert passwords to JSON
     data = json.dumps(passwords).encode()
-    
+
     # Encrypt
     f = Fernet(master_key)
     return f.encrypt(data)
@@ -222,10 +222,10 @@ def encrypt_passwords(passwords: Dict[str, str]) -> bytes:
 def decrypt_passwords(encrypted_data: bytes) -> Dict[str, str]:
     """
     Decrypt stored passwords.
-    
+
     Args:
         encrypted_data: Encrypted password data
-        
+
     Returns:
         Dictionary of decrypted passwords
     """
@@ -234,7 +234,7 @@ def decrypt_passwords(encrypted_data: bytes) -> Dict[str, str]:
         f = Fernet(master_key)
         decrypted_data = f.decrypt(encrypted_data)
         return json.loads(decrypted_data.decode())
-        
+
     except Exception:
         return {}
 
@@ -242,14 +242,14 @@ def decrypt_passwords(encrypted_data: bytes) -> Dict[str, str]:
 def get_master_key() -> bytes:
     """
     Get or generate a master key for password encryption.
-    
+
     Returns:
         Master key bytes
     """
     # Use a system-specific key for simplicity
     # In production, this should be more secure
     system_key = os.getenv("HTCLI_MASTER_KEY", "htcli-default-master-key-2024")
-    
+
     # Generate a key from the system key
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
@@ -270,10 +270,10 @@ def clear_password_cache() -> None:
 def get_cached_password(key_name: str) -> Optional[str]:
     """
     Get a password from cache.
-    
+
     Args:
         key_name: Name of the key
-        
+
     Returns:
         Cached password or None
     """
@@ -283,7 +283,7 @@ def get_cached_password(key_name: str) -> Optional[str]:
 def set_cached_password(key_name: str, password: str) -> None:
     """
     Set a password in cache.
-    
+
     Args:
         key_name: Name of the key
         password: Password to cache

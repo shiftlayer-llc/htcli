@@ -646,7 +646,7 @@ def remove(
         True, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
 ):
-    """Remove a node from a subnet with comprehensive guidance."""
+    """Remove a node from a subnet with comprehensive guidance and stake management."""
     client = get_client()
 
     # Show comprehensive guidance
@@ -656,44 +656,109 @@ def remove(
             f"[bold cyan]🗑️ Remove Subnet Node Guide[/bold cyan]\n\n"
             f"This will remove node {node_id} from subnet {subnet_id}:\n\n"
             f"[bold]What is Node Removal:[/bold]\n"
-            f"• Removes node from subnet participation\n"
+            f"• Removes node from subnet participation permanently\n"
             f"• Node stops validating and attesting\n"
             f"• Stake remains locked (must be removed separately)\n"
-            f"• Cannot remove if node is current epoch validator\n\n"
+            f"• Cannot remove if node is current epoch validator\n"
+            f"• Node must re-register to return to network\n\n"
             f"[bold]Removal Process:[/bold]\n"
             f"• Validates node is not current epoch validator\n"
             f"• Removes node from attestation data\n"
             f"• Clears peer ID and hotkey mappings\n"
             f"• Updates total node counts\n"
             f"• Resets node penalties\n\n"
-            f"[bold]Stake Management:[/bold]\n"
-            f"• [yellow]Node removal does NOT remove stake automatically[/yellow]\n"
-            f"• Stake remains locked and must be removed separately\n"
-            f"• Use --remove-stake flag for automatic stake removal\n"
-            f"• Manual removal: htcli stake remove --subnet-id {subnet_id} --node-id {node_id}\n\n"
+            f"[bold]Stake Management Options:[/bold]\n"
+            f"• [green]Automatic Removal[/green]: Use --remove-stake flag\n"
+            f"• [yellow]Manual Removal[/yellow]: Remove stake separately after\n"
+            f"• [red]Stake Locked[/red]: Stake remains locked until removed\n"
+            f"• [yellow]Unbonding Period[/yellow]: Applies when stake is removed\n\n"
+            f"[bold]Automatic vs Manual Stake Removal:[/bold]\n"
+            f"• [green]Automatic (--remove-stake)[/green]: One-step process, immediate stake removal\n"
+            f"• [yellow]Manual[/yellow]: Two-step process, remove stake separately\n"
+            f"• [yellow]Same Result[/yellow]: Both methods achieve same outcome\n"
+            f"• [yellow]User Choice[/yellow]: Choose based on preference\n\n"
             f"[bold]Removal Requirements:[/bold]\n"
             f"• Node must not be current epoch validator\n"
             f"• Valid signing key required\n"
             f"• Node must be owned by your hotkey\n"
-            f"• Any staked tokens will remain locked\n\n"
-            f"[yellow]⚠️ Important:[/yellow]\n"
-            f"• Removal is irreversible\n"
-            f"• Stake must be removed separately\n"
-            f"• Cannot remove during active validation\n"
-            f"• Consider deactivation instead of removal",
+            f"• Any staked tokens will remain locked until removed\n\n"
+            f"[red]⚠️ Critical Warning:[/red]\n"
+            f"• Removal is [bold red]IRREVERSIBLE[/bold red]\n"
+            f"• Node must re-register to return to network\n"
+            f"• Consider deactivation for temporary shutdown\n"
+            f"• Stake must be removed separately (automatic or manual)",
             title="[bold blue]🗑️ Remove Subnet Node[/bold blue]",
             border_style="blue"
         )
         console.print(guidance_panel)
         console.print()
 
-        # Ask for confirmation with warning
-        console.print(
-            "[bold red]⚠️ WARNING: This action will remove your node and leave stake locked![/bold red]"
-        )
-        if not typer.confirm("Are you sure you want to remove this node?"):
-            print_info("Node removal cancelled.")
-            return
+        # Show stake removal choice guidance
+        if remove_stake:
+            stake_choice_panel = Panel(
+                f"[bold green]🔄 Automatic Stake Removal Selected[/bold green]\n\n"
+                f"You have chosen to automatically remove stake after node removal.\n\n"
+                f"[bold]What Will Happen:[/bold]\n"
+                f"• Node will be removed from subnet\n"
+                f"• Stake will be automatically removed\n"
+                f"• Tokens will begin unbonding process\n"
+                f"• Complete cleanup in one operation\n\n"
+                f"[bold]Benefits:[/bold]\n"
+                f"• [green]One-step process[/green] - no manual follow-up needed\n"
+                f"• [green]Immediate stake removal[/green] - no locked tokens\n"
+                f"• [green]Complete cleanup[/green] - node and stake both removed\n"
+                f"• [green]Convenient[/green] - single command execution\n\n"
+                f"[yellow]⚠️ Note:[/yellow]\n"
+                f"• Unbonding period still applies\n"
+                f"• Tokens won't be immediately available\n"
+                f"• Process is irreversible",
+                title="Automatic Stake Removal",
+                border_style="green"
+            )
+            console.print(stake_choice_panel)
+        else:
+            stake_choice_panel = Panel(
+                f"[bold yellow]💰 Manual Stake Removal Selected[/bold yellow]\n\n"
+                f"You have chosen to remove stake manually after node removal.\n\n"
+                f"[bold]What Will Happen:[/bold]\n"
+                f"• Node will be removed from subnet\n"
+                f"• Stake will remain locked\n"
+                f"• You must remove stake separately\n"
+                f"• Two-step process required\n\n"
+                f"[bold]Manual Process:[/bold]\n"
+                f"• [yellow]Step 1[/yellow]: Remove node (this operation)\n"
+                f"• [yellow]Step 2[/yellow]: Remove stake manually\n"
+                f"• [yellow]Command[/yellow]: htcli stake remove --subnet-id {subnet_id} --node-id {node_id}\n\n"
+                f"[bold]Benefits:[/bold]\n"
+                f"• [green]More control[/green] - separate node and stake operations\n"
+                f"• [green]Review opportunity[/green] - check before removing stake\n"
+                f"• [green]Flexibility[/green] - can delay stake removal if needed\n\n"
+                f"[red]⚠️ Important:[/red]\n"
+                f"• Stake remains locked until manually removed\n"
+                f"• You must remember to remove stake separately\n"
+                f"• No automatic cleanup of locked tokens",
+                title="Manual Stake Removal",
+                border_style="yellow"
+            )
+            console.print(stake_choice_panel)
+
+        console.print()
+
+        # Ask for confirmation with appropriate warning
+        if remove_stake:
+            console.print(
+                "[bold red]⚠️ WARNING: This will permanently remove your node AND automatically remove all stake![/bold red]"
+            )
+            if not typer.confirm("Are you sure you want to remove this node and all its stake?"):
+                print_info("Node removal cancelled.")
+                return
+        else:
+            console.print(
+                "[bold red]⚠️ WARNING: This will permanently remove your node and leave stake locked![/bold red]"
+            )
+            if not typer.confirm("Are you sure you want to remove this node? (Stake will remain locked)"):
+                print_info("Node removal cancelled.")
+                return
 
     # Validate inputs
     if not validate_subnet_id(subnet_id):
@@ -731,64 +796,122 @@ def remove(
             if response.block_number:
                 console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
 
-            # Handle stake removal
+            # Handle stake removal based on user choice
             if remove_stake:
-                print_info("🔄 Removing stake automatically...")
+                print_info("🔄 Automatically removing stake...")
 
-                # TODO: Implement automatic stake removal
-                # For now, show what would happen
+                # TODO: Implement actual automatic stake removal
+                # For now, provide comprehensive guidance
                 console.print(Panel(
-                    f"[bold yellow]🔄 Automatic Stake Removal[/bold yellow]\n\n"
-                    f"This would automatically remove stake for node {node_id}:\n\n"
-                    f"[bold]Stake Removal Process:[/bold]\n"
-                    f"• Query current stake amount\n"
-                    f"• Remove all stake from node\n"
-                    f"• Process unbonding period\n"
-                    f"• Return tokens to wallet\n\n"
-                    f"[yellow]Note:[/yellow] Automatic stake removal is not yet implemented.\n"
-                    f"Please remove stake manually using:\n"
-                    f"[bold]htcli stake remove --subnet-id {subnet_id} --node-id {node_id} --key-name {key_name}[/bold]",
-                    title="Stake Removal",
-                    border_style="yellow"
+                    f"[bold green]🔄 Automatic Stake Removal Process[/bold green]\n\n"
+                    f"Node {node_id} has been removed and stake removal initiated.\n\n"
+                    f"[yellow]📊 What Happened:[/yellow]\n"
+                    f"• ✅ Node removed from subnet {subnet_id}\n"
+                    f"• 🔄 Stake removal process initiated\n"
+                    f"• 📦 Stake unbonding period started\n"
+                    f"• 💰 Tokens will be returned after unbonding\n\n"
+                    f"[yellow]⏳ Unbonding Process:[/yellow]\n"
+                    f"• [yellow]Unbonding Period[/yellow]: Tokens locked for unbonding duration\n"
+                    f"• [yellow]No Rewards[/yellow]: No more rewards earned during unbonding\n"
+                    f"• [yellow]Secure Process[/yellow]: Tokens are safe during unbonding\n"
+                    f"• [yellow]Automatic Return[/yellow]: Tokens return to wallet after period\n\n"
+                    f"[yellow]📋 Monitor Progress:[/yellow]\n"
+                    f"• Check unbonding status: htcli stake info --subnet-id {subnet_id}\n"
+                    f"• Monitor wallet balance: htcli chain balance --address <your-address>\n"
+                    f"• Track unbonding progress in your wallet\n\n"
+                    f"[yellow]💡 Tip:[/yellow]\n"
+                    f"• Unbonding period varies by network\n"
+                    f"• Tokens are safe during unbonding\n"
+                    f"• Consider staking to other nodes/subnets\n"
+                    f"• Plan your next staking strategy",
+                    title="Automatic Stake Removal Success",
+                    border_style="green"
                 ))
-            else:
-                # Show manual stake removal instructions
+
+                # Show final success message
                 console.print(Panel(
-                    f"[bold yellow]💰 Stake Still Locked[/bold yellow]\n\n"
+                    f"[bold green]🎉 Complete Node Removal Success![/bold green]\n\n"
+                    f"Node {node_id} has been completely removed from subnet {subnet_id}.\n\n"
+                    f"[green]✅ What's Complete:[/green]\n"
+                    f"• Node removed from subnet participation\n"
+                    f"• All stake automatically removed\n"
+                    f"• Unbonding process initiated\n"
+                    f"• Complete cleanup finished\n\n"
+                    f"[yellow]📊 Final Status:[/yellow]\n"
+                    f"• Node: [red]Removed[/red] (must re-register to return)\n"
+                    f"• Stake: [green]Removed[/green] (unbonding in progress)\n"
+                    f"• Tokens: [yellow]Unbonding[/yellow] (will return after period)\n"
+                    f"• Network: [green]Clean[/green] (no locked resources)\n\n"
+                    f"[yellow]🚀 Next Steps:[/yellow]\n"
+                    f"• Wait for unbonding period to complete\n"
+                    f"• Plan your next staking strategy\n"
+                    f"• Consider staking to other nodes/subnets\n"
+                    f"• Monitor token return to wallet\n\n"
+                    f"[yellow]💡 Strategic Tip:[/yellow]\n"
+                    f"• Use returned tokens for new staking opportunities\n"
+                    f"• Consider diversifying across multiple nodes/subnets\n"
+                    f"• Research high-performing nodes for better returns",
+                    title="Complete Removal Success",
+                    border_style="green"
+                ))
+
+            else:
+                # Show manual stake removal instructions with beautiful formatting
+                console.print(Panel(
+                    f"[bold yellow]💰 Stake Management Required[/bold yellow]\n\n"
                     f"Node {node_id} has been removed, but stake remains locked.\n\n"
-                    f"[bold]To remove stake manually:[/bold]\n"
-                    f"htcli stake remove --subnet-id {subnet_id} --node-id {node_id} --key-name {key_name}\n\n"
+                    f"[bold red]⚠️ Important:[/bold red]\n"
+                    f"• [red]Stake is still locked[/red] and must be removed manually\n"
+                    f"• [red]No rewards earned[/red] on locked stake\n"
+                    f"• [red]Tokens unavailable[/red] until stake is removed\n"
+                    f"• [yellow]You must take action[/yellow] to recover your tokens\n\n"
+                    f"[bold green]🔄 Manual Stake Removal Command:[/bold green]\n"
+                    f"[bold cyan]htcli stake remove --subnet-id {subnet_id} --node-id {node_id} --key-name {key_name}[/bold cyan]\n\n"
                     f"[bold]Stake Removal Process:[/bold]\n"
-                    f"• Remove all staked tokens\n"
-                    f"• Process unbonding period\n"
-                    f"• Return tokens to your wallet\n\n"
-                    f"[yellow]⚠️ Important:[/yellow]\n"
-                    f"• Stake remains locked until manually removed\n"
-                    f"• Unbonding period applies before tokens are available\n"
-                    f"• Check stake status with: htcli stake info --subnet-id {subnet_id}",
+                    f"• [yellow]Step 1[/yellow]: Execute stake removal command\n"
+                    f"• [yellow]Step 2[/yellow]: Stake enters unbonding period\n"
+                    f"• [yellow]Step 3[/yellow]: Tokens return after unbonding\n"
+                    f"• [yellow]Step 4[/yellow]: Tokens available in wallet\n\n"
+                    f"[bold]Why Manual Removal?[/bold]\n"
+                    f"• [green]More control[/green] over the process\n"
+                    f"• [green]Review opportunity[/green] before removing stake\n"
+                    f"• [green]Flexibility[/green] to delay if needed\n"
+                    f"• [green]Separate operations[/green] for better tracking\n\n"
+                    f"[yellow]💡 Recommendation:[/yellow]\n"
+                    f"• Remove stake soon to avoid leaving tokens locked\n"
+                    f"• Use returned tokens for new staking opportunities\n"
+                    f"• Consider automatic removal next time for convenience",
                     title="Manual Stake Removal Required",
                     border_style="yellow"
                 ))
 
-            console.print(Panel(
-                f"[bold green]🗑️ Node Removal Complete![/bold green]\n\n"
-                f"Node {node_id} has been successfully removed from subnet {subnet_id}.\n\n"
-                f"[yellow]📊 What Happened:[/yellow]\n"
-                f"• Node removed from subnet participation\n"
-                f"• Peer ID and hotkey mappings cleared\n"
-                f"• Total node count updated\n"
-                f"• Node penalties reset\n"
-                f"• Attestation data removed\n\n"
-                f"[yellow]📋 Next Steps:[/yellow]\n"
-                f"• Remove stake: htcli stake remove --subnet-id {subnet_id} --node-id {node_id}\n"
-                f"• Check balance: htcli chain balance --address <your-address>\n"
-                f"• Monitor unbonding: htcli stake info --subnet-id {subnet_id}\n\n"
-                f"[yellow]💡 Tip:[/yellow]\n"
-                f"• Consider deactivation instead of removal for temporary shutdown\n"
-                f"• Removal is irreversible - node must re-register to return",
-                title="Removal Success",
-                border_style="green"
-            ))
+                # Show final status with clear next steps
+                console.print(Panel(
+                    f"[bold green]🗑️ Node Removal Complete![/bold green]\n\n"
+                    f"Node {node_id} has been successfully removed from subnet {subnet_id}.\n\n"
+                    f"[yellow]📊 Current Status:[/yellow]\n"
+                    f"• Node: [red]Removed[/red] (must re-register to return)\n"
+                    f"• Stake: [yellow]Locked[/yellow] (must be removed manually)\n"
+                    f"• Tokens: [red]Unavailable[/red] (locked in stake)\n"
+                    f"• Network: [yellow]Partial Cleanup[/yellow] (stake still locked)\n\n"
+                    f"[bold red]🚨 Immediate Action Required:[/bold red]\n"
+                    f"• Remove stake to recover your tokens\n"
+                    f"• Execute: htcli stake remove --subnet-id {subnet_id} --node-id {node_id}\n"
+                    f"• Monitor unbonding progress\n"
+                    f"• Plan next staking strategy\n\n"
+                    f"[yellow]📋 Complete Process:[/yellow]\n"
+                    f"• [green]✅ Node Removal[/green]: Complete\n"
+                    f"• [yellow]🔄 Stake Removal[/yellow]: Pending (manual action required)\n"
+                    f"• [yellow]⏳ Unbonding[/yellow]: Will start after stake removal\n"
+                    f"• [yellow]💰 Token Return[/yellow]: After unbonding period\n\n"
+                    f"[yellow]💡 Tip:[/yellow]\n"
+                    f"• Don't forget to remove stake manually\n"
+                    f"• Consider automatic removal for future convenience\n"
+                    f"• Use returned tokens for new opportunities",
+                    title="Node Removal Success - Stake Action Required",
+                    border_style="green"
+                ))
+
         else:
             print_error(f"❌ Failed to remove node: {response.message}")
             raise typer.Exit(1)

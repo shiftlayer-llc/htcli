@@ -357,10 +357,60 @@ def activate(
         print_info(f"🔄 Activating subnet {subnet_id}...")
         print_info(f"📋 Checking activation requirements...")
 
-        # TODO: Add actual requirement checking here
-        # - Check minimum nodes
-        # - Check minimum delegate stake
-        # - Check stake factor requirements
+        # Check activation requirements
+        requirements = client.check_subnet_activation_requirements(subnet_id)
+        
+        # Display requirements status
+        if requirements["errors"]:
+            console.print(Panel(
+                f"[bold red]❌ Activation Requirements Not Met[/bold red]\n\n"
+                f"The following requirements must be met before activation:\n\n"
+                f"{chr(10).join([f'• [red]{error}[/red]' for error in requirements['errors']])}\n\n"
+                f"[yellow]📋 Required Actions:[/yellow]\n"
+                f"• Address all requirements above\n"
+                f"• Ensure subnet is in registration phase\n"
+                f"• Meet minimum node and stake requirements\n"
+                f"• Check network consensus status\n\n"
+                f"[yellow]💡 Tip:[/yellow]\n"
+                f"• Use 'htcli subnet info --subnet-id {subnet_id}' to check current status\n"
+                f"• Add more nodes or delegate stake as needed\n"
+                f"• Wait for network consensus to be ready",
+                title="Activation Requirements Failed",
+                border_style="red"
+            ))
+            raise typer.Exit(1)
+        
+        if requirements["warnings"]:
+            console.print(Panel(
+                f"[bold yellow]⚠️ Activation Warnings[/bold yellow]\n\n"
+                f"The following warnings were found:\n\n"
+                f"{chr(10).join([f'• [yellow]{warning}[/yellow]' for warning in requirements['warnings']])}\n\n"
+                f"[yellow]📋 Recommendations:[/yellow]\n"
+                f"• Consider addressing warnings for better stability\n"
+                f"• Activation can proceed but may not be optimal\n"
+                f"• Monitor subnet performance after activation\n\n"
+                f"[yellow]💡 Tip:[/yellow]\n"
+                f"• Add more nodes for better stability\n"
+                f"• Increase delegate stake for better performance\n"
+                f"• Monitor network conditions",
+                title="Activation Warnings",
+                border_style="yellow"
+            ))
+
+        # Show requirements summary
+        details = requirements["details"]
+        console.print(Panel(
+            f"[bold green]✅ Activation Requirements Met[/bold green]\n\n"
+            f"[bold]Requirements Summary:[/bold]\n"
+            f"• [green]Minimum Nodes[/green]: {details.get('min_nodes', 'N/A')} (Current: {details.get('current_nodes', 'N/A')})\n"
+            f"• [green]Minimum Delegate Stake[/green]: {format_balance(details.get('min_delegate_stake', 0))} (Current: {format_balance(details.get('current_delegate_stake', 0))})\n"
+            f"• [green]Initial Coldkeys[/green]: {details.get('initial_coldkeys', 0)}\n"
+            f"• [green]Stake Factor[/green]: {'✅ Met' if details.get('stake_factor', {}).get('met', False) else '❌ Not Met'}\n"
+            f"• [green]Network Consensus[/green]: {'✅ Ready' if details.get('consensus', {}).get('met', False) else '❌ Not Ready'}\n\n"
+            f"[yellow]💡 Proceeding with activation...[/yellow]",
+            title="Requirements Check Passed",
+            border_style="green"
+        ))
 
         response = client.activate_subnet(subnet_id, key_name=key_name)
 

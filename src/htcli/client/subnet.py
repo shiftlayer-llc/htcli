@@ -2838,3 +2838,231 @@ class SubnetClient:
                 message=f"Failed to remove subnet stake automatically: {str(e)}",
                 data={}
             )
+
+    # ============================================================================
+    # Subnet Activation Requirements Methods
+    # ============================================================================
+
+    def check_subnet_activation_requirements(self, subnet_id: int):
+        """Check if a subnet meets all activation requirements."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Get subnet data to check current status
+            subnet_data_response = self.get_subnet_data(subnet_id)
+            if not subnet_data_response.success:
+                return {
+                    "can_activate": False,
+                    "requirements_met": False,
+                    "errors": [f"Failed to get subnet data: {subnet_data_response.message}"],
+                    "warnings": [],
+                    "details": {}
+                }
+
+            subnet_data = subnet_data_response.data
+            requirements = {
+                "can_activate": True,
+                "requirements_met": True,
+                "errors": [],
+                "warnings": [],
+                "details": {}
+            }
+
+            # Check 1: Subnet must be in registration phase
+            subnet_status = subnet_data.get("status", "Unknown")
+            if subnet_status != "Registration":
+                requirements["can_activate"] = False
+                requirements["requirements_met"] = False
+                requirements["errors"].append(f"Subnet must be in registration phase, current status: {subnet_status}")
+
+            # Check 2: Minimum nodes requirement
+            min_nodes = self._get_minimum_nodes_requirement(subnet_id)
+            current_nodes = self._get_current_registered_nodes(subnet_id)
+            
+            requirements["details"]["min_nodes"] = min_nodes
+            requirements["details"]["current_nodes"] = current_nodes
+            
+            if current_nodes < min_nodes:
+                requirements["can_activate"] = False
+                requirements["requirements_met"] = False
+                requirements["errors"].append(f"Minimum {min_nodes} nodes required, current: {current_nodes}")
+            elif current_nodes == min_nodes:
+                requirements["warnings"].append(f"Exactly minimum nodes ({current_nodes}), consider adding more for stability")
+
+            # Check 3: Minimum delegate stake requirement
+            min_delegate_stake = self._get_minimum_delegate_stake_requirement(subnet_id)
+            current_delegate_stake = self._get_current_delegate_stake(subnet_id)
+            
+            requirements["details"]["min_delegate_stake"] = min_delegate_stake
+            requirements["details"]["current_delegate_stake"] = current_delegate_stake
+            
+            if current_delegate_stake < min_delegate_stake:
+                requirements["can_activate"] = False
+                requirements["requirements_met"] = False
+                requirements["errors"].append(f"Minimum {min_delegate_stake} TENSOR delegate stake required, current: {current_delegate_stake}")
+            elif current_delegate_stake == min_delegate_stake:
+                requirements["warnings"].append(f"Exactly minimum delegate stake ({current_delegate_stake}), consider adding more for stability")
+
+            # Check 4: Stake factor requirements
+            stake_factor_requirements = self._check_stake_factor_requirements(subnet_id)
+            requirements["details"]["stake_factor"] = stake_factor_requirements
+            
+            if not stake_factor_requirements["met"]:
+                requirements["can_activate"] = False
+                requirements["requirements_met"] = False
+                requirements["errors"].extend(stake_factor_requirements["errors"])
+
+            # Check 5: Initial coldkeys requirement
+            initial_coldkeys = self._get_initial_coldkeys(subnet_id)
+            requirements["details"]["initial_coldkeys"] = len(initial_coldkeys)
+            
+            if len(initial_coldkeys) == 0:
+                requirements["warnings"].append("No initial coldkeys found - this may be expected for some subnets")
+
+            # Check 6: Network consensus requirements
+            consensus_requirements = self._check_network_consensus_requirements(subnet_id)
+            requirements["details"]["consensus"] = consensus_requirements
+            
+            if not consensus_requirements["met"]:
+                requirements["can_activate"] = False
+                requirements["requirements_met"] = False
+                requirements["errors"].extend(consensus_requirements["errors"])
+
+            return requirements
+
+        except Exception as e:
+            logger.error(f"Failed to check subnet activation requirements: {str(e)}")
+            return {
+                "can_activate": False,
+                "requirements_met": False,
+                "errors": [f"Failed to check requirements: {str(e)}"],
+                "warnings": [],
+                "details": {}
+            }
+
+    def _get_minimum_nodes_requirement(self, subnet_id: int) -> int:
+        """Get the minimum number of nodes required for subnet activation."""
+        try:
+            # Query the minimum nodes requirement from the blockchain
+            # This would typically come from subnet configuration or network parameters
+            min_nodes = self._safe_query_value("SubnetMinNodes", subnet_id, 1)
+            return max(min_nodes, 1)  # Ensure at least 1 node
+        except Exception:
+            return 1  # Default minimum
+
+    def _get_current_registered_nodes(self, subnet_id: int) -> int:
+        """Get the current number of registered nodes for a subnet."""
+        try:
+            # Query registered nodes count
+            registered_nodes = self._safe_query_value("RegisteredSubnetNodesCount", subnet_id, 0)
+            return registered_nodes
+        except Exception:
+            return 0
+
+    def _get_minimum_delegate_stake_requirement(self, subnet_id: int) -> int:
+        """Get the minimum delegate stake required for subnet activation."""
+        try:
+            # Query the minimum delegate stake requirement
+            min_stake = self._safe_query_value("SubnetMinDelegateStake", subnet_id, 1000000)  # Default 1 TENSOR
+            return max(min_stake, 1000000)  # Ensure reasonable minimum
+        except Exception:
+            return 1000000  # Default minimum
+
+    def _get_current_delegate_stake(self, subnet_id: int) -> int:
+        """Get the current delegate stake for a subnet."""
+        try:
+            # Query current delegate stake
+            delegate_stake = self._safe_query_value("TotalSubnetDelegateStakeBalance", subnet_id, 0)
+            return delegate_stake
+        except Exception:
+            return 0
+
+    def _check_stake_factor_requirements(self, subnet_id: int) -> dict:
+        """Check if stake factor requirements are met."""
+        try:
+            # Get subnet configuration
+            subnet_data = self._safe_query_value("SubnetsData", subnet_id, {})
+            
+            if not subnet_data:
+                return {
+                    "met": False,
+                    "errors": ["Subnet data not found"],
+                    "details": {}
+                }
+
+            min_stake = subnet_data.get("min_stake", 0)
+            max_stake = subnet_data.get("max_stake", 0)
+            current_delegate_stake = self._get_current_delegate_stake(subnet_id)
+
+            requirements = {
+                "met": True,
+                "errors": [],
+                "details": {
+                    "min_stake": min_stake,
+                    "max_stake": max_stake,
+                    "current_delegate_stake": current_delegate_stake
+                }
+            }
+
+            # Check minimum stake factor
+            if min_stake > 0 and current_delegate_stake < min_stake:
+                requirements["met"] = False
+                requirements["errors"].append(f"Current delegate stake ({current_delegate_stake}) below minimum ({min_stake})")
+
+            # Check maximum stake factor (if applicable)
+            if max_stake > 0 and current_delegate_stake > max_stake:
+                requirements["warnings"] = [f"Current delegate stake ({current_delegate_stake}) above maximum ({max_stake})"]
+
+            return requirements
+
+        except Exception as e:
+            return {
+                "met": False,
+                "errors": [f"Failed to check stake factor requirements: {str(e)}"],
+                "details": {}
+            }
+
+    def _get_initial_coldkeys(self, subnet_id: int) -> list:
+        """Get the initial coldkeys for a subnet."""
+        try:
+            # Query initial coldkeys
+            initial_coldkeys = self._safe_query_value("SubnetRegistrationInitialColdkeys", subnet_id, [])
+            return initial_coldkeys if initial_coldkeys else []
+        except Exception:
+            return []
+
+    def _check_network_consensus_requirements(self, subnet_id: int) -> dict:
+        """Check network consensus requirements for subnet activation."""
+        try:
+            # Get network consensus parameters
+            consensus_params = self._safe_query_value("NetworkConsensusParams", None, {})
+            
+            requirements = {
+                "met": True,
+                "errors": [],
+                "details": consensus_params
+            }
+
+            # Check if network is ready for new subnet activation
+            # This would typically check network load, consensus state, etc.
+            network_load = consensus_params.get("network_load", 0)
+            max_network_load = consensus_params.get("max_network_load", 100)
+
+            if network_load > max_network_load * 0.9:  # 90% threshold
+                requirements["warnings"] = [f"Network load is high ({network_load}%), activation may be delayed"]
+
+            # Check consensus state
+            consensus_state = consensus_params.get("consensus_state", "Unknown")
+            if consensus_state != "Ready":
+                requirements["met"] = False
+                requirements["errors"].append(f"Network consensus not ready: {consensus_state}")
+
+            return requirements
+
+        except Exception as e:
+            return {
+                "met": False,
+                "errors": [f"Failed to check consensus requirements: {str(e)}"],
+                "details": {}
+            }

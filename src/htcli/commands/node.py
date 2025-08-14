@@ -635,6 +635,9 @@ def status(
 def remove(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
     node_id: int = typer.Option(..., "--node-id", "-n", help="Node ID to remove"),
+    remove_stake: bool = typer.Option(
+        False, "--remove-stake", "-rs", help="Automatically remove stake after node removal"
+    ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing"
     ),
@@ -647,13 +650,45 @@ def remove(
 
     # Show comprehensive guidance
     if show_guidance:
-        show_comprehensive_guidance(
-            "remove", {"Subnet ID": subnet_id, "Node ID": node_id}
+        from rich.panel import Panel
+        guidance_panel = Panel(
+            f"[bold cyan]🗑️ Remove Subnet Node Guide[/bold cyan]\n\n"
+            f"This will remove node {node_id} from subnet {subnet_id}:\n\n"
+            f"[bold]What is Node Removal:[/bold]\n"
+            f"• Removes node from subnet participation\n"
+            f"• Node stops validating and attesting\n"
+            f"• Stake remains locked (must be removed separately)\n"
+            f"• Cannot remove if node is current epoch validator\n\n"
+            f"[bold]Removal Process:[/bold]\n"
+            f"• Validates node is not current epoch validator\n"
+            f"• Removes node from attestation data\n"
+            f"• Clears peer ID and hotkey mappings\n"
+            f"• Updates total node counts\n"
+            f"• Resets node penalties\n\n"
+            f"[bold]Stake Management:[/bold]\n"
+            f"• [yellow]Node removal does NOT remove stake automatically[/yellow]\n"
+            f"• Stake remains locked and must be removed separately\n"
+            f"• Use --remove-stake flag for automatic stake removal\n"
+            f"• Manual removal: htcli stake remove --subnet-id {subnet_id} --node-id {node_id}\n\n"
+            f"[bold]Removal Requirements:[/bold]\n"
+            f"• Node must not be current epoch validator\n"
+            f"• Valid signing key required\n"
+            f"• Node must be owned by your hotkey\n"
+            f"• Any staked tokens will remain locked\n\n"
+            f"[yellow]⚠️ Important:[/yellow]\n"
+            f"• Removal is irreversible\n"
+            f"• Stake must be removed separately\n"
+            f"• Cannot remove during active validation\n"
+            f"• Consider deactivation instead of removal",
+            title="[bold blue]🗑️ Remove Subnet Node[/bold blue]",
+            border_style="blue"
         )
+        console.print(guidance_panel)
+        console.print()
 
         # Ask for confirmation with warning
         console.print(
-            "[bold red]⚠️ WARNING: This action will remove your node and unbond all staked tokens![/bold red]"
+            "[bold red]⚠️ WARNING: This action will remove your node and leave stake locked![/bold red]"
         )
         if not typer.confirm("Are you sure you want to remove this node?"):
             print_info("Node removal cancelled.")
@@ -668,46 +703,97 @@ def remove(
         print_error("❌ Invalid node ID. Must be a positive integer.")
         raise typer.Exit(1)
 
+    # Check if key_name is provided (required for removal)
+    if not key_name:
+        print_error("❌ Key name is required for node removal. Use --key-name to specify your signing key.")
+        raise typer.Exit(1)
+
     try:
         print_info(f"🔄 Removing node {node_id} from subnet {subnet_id}...")
 
-        # Get keypair for signing if provided
-        keypair = None
-        if key_name:
-            # TODO: Load keypair from storage
-            print_info(f"🔑 Using key: {key_name}")
+        # Load keypair for signing
+        from ..utils.crypto import load_keypair
+        # TODO: Get password from user or config
+        password = "default_password_12345"  # This should be improved
+        keypair = load_keypair(key_name, password)
 
-        response = client.remove_subnet_node(subnet_id, node_id, keypair)
+        # Remove the node
+        response = client.remove_subnet_node(
+            subnet_id=subnet_id,
+            node_id=node_id,
+            keypair=keypair
+        )
 
         if response.success:
-            print_success(
-                f"✅ Node {node_id} successfully removed from subnet {subnet_id}!"
-            )
-            console.print(
-                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
-            )
+            print_success(f"✅ Node {node_id} successfully removed from subnet {subnet_id}!")
+            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
             if response.block_number:
-                console.print(
-                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
-                )
+                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
 
-            console.print(
-                Panel(
-                    f"[bold green]🗑️ Node Removal Complete![/bold green]\n\n"
-                    f"Node {node_id} has been removed from subnet {subnet_id}.\n\n"
-                    f"[yellow]⏳ Staked tokens are now unbonding.[/yellow]\n"
-                    f"Tokens will be available after the unbonding period.\n"
-                    f"Check status with: [bold]htcli wallet stake-info <address> --subnet-id {subnet_id}[/bold]",
-                    title="Removal Complete",
-                    border_style="green",
-                )
-            )
+            # Handle stake removal
+            if remove_stake:
+                print_info("🔄 Removing stake automatically...")
+
+                # TODO: Implement automatic stake removal
+                # For now, show what would happen
+                console.print(Panel(
+                    f"[bold yellow]🔄 Automatic Stake Removal[/bold yellow]\n\n"
+                    f"This would automatically remove stake for node {node_id}:\n\n"
+                    f"[bold]Stake Removal Process:[/bold]\n"
+                    f"• Query current stake amount\n"
+                    f"• Remove all stake from node\n"
+                    f"• Process unbonding period\n"
+                    f"• Return tokens to wallet\n\n"
+                    f"[yellow]Note:[/yellow] Automatic stake removal is not yet implemented.\n"
+                    f"Please remove stake manually using:\n"
+                    f"[bold]htcli stake remove --subnet-id {subnet_id} --node-id {node_id} --key-name {key_name}[/bold]",
+                    title="Stake Removal",
+                    border_style="yellow"
+                ))
+            else:
+                # Show manual stake removal instructions
+                console.print(Panel(
+                    f"[bold yellow]💰 Stake Still Locked[/bold yellow]\n\n"
+                    f"Node {node_id} has been removed, but stake remains locked.\n\n"
+                    f"[bold]To remove stake manually:[/bold]\n"
+                    f"htcli stake remove --subnet-id {subnet_id} --node-id {node_id} --key-name {key_name}\n\n"
+                    f"[bold]Stake Removal Process:[/bold]\n"
+                    f"• Remove all staked tokens\n"
+                    f"• Process unbonding period\n"
+                    f"• Return tokens to your wallet\n\n"
+                    f"[yellow]⚠️ Important:[/yellow]\n"
+                    f"• Stake remains locked until manually removed\n"
+                    f"• Unbonding period applies before tokens are available\n"
+                    f"• Check stake status with: htcli stake info --subnet-id {subnet_id}",
+                    title="Manual Stake Removal Required",
+                    border_style="yellow"
+                ))
+
+            console.print(Panel(
+                f"[bold green]🗑️ Node Removal Complete![/bold green]\n\n"
+                f"Node {node_id} has been successfully removed from subnet {subnet_id}.\n\n"
+                f"[yellow]📊 What Happened:[/yellow]\n"
+                f"• Node removed from subnet participation\n"
+                f"• Peer ID and hotkey mappings cleared\n"
+                f"• Total node count updated\n"
+                f"• Node penalties reset\n"
+                f"• Attestation data removed\n\n"
+                f"[yellow]📋 Next Steps:[/yellow]\n"
+                f"• Remove stake: htcli stake remove --subnet-id {subnet_id} --node-id {node_id}\n"
+                f"• Check balance: htcli chain balance --address <your-address>\n"
+                f"• Monitor unbonding: htcli stake info --subnet-id {subnet_id}\n\n"
+                f"[yellow]💡 Tip:[/yellow]\n"
+                f"• Consider deactivation instead of removal for temporary shutdown\n"
+                f"• Removal is irreversible - node must re-register to return",
+                title="Removal Success",
+                border_style="green"
+            ))
         else:
             print_error(f"❌ Failed to remove node: {response.message}")
             raise typer.Exit(1)
 
     except Exception as e:
-        print_error(f"❌ Failed to remove node from subnet: {str(e)}")
+        print_error(f"❌ Failed to remove node: {str(e)}")
         raise typer.Exit(1)
 
 
@@ -722,17 +808,54 @@ def deactivate(
         True, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
 ):
-    """Deactivate a node in a subnet with comprehensive guidance."""
+    """Deactivate a subnet node temporarily with comprehensive guidance."""
     client = get_client()
 
     # Show comprehensive guidance
     if show_guidance:
-        show_comprehensive_guidance(
-            "deactivate", {"Subnet ID": subnet_id, "Node ID": node_id}
+        from rich.panel import Panel
+        guidance_panel = Panel(
+            f"[bold cyan]⏸️ Deactivate Subnet Node Guide[/bold cyan]\n\n"
+            f"This will temporarily deactivate node {node_id} in subnet {subnet_id}:\n\n"
+            f"[bold]What is Node Deactivation:[/bold]\n"
+            f"• Temporarily stops node participation\n"
+            f"• Node becomes inactive but not removed\n"
+            f"• Stake remains locked during deactivation\n"
+            f"• Only Validator-classified nodes can deactivate\n"
+            f"• Must last at least one epoch\n\n"
+            f"[bold]Deactivation vs Removal:[/bold]\n"
+            f"• [green]Deactivation[/green]: Temporary, reversible, stake locked\n"
+            f"• [red]Removal[/red]: Permanent, irreversible, stake must be removed separately\n"
+            f"• [yellow]Use deactivation for maintenance or temporary shutdown[/yellow]\n\n"
+            f"[bold]Deactivation Process:[/bold]\n"
+            f"• Validates node is Validator classification\n"
+            f"• Moves node from active to deactivated storage\n"
+            f"• Updates total node counts\n"
+            f"• Stake remains locked and secure\n"
+            f"• Node stops earning rewards\n\n"
+            f"[bold]Stake During Deactivation:[/bold]\n"
+            f"• [yellow]Stake remains locked[/yellow] - no automatic unbonding\n"
+            f"• [yellow]No rewards earned[/yellow] - node not participating\n"
+            f"• [yellow]Stake is secure[/yellow] - cannot be slashed while inactive\n"
+            f"• [yellow]Can be reactivated[/yellow] - stake automatically available\n\n"
+            f"[bold]Deactivation Requirements:[/bold]\n"
+            f"• Node must be Validator classification\n"
+            f"• Valid signing key required\n"
+            f"• Must last at least one epoch\n"
+            f"• Cannot exceed MaxDeactivationEpochs\n\n"
+            f"[yellow]⚠️ Important:[/yellow]\n"
+            f"• Deactivation is temporary and reversible\n"
+            f"• Stake remains locked during deactivation\n"
+            f"• Use for maintenance, not permanent removal\n"
+            f"• Reactivate when ready to resume participation",
+            title="[bold blue]⏸️ Deactivate Subnet Node[/bold blue]",
+            border_style="blue"
         )
+        console.print(guidance_panel)
+        console.print()
 
         # Ask for confirmation
-        if not typer.confirm("Do you want to deactivate this node?"):
+        if not typer.confirm(f"Deactivate node {node_id} in subnet {subnet_id}?"):
             print_info("Node deactivation cancelled.")
             return
 
@@ -745,47 +868,195 @@ def deactivate(
         print_error("❌ Invalid node ID. Must be a positive integer.")
         raise typer.Exit(1)
 
+    # Check if key_name is provided (required for deactivation)
+    if not key_name:
+        print_error("❌ Key name is required for node deactivation. Use --key-name to specify your signing key.")
+        raise typer.Exit(1)
+
     try:
         print_info(f"🔄 Deactivating node {node_id} in subnet {subnet_id}...")
 
-        # Get keypair for signing if provided
-        keypair = None
-        if key_name:
-            # TODO: Load keypair from storage
-            print_info(f"🔑 Using key: {key_name}")
+        # Load keypair for signing
+        from ..utils.crypto import load_keypair
+        # TODO: Get password from user or config
+        password = "default_password_12345"  # This should be improved
+        keypair = load_keypair(key_name, password)
 
-        response = client.deactivate_subnet_node(subnet_id, node_id, keypair)
+        # Deactivate the node
+        response = client.deactivate_subnet_node(
+            subnet_id=subnet_id,
+            node_id=node_id,
+            keypair=keypair
+        )
 
         if response.success:
-            print_success(
-                f"✅ Node {node_id} successfully deactivated in subnet {subnet_id}!"
-            )
-            console.print(
-                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
-            )
+            print_success(f"✅ Node {node_id} successfully deactivated in subnet {subnet_id}!")
+            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
             if response.block_number:
-                console.print(
-                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
-                )
+                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
 
-            console.print(
-                Panel(
-                    f"[bold yellow]⏸️ Node Deactivation Complete![/bold yellow]\n\n"
-                    f"Node {node_id} has been deactivated in subnet {subnet_id}.\n\n"
-                    f"• Node is no longer participating in validation\n"
-                    f"• Stake remains locked but not earning rewards\n"
-                    f"• Node can be reactivated when ready\n\n"
-                    f"Monitor status with: [bold]htcli node list --subnet-id {subnet_id}[/bold]",
-                    title="Deactivation Complete",
-                    border_style="yellow",
-                )
-            )
+            console.print(Panel(
+                f"[bold green]⏸️ Node Deactivation Complete![/bold green]\n\n"
+                f"Node {node_id} has been successfully deactivated in subnet {subnet_id}.\n\n"
+                f"[yellow]📊 What Happened:[/yellow]\n"
+                f"• Node moved from active to deactivated storage\n"
+                f"• Total node count updated\n"
+                f"• Node stopped participating in consensus\n"
+                f"• Stake remains locked and secure\n\n"
+                f"[yellow]💰 Stake Status:[/yellow]\n"
+                f"• [green]Stake remains locked[/green] - no automatic unbonding\n"
+                f"• [yellow]No rewards earned[/yellow] - node not participating\n"
+                f"• [green]Stake is secure[/green] - cannot be slashed while inactive\n"
+                f"• [green]Ready for reactivation[/green] - stake automatically available\n\n"
+                f"[yellow]⏳ Deactivation Period:[/yellow]\n"
+                f"• Must last at least one epoch\n"
+                f"• Cannot exceed MaxDeactivationEpochs\n"
+                f"• Monitor deactivation status\n"
+                f"• Reactivate when ready\n\n"
+                f"[yellow]📋 Next Steps:[/yellow]\n"
+                f"• Monitor status: htcli node status --subnet-id {subnet_id} --node-id {node_id}\n"
+                f"• Reactivate when ready: htcli node reactivate --subnet-id {subnet_id} --node-id {node_id}\n"
+                f"• Check stake status: htcli stake info --subnet-id {subnet_id}\n\n"
+                f"[yellow]💡 Tip:[/yellow]\n"
+                f"• Deactivation is temporary and reversible\n"
+                f"• Use for maintenance or temporary shutdown\n"
+                f"• Stake remains secure during deactivation\n"
+                f"• Reactivate when ready to resume participation",
+                title="Deactivation Success",
+                border_style="green"
+            ))
         else:
             print_error(f"❌ Failed to deactivate node: {response.message}")
             raise typer.Exit(1)
 
     except Exception as e:
         print_error(f"❌ Failed to deactivate node: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def reactivate(
+    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
+    node_id: int = typer.Option(..., "--node-id", "-n", help="Node ID to reactivate"),
+    key_name: Optional[str] = typer.Option(
+        None, "--key-name", "-k", help="Key name for signing"
+    ),
+    show_guidance: bool = typer.Option(
+        True, "--guidance/--no-guidance", help="Show comprehensive guidance"
+    ),
+):
+    """Reactivate a subnet node with comprehensive guidance."""
+    client = get_client()
+
+    # Show comprehensive guidance
+    if show_guidance:
+        from rich.panel import Panel
+        guidance_panel = Panel(
+            f"[bold cyan]🚀 Reactivate Subnet Node Guide[/bold cyan]\n\n"
+            f"This will reactivate node {node_id} in subnet {subnet_id}:\n\n"
+            f"[bold]What is Node Reactivation:[/bold]\n"
+            f"• Moves node from deactivated to active status\n"
+            f"• Node can resume participating in consensus\n"
+            f"• Stake becomes available for earning rewards\n"
+            f"• Requires valid signing key\n\n"
+            f"[bold]Reactivation Process:[/bold]\n"
+            f"• Validates node is in deactivated storage\n"
+            f"• Moves node to active storage\n"
+            f"• Updates total node counts\n"
+            f"• Stake becomes available\n"
+            f"• Node resumes earning rewards\n\n"
+            f"[bold]Stake During Reactivation:[/bold]\n"
+            f"• [green]Stake becomes available[/green] - can be used for staking\n"
+            f"• [green]Rewards resume[/green] - node can earn rewards\n"
+            f"• [green]Stake is secure[/green] - cannot be slashed while active\n"
+            f"• [green]Ready for full operation[/green] - node is fully operational\n\n"
+            f"[bold]Reactivation Requirements:[/bold]\n"
+            f"• Node must be in deactivated status\n"
+            f"• Valid signing key required\n"
+            f"• Cannot exceed MaxDeactivationEpochs\n\n"
+            f"[yellow]⚠️ Important:[/yellow]\n"
+            f"• Reactivation is temporary and reversible\n"
+            f"• Stake becomes available during reactivation\n"
+            f"• Use for temporary recovery or maintenance\n"
+            f"• Reactivation period is limited",
+            title="[bold blue]🚀 Reactivate Subnet Node[/bold blue]",
+            border_style="blue"
+        )
+        console.print(guidance_panel)
+        console.print()
+
+        # Ask for confirmation
+        if not typer.confirm(f"Reactivate node {node_id} in subnet {subnet_id}?"):
+            print_info("Node reactivation cancelled.")
+            return
+
+    # Validate inputs
+    if not validate_subnet_id(subnet_id):
+        print_error("❌ Invalid subnet ID. Must be a positive integer.")
+        raise typer.Exit(1)
+
+    if not validate_node_id(node_id):
+        print_error("❌ Invalid node ID. Must be a positive integer.")
+        raise typer.Exit(1)
+
+    # Check if key_name is provided (required for reactivation)
+    if not key_name:
+        print_error("❌ Key name is required for node reactivation. Use --key-name to specify your signing key.")
+        raise typer.Exit(1)
+
+    try:
+        print_info(f"🔄 Reactivating node {node_id} in subnet {subnet_id}...")
+
+        # Load keypair for signing
+        from ..utils.crypto import load_keypair
+        # TODO: Get password from user or config
+        password = "default_password_12345"  # This should be improved
+        keypair = load_keypair(key_name, password)
+
+        # Reactivate the node
+        response = client.reactivate_subnet_node(
+            subnet_id=subnet_id,
+            node_id=node_id,
+            keypair=keypair
+        )
+
+        if response.success:
+            print_success(f"✅ Node {node_id} successfully reactivated in subnet {subnet_id}!")
+            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            if response.block_number:
+                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+
+            console.print(Panel(
+                f"[bold green]🚀 Node Reactivation Complete![/bold green]\n\n"
+                f"Node {node_id} has been successfully reactivated in subnet {subnet_id}.\n\n"
+                f"[yellow]📊 What Happened:[/yellow]\n"
+                f"• Node moved from deactivated to active storage\n"
+                f"• Total node count updated\n"
+                f"• Node resumed participating in consensus\n"
+                f"• Stake became available\n"
+                f"• Node resumed earning rewards\n\n"
+                f"[yellow]💰 Stake Status:[/yellow]\n"
+                f"• [green]Stake became available[/green] - can be used for staking\n"
+                f"• [green]Rewards resume[/green] - node can earn rewards\n"
+                f"• [green]Stake is secure[/green] - cannot be slashed while active\n"
+                f"• [green]Ready for full operation[/green] - node is fully operational\n\n"
+                f"[yellow]⏳ Reactivation Period:[/yellow]\n"
+                f"• Must last at least one epoch\n"
+                f"• Cannot exceed MaxDeactivationEpochs\n"
+                f"• Monitor reactivation status\n"
+                f"• Reactivation is temporary and reversible\n"
+                f"• Stake becomes available during reactivation\n"
+                f"• Use for temporary recovery or maintenance\n"
+                f"• Reactivation period is limited",
+                title="Reactivation Success",
+                border_style="green"
+            ))
+        else:
+            print_error(f"❌ Failed to reactivate node: {response.message}")
+            raise typer.Exit(1)
+
+    except Exception as e:
+        print_error(f"❌ Failed to reactivate node: {str(e)}")
         raise typer.Exit(1)
 
 

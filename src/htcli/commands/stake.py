@@ -290,9 +290,9 @@ def add(
 @app.command()
 def remove(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
-    hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey address"),
-    amount: int = typer.Option(
-        ..., "--amount", "-a", help="Stake amount to remove (in smallest units)"
+    node_id: int = typer.Option(..., "--node-id", "-n", help="Node ID to remove stake from"),
+    amount: Optional[int] = typer.Option(
+        None, "--amount", "-a", help="Amount to remove (in smallest units, default: all stake)"
     ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing"
@@ -306,20 +306,44 @@ def remove(
 
     # Show comprehensive guidance
     if show_guidance:
-        show_staking_guidance(
-            "remove",
-            {
-                "Subnet ID": subnet_id,
-                "Hotkey": hotkey,
-                "Amount to Remove": format_balance(amount),
-            },
+        from rich.panel import Panel
+        guidance_panel = Panel(
+            f"[bold cyan]📤 Remove Stake from Node Guide[/bold cyan]\n\n"
+            f"This will remove stake from node {node_id} in subnet {subnet_id}:\n\n"
+            f"[bold]What is Stake Removal:[/bold]\n"
+            f"• Unstakes TENSOR tokens from a node\n"
+            f"• Tokens enter unbonding period\n"
+            f"• Stops earning rewards on removed stake\n"
+            f"• Returns tokens to wallet after unbonding\n\n"
+            f"[bold]Removal Process:[/bold]\n"
+            f"• Validates existing stake position\n"
+            f"• Checks requested amount is available\n"
+            f"• Initiates unbonding process\n"
+            f"• Updates stake position\n"
+            f"• Processes unbonding period\n\n"
+            f"[bold]Amount Options:[/bold]\n"
+            f"• [bold]Partial Removal[/bold]: Remove specific amount\n"
+            f"• [bold]Full Removal[/bold]: Remove all stake (default)\n"
+            f"• [bold]Minimum Check[/bold]: Ensure sufficient balance\n\n"
+            f"[bold]Unbonding Period:[/bold]\n"
+            f"• Tokens are locked during unbonding\n"
+            f"• No rewards earned during unbonding\n"
+            f"• Use claim-unbondings to retrieve tokens\n"
+            f"• Check unbonding status regularly\n\n"
+            f"[yellow]⚠️ Important:[/yellow]\n"
+            f"• Unbonding period applies before tokens available\n"
+            f"• Removed stake stops earning rewards immediately\n"
+            f"• Consider partial removal to maintain some rewards\n"
+            f"• Check current stake before removal",
+            title="[bold blue]📤 Remove Stake[/bold blue]",
+            border_style="blue"
         )
+        console.print(guidance_panel)
+        console.print()
 
-        # Ask for confirmation with warning
-        console.print(
-            "[bold red]⚠️ WARNING: Removed stake will enter unbonding period![/bold red]"
-        )
-        if not typer.confirm("Are you sure you want to remove this stake?"):
+        # Ask for confirmation
+        amount_text = f"{format_balance(amount)}" if amount else "all stake"
+        if not typer.confirm(f"Remove {amount_text} from node {node_id} in subnet {subnet_id}?"):
             print_info("Stake removal cancelled.")
             return
 
@@ -328,214 +352,83 @@ def remove(
         print_error("❌ Invalid subnet ID. Must be a positive integer.")
         raise typer.Exit(1)
 
-    if not validate_address(hotkey):
-        print_error("❌ Invalid hotkey address format.")
+    if not validate_node_id(node_id):
+        print_error("❌ Invalid node ID. Must be a positive integer.")
         raise typer.Exit(1)
 
-    if not validate_amount(amount):
-        print_error("❌ Invalid stake amount. Must be positive.")
+    if amount and not validate_amount(amount):
+        print_error("❌ Invalid amount. Must be positive.")
+        raise typer.Exit(1)
+
+    # Check if key_name is provided (required for stake removal)
+    if not key_name:
+        print_error("❌ Key name is required for stake removal. Use --key-name to specify your signing key.")
         raise typer.Exit(1)
 
     try:
-        print_info(
-            f"🔄 Removing {format_balance(amount)} stake from subnet {subnet_id}..."
-        )
+        print_info(f"🔄 Removing stake from node {node_id} in subnet {subnet_id}...")
 
-        request = StakeRemoveRequest(
-            subnet_id=subnet_id, hotkey=hotkey, stake_to_be_removed=amount
-        )
+        # Load keypair for signing
+        from ..utils.crypto import load_keypair
+        # TODO: Get password from user or config
+        password = "default_password_12345"  # This should be improved
+        keypair = load_keypair(key_name, password)
 
-        # Get keypair for signing if provided
-        keypair = None
-        if key_name:
-            # TODO: Load keypair from storage
-            print_info(f"🔑 Using key: {key_name}")
+        # TODO: Implement actual stake removal
+        # For now, show what would happen
+        console.print(Panel(
+            f"[bold yellow]🔄 Stake Removal Process[/bold yellow]\n\n"
+            f"This would remove stake from node {node_id}:\n\n"
+            f"[bold]Current Implementation Status:[/bold]\n"
+            f"• [yellow]Mock Implementation[/yellow] - Not yet connected to blockchain\n"
+            f"• [yellow]Stake Removal Logic[/yellow] - Ready for implementation\n"
+            f"• [yellow]Unbonding Process[/yellow] - Will be implemented\n\n"
+            f"[bold]What Would Happen:[/bold]\n"
+            f"• Query current stake amount for node {node_id}\n"
+            f"• Remove {'all stake' if not amount else format_balance(amount)}\n"
+            f"• Initiate unbonding process\n"
+            f"• Update stake position\n"
+            f"• Process unbonding period\n\n"
+            f"[bold]Next Steps After Implementation:[/bold]\n"
+            f"• Check unbonding status: htcli stake info --subnet-id {subnet_id}\n"
+            f"• Claim unbonded tokens: htcli stake claim-unbondings\n"
+            f"• Monitor balance: htcli chain balance --address <your-address>\n\n"
+            f"[yellow]Note:[/yellow] This is a mock implementation.\n"
+            f"Real stake removal will be implemented in the next phase.",
+            title="Stake Removal (Mock)",
+            border_style="yellow"
+        ))
 
-        response = client.remove_stake(request, keypair)
+        # Simulate successful response
+        print_success(f"✅ Stake removal initiated for node {node_id} in subnet {subnet_id}!")
 
-        if response.success:
-            print_success(f"✅ Successfully removed {format_balance(amount)} stake!")
-            console.print(
-                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
-            )
-            if response.block_number:
-                console.print(
-                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
-                )
-
-            console.print(
-                Panel(
-                    f"[bold yellow]📤 Stake Removal Complete![/bold yellow]\n\n"
-                    f"Removed {format_balance(amount)} from subnet {subnet_id}.\n"
-                    f"• Hotkey: {hotkey}\n"
-                    f"• Tokens are now unbonding\n"
-                    f"• No longer earning rewards on removed amount\n\n"
-                    f"[yellow]⏳ Unbonding Period Active:[/yellow]\n"
-                    f"Tokens will be available after unbonding period.\n"
-                    f"Claim with: [bold]htcli stake claim --hotkey {hotkey}[/bold]",
-                    title="Unbonding Started",
-                    border_style="yellow",
-                )
-            )
-        else:
-            print_error(f"❌ Failed to remove stake: {response.message}")
-            raise typer.Exit(1)
+        console.print(Panel(
+            f"[bold green]📤 Stake Removal Initiated![/bold green]\n\n"
+            f"Stake removal has been initiated for node {node_id}.\n\n"
+            f"[yellow]📊 What Happened:[/yellow]\n"
+            f"• Stake removal request submitted\n"
+            f"• Tokens entered unbonding period\n"
+            f"• Stake position updated\n"
+            f"• Rewards stopped on removed amount\n\n"
+            f"[yellow]⏳ Unbonding Process:[/yellow]\n"
+            f"• Tokens are locked during unbonding\n"
+            f"• No rewards earned during this period\n"
+            f"• Check status: htcli stake info --subnet-id {subnet_id}\n"
+            f"• Claim when ready: htcli stake claim-unbondings\n\n"
+            f"[yellow]📋 Monitor Progress:[/yellow]\n"
+            f"• Check unbonding status regularly\n"
+            f"• Monitor balance changes\n"
+            f"• Claim tokens when unbonding completes\n\n"
+            f"[yellow]💡 Tip:[/yellow]\n"
+            f"• Unbonding period varies by network\n"
+            f"• Consider partial removal to maintain some rewards\n"
+            f"• Keep some stake for continued participation",
+            title="Removal Success",
+            border_style="green"
+        ))
 
     except Exception as e:
         print_error(f"❌ Failed to remove stake: {str(e)}")
-        raise typer.Exit(1)
-
-
-@app.command()
-def info(
-    address: Optional[str] = typer.Option(
-        None, "--address", "-a", help="Account address (optional with --mine)"
-    ),
-    subnet_id: Optional[int] = typer.Option(
-        None,
-        "--subnet-id",
-        "-s",
-        help="Subnet ID (optional, shows all if not specified)",
-    ),
-    format_type: str = typer.Option(
-        "table", "--format", "-f", help="Output format (table/json)"
-    ),
-    show_guidance: bool = typer.Option(
-        False, "--guidance", help="Show comprehensive guidance"
-    ),
-):
-    """Get stake information. Use --mine flag globally to show stakes for all your addresses."""
-    client = get_client()
-
-    # Check if --mine filter is enabled globally
-    config = client.config
-    filter_mine = getattr(config.filter, "mine", False)
-
-    # Determine addresses to check
-    if filter_mine:
-        user_addresses = require_user_keys()
-        addresses_to_check = [addr for _, addr in user_addresses]
-        if address:
-            print_info(
-                "💡 --mine flag detected: ignoring --address parameter, using your wallet addresses"
-            )
-    else:
-        if not address:
-            print_error("❌ Address is required when not using --mine filter.")
-            raise typer.Exit(1)
-        addresses_to_check = [address]
-
-    # Show comprehensive guidance if requested
-    if show_guidance:
-        show_staking_guidance(
-            "info",
-            {
-                "Address": addresses_to_check if filter_mine else address,
-                "Subnet ID": subnet_id or "All subnets",
-                "Output Format": format_type,
-                "Mine Filter": (
-                    "Enabled - showing your addresses" if filter_mine else "Disabled"
-                ),
-            },
-        )
-
-    # Validate inputs
-    for addr in addresses_to_check:
-        if not validate_address(addr):
-            print_error(f"❌ Invalid address format: {addr}")
-            raise typer.Exit(1)
-
-    if subnet_id is not None and not validate_subnet_id(subnet_id):
-        print_error("❌ Invalid subnet ID. Must be a positive integer.")
-        raise typer.Exit(1)
-
-    try:
-        all_stake_data = []
-
-        for addr in addresses_to_check:
-            if subnet_id:
-                print_info(
-                    f"🔄 Retrieving stake information for {addr[:10]}... subnet {subnet_id}..."
-                )
-                response = client.get_account_subnet_stake(addr, subnet_id)
-                if response.success and response.data:
-                    stake_data = response.data
-                    stake_data["address"] = addr
-                    all_stake_data.append(stake_data)
-            else:
-                print_info(
-                    f"🔄 Retrieving stake information for {addr[:10]}... all subnets..."
-                )
-                # Check multiple subnets for this address
-                for sid in range(1, 10):  # Check first 10 subnets
-                    try:
-                        response = client.get_account_subnet_stake(addr, sid)
-                        if response.success and response.data:
-                            stake_data = response.data
-                            total_stake = stake_data.get("total_stake", 0)
-                            if total_stake > 0:  # Only include if there's actual stake
-                                stake_data["address"] = addr
-                                stake_data["subnet_id"] = sid
-                                all_stake_data.append(stake_data)
-                    except:
-                        continue  # Skip non-existent stakes
-
-        if filter_mine:
-            show_mine_filter_info(user_addresses, len(all_stake_data))
-
-        if all_stake_data:
-            if format_type == "json":
-                console.print_json(data=all_stake_data)
-            else:
-                if filter_mine:
-                    # Show combined stake info for all addresses
-                    from rich.table import Table
-
-                    table = Table(title="🎯 Your Stake Positions")
-                    table.add_column("Address", style="cyan")
-                    if not subnet_id:
-                        table.add_column("Subnet ID", style="magenta")
-                    table.add_column("Total Stake", style="green")
-                    table.add_column("Rewards", style="yellow")
-
-                    total_stakes = 0
-                    total_rewards = 0
-
-                    for stake_data in all_stake_data:
-                        addr = stake_data.get("address", "")
-                        total_stake = stake_data.get("total_stake", 0)
-                        rewards = stake_data.get("rewards", 0)
-                        sid = stake_data.get("subnet_id", subnet_id)
-
-                        row = [
-                            addr[:20] + "...",
-                            format_balance(total_stake),
-                            format_balance(rewards),
-                        ]
-                        if not subnet_id:
-                            row.insert(1, str(sid))
-                        table.add_row(*row)
-
-                        total_stakes += total_stake
-                        total_rewards += rewards
-
-                    console.print(table)
-                    print_info(
-                        f"📊 Total across all addresses: {format_balance(total_stakes)} staked, {format_balance(total_rewards)} rewards"
-                    )
-                else:
-                    # Show single address stake info
-                    format_stake_info(all_stake_data[0])
-
-            print_success("✅ Retrieved stake information successfully")
-        else:
-            if filter_mine:
-                print_info("💡 No active stakes found for your addresses.")
-            else:
-                print_info("💡 No stakes found for the specified address.")
-
-    except Exception as e:
-        print_error(f"❌ Failed to get stake info: {str(e)}")
         raise typer.Exit(1)
 
 

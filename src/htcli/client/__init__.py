@@ -119,6 +119,24 @@ class HypertensorClient:
         """Activate a subnet node."""
         return self.subnet.activate_subnet_node(subnet_id, node_id, keypair)
 
+    def deactivate_subnet_node(
+        self,
+        subnet_id: int,
+        node_id: int,
+        keypair=None
+    ):
+        """Deactivate a subnet node."""
+        return self.subnet.deactivate_subnet_node(subnet_id, node_id, keypair)
+
+    def reactivate_subnet_node(
+        self,
+        subnet_id: int,
+        node_id: int,
+        keypair=None
+    ):
+        """Reactivate a subnet node."""
+        return self.subnet.reactivate_subnet_node(subnet_id, node_id, keypair)
+
     def get_subnet_node_status(self, subnet_id: int, node_id: int):
         """Get detailed status of a specific subnet node."""
         return self.subnet.get_subnet_node_status(subnet_id, node_id)
@@ -130,10 +148,6 @@ class HypertensorClient:
     def remove_subnet(self, subnet_id: int, keypair=None):
         """Remove a subnet."""
         return self.subnet.remove_subnet(subnet_id, keypair)
-
-    def deactivate_subnet_node(self, subnet_id: int, subnet_node_id: int, keypair=None):
-        """Deactivate a subnet node."""
-        return self.subnet.deactivate_subnet_node(subnet_id, subnet_node_id, keypair)
 
     def remove_subnet_node(self, subnet_id: int, subnet_node_id: int, keypair=None):
         """Remove a subnet node."""

@@ -552,6 +552,120 @@ class SubnetClient:
             logger.error(f"Failed to activate subnet node: {str(e)}")
             raise
 
+    def deactivate_subnet_node(
+        self,
+        subnet_id: int,
+        node_id: int,
+        keypair=None
+    ):
+        """Deactivate a subnet node using Network.deactivate_subnet_node with real transaction submission."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Prepare call parameters according to official specification
+            call_params = {
+                "subnet_id": subnet_id,
+                "subnet_node_id": node_id,
+            }
+
+            # Compose the call using Network pallet
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="deactivate_subnet_node",
+                call_params=call_params,
+            )
+
+            # If keypair provided, submit real transaction
+            if keypair:
+                # Create and submit transaction
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                # Submit and wait for confirmation
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                # Return real transaction details
+                return NodeAddResponse(
+                    success=True,
+                    message="Node deactivated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                # Return composed call data for manual submission
+                return NodeAddResponse(
+                    success=True,
+                    message="Node deactivation call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to deactivate subnet node: {str(e)}")
+            raise
+
+    def reactivate_subnet_node(
+        self,
+        subnet_id: int,
+        node_id: int,
+        keypair=None
+    ):
+        """Reactivate a subnet node using Network.reactivate_subnet_node with real transaction submission."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Prepare call parameters according to official specification
+            call_params = {
+                "subnet_id": subnet_id,
+                "subnet_node_id": node_id,
+            }
+
+            # Compose the call using Network pallet
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="reactivate_subnet_node",
+                call_params=call_params,
+            )
+
+            # If keypair provided, submit real transaction
+            if keypair:
+                # Create and submit transaction
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                # Submit and wait for confirmation
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                # Return real transaction details
+                return NodeAddResponse(
+                    success=True,
+                    message="Node reactivated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                # Return composed call data for manual submission
+                return NodeAddResponse(
+                    success=True,
+                    message="Node reactivation call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to reactivate subnet node: {str(e)}")
+            raise
+
     def get_subnet_node_status(self, subnet_id: int, node_id: int):
         """Get detailed status of a specific subnet node."""
         try:

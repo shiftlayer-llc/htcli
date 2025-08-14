@@ -666,6 +666,72 @@ class SubnetClient:
             logger.error(f"Failed to reactivate subnet node: {str(e)}")
             raise
 
+    def cleanup_expired_node(
+        self,
+        subnet_id: int,
+        node_id: int,
+        cleanup_type: str,
+        keypair=None
+    ):
+        """Cleanup expired nodes that failed to activate or reactivate."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Determine the cleanup function based on type
+            if cleanup_type == "deactivated":
+                call_function = "cleanup_expired_deactivated_node"
+            elif cleanup_type == "registered":
+                call_function = "cleanup_expired_registered_node"
+            else:
+                raise ValueError(f"Invalid cleanup type: {cleanup_type}")
+
+            # Prepare call parameters
+            call_params = {
+                "subnet_id": subnet_id,
+                "subnet_node_id": node_id,
+            }
+
+            # Compose the call using Network pallet
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function=call_function,
+                call_params=call_params,
+            )
+
+            # If keypair provided, submit real transaction
+            if keypair:
+                # Create and submit transaction
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                # Submit and wait for confirmation
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                # Return real transaction details
+                return NodeAddResponse(
+                    success=True,
+                    message=f"Expired {cleanup_type} node cleaned up successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                # Return composed call data for manual submission
+                return NodeAddResponse(
+                    success=True,
+                    message=f"Expired {cleanup_type} node cleanup call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to cleanup expired {cleanup_type} node: {str(e)}")
+            raise
+
     def get_subnet_node_status(self, subnet_id: int, node_id: int):
         """Get detailed status of a specific subnet node."""
         try:

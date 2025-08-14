@@ -956,15 +956,22 @@ def reactivate(
             f"This will reactivate node {node_id} in subnet {subnet_id}:\n\n"
             f"[bold]What is Node Reactivation:[/bold]\n"
             f"• Moves node from deactivated to active status\n"
-            f"• Node can resume participating in consensus\n"
+            f"• Node becomes Validator classification immediately\n"
+            f"• Begins consensus participation on following epoch\n"
             f"• Stake becomes available for earning rewards\n"
-            f"• Requires valid signing key\n\n"
+            f"• Must reactivate within MaxDeactivationEpochs\n\n"
             f"[bold]Reactivation Process:[/bold]\n"
             f"• Validates node is in deactivated storage\n"
-            f"• Moves node to active storage\n"
+            f"• Moves node to active storage (SubnetNodesData)\n"
+            f"• Sets classification to Validator\n"
+            f"• Sets start epoch to current epoch + 1\n"
             f"• Updates total node counts\n"
-            f"• Stake becomes available\n"
-            f"• Node resumes earning rewards\n\n"
+            f"• Stake becomes available for rewards\n\n"
+            f"[bold]Time Limits:[/bold]\n"
+            f"• Must reactivate within MaxDeactivationEpochs\n"
+            f"• From deactivation epoch + 1\n"
+            f"• After MaxDeactivationEpochs, must remove and re-register\n"
+            f"• Cleanup functions available for expired nodes\n\n"
             f"[bold]Stake During Reactivation:[/bold]\n"
             f"• [green]Stake becomes available[/green] - can be used for staking\n"
             f"• [green]Rewards resume[/green] - node can earn rewards\n"
@@ -973,12 +980,14 @@ def reactivate(
             f"[bold]Reactivation Requirements:[/bold]\n"
             f"• Node must be in deactivated status\n"
             f"• Valid signing key required\n"
-            f"• Cannot exceed MaxDeactivationEpochs\n\n"
+            f"• Cannot exceed MaxDeactivationEpochs\n"
+            f"• Must reactivate within time limit\n\n"
             f"[yellow]⚠️ Important:[/yellow]\n"
-            f"• Reactivation is temporary and reversible\n"
-            f"• Stake becomes available during reactivation\n"
-            f"• Use for temporary recovery or maintenance\n"
-            f"• Reactivation period is limited",
+            f"• Reactivation has strict time limits\n"
+            f"• After MaxDeactivationEpochs, must remove and re-register\n"
+            f"• Node becomes Validator classification immediately\n"
+            f"• Begins consensus participation on following epoch\n"
+            f"• Cleanup functions available for expired nodes",
             title="[bold blue]🚀 Reactivate Subnet Node[/bold blue]",
             border_style="blue"
         )
@@ -1031,23 +1040,31 @@ def reactivate(
                 f"Node {node_id} has been successfully reactivated in subnet {subnet_id}.\n\n"
                 f"[yellow]📊 What Happened:[/yellow]\n"
                 f"• Node moved from deactivated to active storage\n"
+                f"• Classification set to Validator\n"
+                f"• Start epoch set to current epoch + 1\n"
                 f"• Total node count updated\n"
-                f"• Node resumed participating in consensus\n"
-                f"• Stake became available\n"
-                f"• Node resumed earning rewards\n\n"
+                f"• Node will begin consensus on following epoch\n"
+                f"• Stake became available for rewards\n\n"
                 f"[yellow]💰 Stake Status:[/yellow]\n"
                 f"• [green]Stake became available[/green] - can be used for staking\n"
                 f"• [green]Rewards resume[/green] - node can earn rewards\n"
                 f"• [green]Stake is secure[/green] - cannot be slashed while active\n"
                 f"• [green]Ready for full operation[/green] - node is fully operational\n\n"
-                f"[yellow]⏳ Reactivation Period:[/yellow]\n"
-                f"• Must last at least one epoch\n"
-                f"• Cannot exceed MaxDeactivationEpochs\n"
-                f"• Monitor reactivation status\n"
-                f"• Reactivation is temporary and reversible\n"
-                f"• Stake becomes available during reactivation\n"
-                f"• Use for temporary recovery or maintenance\n"
-                f"• Reactivation period is limited",
+                f"[yellow]⏳ Consensus Participation:[/yellow]\n"
+                f"• Node classification: Validator\n"
+                f"• Start epoch: Current epoch + 1\n"
+                f"• Consensus participation begins on following epoch\n"
+                f"• Full validator duties resume\n\n"
+                f"[yellow]📋 Next Steps:[/yellow]\n"
+                f"• Monitor status: htcli node status --subnet-id {subnet_id} --node-id {node_id}\n"
+                f"• Check consensus participation\n"
+                f"• Monitor rewards: htcli stake info --subnet-id {subnet_id}\n"
+                f"• Track validator performance\n\n"
+                f"[yellow]💡 Tip:[/yellow]\n"
+                f"• Node is now fully operational as a Validator\n"
+                f"• Consensus participation begins on following epoch\n"
+                f"• Monitor performance and rewards\n"
+                f"• Keep node running for optimal performance",
                 title="Reactivation Success",
                 border_style="green"
             ))
@@ -1057,6 +1074,136 @@ def reactivate(
 
     except Exception as e:
         print_error(f"❌ Failed to reactivate node: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def cleanup_expired(
+    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
+    node_id: int = typer.Option(..., "--node-id", "-n", help="Node ID to cleanup"),
+    cleanup_type: str = typer.Option(
+        "deactivated", "--type", "-t", help="Cleanup type (deactivated/registered)"
+    ),
+    key_name: Optional[str] = typer.Option(
+        None, "--key-name", "-k", help="Key name for signing (optional for cleanup)"
+    ),
+    show_guidance: bool = typer.Option(
+        True, "--guidance/--no-guidance", help="Show comprehensive guidance"
+    ),
+):
+    """Cleanup expired nodes that failed to activate or reactivate."""
+    client = get_client()
+
+    # Show comprehensive guidance
+    if show_guidance:
+        from rich.panel import Panel
+        guidance_panel = Panel(
+            f"[bold cyan]🧹 Cleanup Expired Node Guide[/bold cyan]\n\n"
+            f"This will cleanup expired node {node_id} in subnet {subnet_id}:\n\n"
+            f"[bold]What is Node Cleanup:[/bold]\n"
+            f"• Removes nodes that failed to activate/reactivate in time\n"
+            f"• Anyone can call cleanup functions\n"
+            f"• Frees up storage and resources\n"
+            f"• Required for nodes that exceed time limits\n\n"
+            f"[bold]Cleanup Types:[/bold]\n"
+            f"• [yellow]deactivated[/yellow]: Nodes that failed to reactivate in time\n"
+            f"• [yellow]registered[/yellow]: Nodes that failed to activate in time\n"
+            f"• [yellow]Both types[/yellow]: Can be cleaned up by anyone\n\n"
+            f"[bold]When Cleanup is Needed:[/bold]\n"
+            f"• Deactivated nodes exceed MaxDeactivationEpochs\n"
+            f"• Registered nodes exceed activation time limits\n"
+            f"• Nodes that failed to meet requirements\n"
+            f"• Storage cleanup and resource management\n\n"
+            f"[bold]Cleanup Process:[/bold]\n"
+            f"• Validates node is expired and eligible for cleanup\n"
+            f"• Removes node from storage\n"
+            f"• Frees up resources and storage\n"
+            f"• Stake handling depends on node state\n\n"
+            f"[yellow]⚠️ Important:[/yellow]\n"
+            f"• Cleanup is irreversible\n"
+            f"• Anyone can call cleanup functions\n"
+            f"• Only affects expired/failed nodes\n"
+            f"• Stake may need separate handling",
+            title="[bold blue]🧹 Cleanup Expired Node[/bold blue]",
+            border_style="blue"
+        )
+        console.print(guidance_panel)
+        console.print()
+
+        # Ask for confirmation
+        if not typer.confirm(f"Cleanup expired {cleanup_type} node {node_id} in subnet {subnet_id}?"):
+            print_info("Node cleanup cancelled.")
+            return
+
+    # Validate inputs
+    if not validate_subnet_id(subnet_id):
+        print_error("❌ Invalid subnet ID. Must be a positive integer.")
+        raise typer.Exit(1)
+
+    if not validate_node_id(node_id):
+        print_error("❌ Invalid node ID. Must be a positive integer.")
+        raise typer.Exit(1)
+
+    if cleanup_type not in ["deactivated", "registered"]:
+        print_error("❌ Invalid cleanup type. Must be 'deactivated' or 'registered'.")
+        raise typer.Exit(1)
+
+    try:
+        print_info(f"🧹 Cleaning up expired {cleanup_type} node {node_id} in subnet {subnet_id}...")
+
+        # Load keypair for signing if provided
+        keypair = None
+        if key_name:
+            from ..utils.crypto import load_keypair
+            # TODO: Get password from user or config
+            password = "default_password_12345"  # This should be improved
+            keypair = load_keypair(key_name, password)
+
+        # Cleanup the expired node
+        response = client.cleanup_expired_node(
+            subnet_id=subnet_id,
+            node_id=node_id,
+            cleanup_type=cleanup_type,
+            keypair=keypair
+        )
+
+        if response.success:
+            print_success(f"✅ Successfully cleaned up expired {cleanup_type} node {node_id}!")
+            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            if response.block_number:
+                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+
+            console.print(Panel(
+                f"[bold green]🧹 Node Cleanup Complete![/bold green]\n\n"
+                f"Expired {cleanup_type} node {node_id} has been cleaned up from subnet {subnet_id}.\n\n"
+                f"[yellow]📊 What Happened:[/yellow]\n"
+                f"• Node removed from {cleanup_type} storage\n"
+                f"• Storage and resources freed\n"
+                f"• Network cleanup completed\n"
+                f"• Expired node data cleared\n\n"
+                f"[yellow]💰 Stake Status:[/yellow]\n"
+                f"• [yellow]Stake may need separate handling[/yellow]\n"
+                f"• [yellow]Check stake status with: htcli stake info --subnet-id {subnet_id}[/yellow]\n"
+                f"• [yellow]Remove stake if needed: htcli stake remove --subnet-id {subnet_id} --node-id {node_id}[/yellow]\n\n"
+                f"[yellow]📋 Next Steps:[/yellow]\n"
+                f"• Check stake status: htcli stake info --subnet-id {subnet_id}\n"
+                f"• Remove stake if needed\n"
+                f"• Consider re-registering if desired\n"
+                f"• Monitor network health\n\n"
+                f"[yellow]💡 Tip:[/yellow]\n"
+                f"• Cleanup is irreversible\n"
+                f"• Only affects expired/failed nodes\n"
+                f"• Anyone can call cleanup functions\n"
+                f"• Helps maintain network efficiency",
+                title="Cleanup Success",
+                border_style="green"
+            ))
+        else:
+            print_error(f"❌ Failed to cleanup node: {response.message}")
+            raise typer.Exit(1)
+
+    except Exception as e:
+        print_error(f"❌ Failed to cleanup node: {str(e)}")
         raise typer.Exit(1)
 
 

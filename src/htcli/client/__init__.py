@@ -102,121 +102,94 @@ class HypertensorClient:
         stake_amount: int,
         delegate_reward_rate: int,
         bootnode: str = None,
-        keypair=None
+        keypair=None,
     ):
         """Register a subnet node with all required parameters."""
         return self.subnet.register_subnet_node(
-            subnet_id, hotkey, peer_id, bootnode_peer_id, client_peer_id,
-            stake_amount, delegate_reward_rate, bootnode, keypair
+            subnet_id,
+            hotkey,
+            peer_id,
+            bootnode_peer_id,
+            client_peer_id,
+            stake_amount,
+            delegate_reward_rate,
+            bootnode,
+            keypair,
         )
 
-    def activate_subnet_node(
-        self,
-        subnet_id: int,
-        node_id: int,
-        keypair=None
-    ):
+    def activate_subnet_node(self, subnet_id: int, node_id: int, keypair=None):
         """Activate a subnet node."""
         return self.subnet.activate_subnet_node(subnet_id, node_id, keypair)
 
-    def deactivate_subnet_node(
-        self,
-        subnet_id: int,
-        node_id: int,
-        keypair=None
-    ):
+    def deactivate_subnet_node(self, subnet_id: int, node_id: int, keypair=None):
         """Deactivate a subnet node."""
         return self.subnet.deactivate_subnet_node(subnet_id, node_id, keypair)
 
-    def reactivate_subnet_node(
-        self,
-        subnet_id: int,
-        node_id: int,
-        keypair=None
-    ):
+    def reactivate_subnet_node(self, subnet_id: int, node_id: int, keypair=None):
         """Reactivate a subnet node."""
         return self.subnet.reactivate_subnet_node(subnet_id, node_id, keypair)
 
     def cleanup_expired_node(
-        self,
-        subnet_id: int,
-        node_id: int,
-        cleanup_type: str,
-        keypair=None
+        self, subnet_id: int, node_id: int, cleanup_type: str, keypair=None
     ):
         """Cleanup expired nodes that failed to activate or reactivate."""
-        return self.subnet.cleanup_expired_node(subnet_id, node_id, cleanup_type, keypair)
+        return self.subnet.cleanup_expired_node(
+            subnet_id, node_id, cleanup_type, keypair
+        )
 
     def update_node_delegate_reward_rate(
-        self,
-        subnet_id: int,
-        node_id: int,
-        new_delegate_reward_rate: int,
-        keypair=None
+        self, subnet_id: int, node_id: int, new_delegate_reward_rate: int, keypair=None
     ):
         """Update subnet node delegate reward rate."""
-        return self.subnet.update_node_delegate_reward_rate(subnet_id, node_id, new_delegate_reward_rate, keypair)
+        return self.subnet.update_node_delegate_reward_rate(
+            subnet_id, node_id, new_delegate_reward_rate, keypair
+        )
 
     def update_node_coldkey(
-        self,
-        subnet_id: int,
-        hotkey: str,
-        new_coldkey: str,
-        keypair=None
+        self, subnet_id: int, hotkey: str, new_coldkey: str, keypair=None
     ):
         """Update subnet node coldkey."""
         return self.subnet.update_node_coldkey(subnet_id, hotkey, new_coldkey, keypair)
 
     def update_node_hotkey(
-        self,
-        subnet_id: int,
-        old_hotkey: str,
-        new_hotkey: str,
-        keypair=None
+        self, subnet_id: int, old_hotkey: str, new_hotkey: str, keypair=None
     ):
         """Update subnet node hotkey."""
-        return self.subnet.update_node_hotkey(subnet_id, old_hotkey, new_hotkey, keypair)
+        return self.subnet.update_node_hotkey(
+            subnet_id, old_hotkey, new_hotkey, keypair
+        )
 
     def add_to_node_delegate_stake(
-        self,
-        subnet_id: int,
-        node_id: int,
-        amount: int,
-        keypair=None
+        self, subnet_id: int, node_id: int, amount: int, keypair=None
     ):
         """Add stake to a specific subnet node."""
-        return self.subnet.add_to_node_delegate_stake(subnet_id, node_id, amount, keypair)
+        return self.subnet.add_to_node_delegate_stake(
+            subnet_id, node_id, amount, keypair
+        )
 
     def remove_node_delegate_stake(
-        self,
-        subnet_id: int,
-        node_id: int,
-        shares: int,
-        keypair=None
+        self, subnet_id: int, node_id: int, shares: int, keypair=None
     ):
         """Remove stake from a specific subnet node."""
-        return self.subnet.remove_node_delegate_stake(subnet_id, node_id, shares, keypair)
+        return self.subnet.remove_node_delegate_stake(
+            subnet_id, node_id, shares, keypair
+        )
 
     def transfer_node_delegate_stake(
-        self,
-        subnet_id: int,
-        node_id: int,
-        to_account: str,
-        shares: int,
-        keypair=None
+        self, subnet_id: int, node_id: int, to_account: str, shares: int, keypair=None
     ):
         """Transfer node delegate stake shares to another account."""
-        return self.subnet.transfer_node_delegate_stake(subnet_id, node_id, to_account, shares, keypair)
+        return self.subnet.transfer_node_delegate_stake(
+            subnet_id, node_id, to_account, shares, keypair
+        )
 
     def increase_node_delegate_stake(
-        self,
-        subnet_id: int,
-        node_id: int,
-        amount: int,
-        keypair=None
+        self, subnet_id: int, node_id: int, amount: int, keypair=None
     ):
         """Increase node delegate stake pool."""
-        return self.subnet.increase_node_delegate_stake(subnet_id, node_id, amount, keypair)
+        return self.subnet.increase_node_delegate_stake(
+            subnet_id, node_id, amount, keypair
+        )
 
     def get_subnet_node_status(self, subnet_id: int, node_id: int):
         """Get detailed status of a specific subnet node."""

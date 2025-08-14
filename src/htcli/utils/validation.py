@@ -422,11 +422,11 @@ def validate_coldkey_addresses(addresses: List[str]) -> bool:
     """Validate a list of coldkey addresses."""
     if not addresses:
         return False
-    
+
     for address in addresses:
         if not validate_ss58_address(address):
             return False
-    
+
     return True
 
 
@@ -434,12 +434,12 @@ def validate_delegate_reward_rate(rate: int) -> bool:
     """Validate delegate reward rate."""
     if not isinstance(rate, int):
         return False
-    
+
     if rate < 0:
         return False
-    
+
     # Rate should be reasonable (not excessively high)
     if rate > 1000000000000000000:  # 1 TENSOR in smallest units
         return False
-    
+
     return True

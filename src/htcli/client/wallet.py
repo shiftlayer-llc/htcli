@@ -362,9 +362,7 @@ class WalletClient:
             logger.error(f"Failed to remove delegate stake: {str(e)}")
             raise
 
-    def increase_delegate_stake(
-        self, subnet_id: int, amount: int, keypair=None
-    ):
+    def increase_delegate_stake(self, subnet_id: int, amount: int, keypair=None):
         """Increase delegate stake pool using Network.increase_delegate_stake."""
         try:
             if not self.substrate:

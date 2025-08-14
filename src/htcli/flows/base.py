@@ -82,26 +82,107 @@ class BaseFlow(ABC):
         self.start_time: float = 0.0
 
     @property
-    @abstractmethod
     def name(self) -> str:
         """Human-readable flow name"""
-        pass
+        return "Base Flow"
 
     @property
-    @abstractmethod
     def description(self) -> str:
         """Detailed flow description"""
-        pass
+        return "Base flow implementation - override in subclasses"
 
-    @abstractmethod
     def setup_steps(self) -> List[FlowStep]:
         """Define the steps for this flow"""
-        pass
+        return [
+            FlowStep(
+                name="initialize",
+                description="Initialize flow context",
+                function=self._initialize_step,
+                required=True,
+                timeout=10,
+                retry_count=1
+            ),
+            FlowStep(
+                name="validate",
+                description="Validate inputs and prerequisites",
+                function=self._validate_step,
+                required=True,
+                timeout=15,
+                retry_count=2
+            ),
+            FlowStep(
+                name="execute",
+                description="Execute main flow logic",
+                function=self._execute_step,
+                required=True,
+                timeout=60,
+                retry_count=3
+            ),
+            FlowStep(
+                name="finalize",
+                description="Finalize and cleanup",
+                function=self._finalize_step,
+                required=False,
+                timeout=10,
+                retry_count=1
+            )
+        ]
 
-    @abstractmethod
     def collect_inputs(self) -> Dict[str, Any]:
         """Collect required inputs from user"""
-        pass
+        return {
+            "flow_type": "base",
+            "timestamp": time.time()
+        }
+
+    def _initialize_step(self, context: Dict[str, Any]) -> bool:
+        """Initialize step implementation"""
+        try:
+            print_info("Initializing flow context...")
+            # Add default context values
+            context.setdefault("start_time", time.time())
+            context.setdefault("flow_id", f"flow_{int(time.time())}")
+            return True
+        except Exception as e:
+            print_error(f"Initialization failed: {str(e)}")
+            return False
+
+    def _validate_step(self, context: Dict[str, Any]) -> bool:
+        """Validation step implementation"""
+        try:
+            print_info("Validating inputs and prerequisites...")
+            # Basic validation - override in subclasses
+            required_keys = ["flow_type", "timestamp"]
+            for key in required_keys:
+                if key not in context:
+                    print_error(f"Missing required context key: {key}")
+                    return False
+            return True
+        except Exception as e:
+            print_error(f"Validation failed: {str(e)}")
+            return False
+
+    def _execute_step(self, context: Dict[str, Any]) -> bool:
+        """Execute step implementation"""
+        try:
+            print_info("Executing main flow logic...")
+            # Base implementation - override in subclasses
+            context["execution_completed"] = True
+            return True
+        except Exception as e:
+            print_error(f"Execution failed: {str(e)}")
+            return False
+
+    def _finalize_step(self, context: Dict[str, Any]) -> bool:
+        """Finalize step implementation"""
+        try:
+            print_info("Finalizing flow...")
+            # Base implementation - override in subclasses
+            context["finalization_completed"] = True
+            return True
+        except Exception as e:
+            print_error(f"Finalization failed: {str(e)}")
+            return False
 
     def initialize(self) -> bool:
         """Initialize the flow with user inputs"""

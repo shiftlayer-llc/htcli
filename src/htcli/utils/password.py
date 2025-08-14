@@ -33,7 +33,7 @@ def get_secure_password(
     key_name: str,
     prompt_message: str = "Enter password",
     allow_default: bool = True,
-    use_cache: bool = True
+    use_cache: bool = True,
 ) -> str:
     """
     Get a secure password for a key, with caching and fallback options.
@@ -71,7 +71,7 @@ def get_secure_password(
         password = Prompt.ask(
             f"{prompt_message} for {key_name}",
             password=True,
-            default=DEFAULT_PASSWORD if allow_default else None
+            default=DEFAULT_PASSWORD if allow_default else None,
         )
 
         # Cache the password
@@ -85,14 +85,14 @@ def get_secure_password(
         return password
 
     except KeyboardInterrupt:
-        console.print("\n[yellow]Password input cancelled. Using default password.[/yellow]")
+        console.print(
+            "\n[yellow]Password input cancelled. Using default password.[/yellow]"
+        )
         return DEFAULT_PASSWORD if allow_default else ""
 
 
 def prompt_for_password(
-    message: str = "Enter password",
-    confirm: bool = True,
-    min_length: int = 8
+    message: str = "Enter password", confirm: bool = True, min_length: int = 8
 ) -> str:
     """
     Prompt user for a password with optional confirmation.
@@ -110,13 +110,17 @@ def prompt_for_password(
             password = Prompt.ask(message, password=True)
 
             if len(password) < min_length:
-                console.print(f"[red]Password must be at least {min_length} characters long[/red]")
+                console.print(
+                    f"[red]Password must be at least {min_length} characters long[/red]"
+                )
                 continue
 
             if confirm:
                 confirm_password = Prompt.ask("Confirm password", password=True)
                 if password != confirm_password:
-                    console.print("[red]Passwords do not match. Please try again.[/red]")
+                    console.print(
+                        "[red]Passwords do not match. Please try again.[/red]"
+                    )
                     continue
 
             return password
@@ -315,6 +319,6 @@ def show_password_help() -> None:
         "[yellow]💡 Tip:[/yellow] Store frequently used passwords for convenience\n"
         "[yellow]💡 Tip:[/yellow] Clear cache when switching between environments",
         title="Password Management",
-        border_style="blue"
+        border_style="blue",
     )
     console.print(help_panel)

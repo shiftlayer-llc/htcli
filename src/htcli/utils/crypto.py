@@ -48,9 +48,9 @@ def generate_keypair(
 
         # Get secure password for saving
         save_password = password or get_secure_password(
-            name, 
+            name,
             prompt_message="Enter password to secure this keypair",
-            allow_default=True
+            allow_default=True,
         )
         save_keypair(name, keypair, save_password)
 
@@ -88,9 +88,9 @@ def import_keypair(
 
         # Get secure password for saving
         save_password = password or get_secure_password(
-            name, 
+            name,
             prompt_message="Enter password to secure this imported keypair",
-            allow_default=True
+            allow_default=True,
         )
         save_keypair(name, keypair, save_password)
 
@@ -149,9 +149,9 @@ def load_keypair(name: str, password: Optional[str] = None) -> Keypair:
 
         # Get secure password for decryption
         decrypt_password = password or get_secure_password(
-            name, 
+            name,
             prompt_message="Enter password to unlock this keypair",
-            allow_default=True
+            allow_default=True,
         )
 
         # Decrypt private key

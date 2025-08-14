@@ -250,7 +250,15 @@ def add(
         # Get keypair for signing if provided
         keypair = None
         if key_name:
-            # TODO: Load keypair from storage
+            # Load keypair for signing
+        from ..utils.crypto import load_keypair
+        # Get secure password for keypair
+        password = get_secure_password(
+            key_name,
+            prompt_message="Enter password to unlock keypair",
+            allow_default=True
+        )
+        keypair = load_keypair(key_name, password)
             print_info(f"🔑 Using key: {key_name}")
 
         response = client.add_to_stake(request, keypair)
@@ -379,7 +387,59 @@ def remove(
         )
         keypair = load_keypair(key_name, password)
 
-        # TODO: Implement actual stake removal
+        # Implement actual stake removal
+        stake_removal_response = client.remove_node_stake_automatically(
+            subnet_id=subnet_id,
+            node_id=node_id,
+            key_name=key_name
+        )
+        
+        if stake_removal_response.success:
+            stake_data = stake_removal_response.data
+            removed_amount = stake_data.get("removed_amount", 0)
+            shares_removed = stake_data.get("shares_removed", 0)
+            
+            print_success(f"✅ Stake removal completed successfully!")
+            console.print(f"📄 Transaction Hash: [bold cyan]{stake_removal_response.transaction_hash}[/bold cyan]")
+            if stake_removal_response.block_number:
+                console.print(f"📦 Block Number: [bold cyan]#{stake_removal_response.block_number}[/bold cyan]")
+            
+            console.print(Panel(
+                f"[bold green]🔄 Stake Removal Success![/bold green]
+
+"
+                f"Successfully removed stake from node {node_id}:
+
+"
+                f"[yellow]📊 Removal Details:[/yellow]
+"
+                f"• [green]Shares Removed[/green]: {shares_removed:,}
+"
+                f"• [green]Estimated Value[/green]: {format_balance(removed_amount)} TENSOR
+"
+                f"• [green]Unbonding Started[/green]: Yes
+
+"
+                f"[yellow]⏳ Next Steps:[/yellow]
+"
+                f"• Wait for unbonding period to complete
+"
+                f"• Monitor unbonding status
+"
+                f"• Claim tokens when ready
+
+"
+                f"[yellow]💡 Tip:[/yellow]
+"
+                f"• Use 'htcli stake info' to monitor progress
+"
+                f"• Consider staking to other nodes/subnets",
+                title="Stake Removal Complete",
+                border_style="green"
+            ))
+        else:
+            print_error(f"❌ Stake removal failed: {stake_removal_response.message}")
+            raise typer.Exit(1)
         # For now, show what would happen
         console.print(Panel(
             f"[bold yellow]🔄 Stake Removal Process[/bold yellow]\n\n"
@@ -470,7 +530,15 @@ def claim(
         # Get keypair for signing if provided
         keypair = None
         if key_name:
-            # TODO: Load keypair from storage
+            # Load keypair for signing
+        from ..utils.crypto import load_keypair
+        # Get secure password for keypair
+        password = get_secure_password(
+            key_name,
+            prompt_message="Enter password to unlock keypair",
+            allow_default=True
+        )
+        keypair = load_keypair(key_name, password)
             print_info(f"🔑 Using key: {key_name}")
 
         response = client.claim_unbondings(keypair)

@@ -359,58 +359,64 @@ def activate(
 
         # Check activation requirements
         requirements = client.check_subnet_activation_requirements(subnet_id)
-        
+
         # Display requirements status
         if requirements["errors"]:
-            console.print(Panel(
-                f"[bold red]❌ Activation Requirements Not Met[/bold red]\n\n"
-                f"The following requirements must be met before activation:\n\n"
-                f"{chr(10).join([f'• [red]{error}[/red]' for error in requirements['errors']])}\n\n"
-                f"[yellow]📋 Required Actions:[/yellow]\n"
-                f"• Address all requirements above\n"
-                f"• Ensure subnet is in registration phase\n"
-                f"• Meet minimum node and stake requirements\n"
-                f"• Check network consensus status\n\n"
-                f"[yellow]💡 Tip:[/yellow]\n"
-                f"• Use 'htcli subnet info --subnet-id {subnet_id}' to check current status\n"
-                f"• Add more nodes or delegate stake as needed\n"
-                f"• Wait for network consensus to be ready",
-                title="Activation Requirements Failed",
-                border_style="red"
-            ))
+            console.print(
+                Panel(
+                    f"[bold red]❌ Activation Requirements Not Met[/bold red]\n\n"
+                    f"The following requirements must be met before activation:\n\n"
+                    f"{chr(10).join([f'• [red]{error}[/red]' for error in requirements['errors']])}\n\n"
+                    f"[yellow]📋 Required Actions:[/yellow]\n"
+                    f"• Address all requirements above\n"
+                    f"• Ensure subnet is in registration phase\n"
+                    f"• Meet minimum node and stake requirements\n"
+                    f"• Check network consensus status\n\n"
+                    f"[yellow]💡 Tip:[/yellow]\n"
+                    f"• Use 'htcli subnet info --subnet-id {subnet_id}' to check current status\n"
+                    f"• Add more nodes or delegate stake as needed\n"
+                    f"• Wait for network consensus to be ready",
+                    title="Activation Requirements Failed",
+                    border_style="red",
+                )
+            )
             raise typer.Exit(1)
-        
+
         if requirements["warnings"]:
-            console.print(Panel(
-                f"[bold yellow]⚠️ Activation Warnings[/bold yellow]\n\n"
-                f"The following warnings were found:\n\n"
-                f"{chr(10).join([f'• [yellow]{warning}[/yellow]' for warning in requirements['warnings']])}\n\n"
-                f"[yellow]📋 Recommendations:[/yellow]\n"
-                f"• Consider addressing warnings for better stability\n"
-                f"• Activation can proceed but may not be optimal\n"
-                f"• Monitor subnet performance after activation\n\n"
-                f"[yellow]💡 Tip:[/yellow]\n"
-                f"• Add more nodes for better stability\n"
-                f"• Increase delegate stake for better performance\n"
-                f"• Monitor network conditions",
-                title="Activation Warnings",
-                border_style="yellow"
-            ))
+            console.print(
+                Panel(
+                    f"[bold yellow]⚠️ Activation Warnings[/bold yellow]\n\n"
+                    f"The following warnings were found:\n\n"
+                    f"{chr(10).join([f'• [yellow]{warning}[/yellow]' for warning in requirements['warnings']])}\n\n"
+                    f"[yellow]📋 Recommendations:[/yellow]\n"
+                    f"• Consider addressing warnings for better stability\n"
+                    f"• Activation can proceed but may not be optimal\n"
+                    f"• Monitor subnet performance after activation\n\n"
+                    f"[yellow]💡 Tip:[/yellow]\n"
+                    f"• Add more nodes for better stability\n"
+                    f"• Increase delegate stake for better performance\n"
+                    f"• Monitor network conditions",
+                    title="Activation Warnings",
+                    border_style="yellow",
+                )
+            )
 
         # Show requirements summary
         details = requirements["details"]
-        console.print(Panel(
-            f"[bold green]✅ Activation Requirements Met[/bold green]\n\n"
-            f"[bold]Requirements Summary:[/bold]\n"
-            f"• [green]Minimum Nodes[/green]: {details.get('min_nodes', 'N/A')} (Current: {details.get('current_nodes', 'N/A')})\n"
-            f"• [green]Minimum Delegate Stake[/green]: {format_balance(details.get('min_delegate_stake', 0))} (Current: {format_balance(details.get('current_delegate_stake', 0))})\n"
-            f"• [green]Initial Coldkeys[/green]: {details.get('initial_coldkeys', 0)}\n"
-            f"• [green]Stake Factor[/green]: {'✅ Met' if details.get('stake_factor', {}).get('met', False) else '❌ Not Met'}\n"
-            f"• [green]Network Consensus[/green]: {'✅ Ready' if details.get('consensus', {}).get('met', False) else '❌ Not Ready'}\n\n"
-            f"[yellow]💡 Proceeding with activation...[/yellow]",
-            title="Requirements Check Passed",
-            border_style="green"
-        ))
+        console.print(
+            Panel(
+                f"[bold green]✅ Activation Requirements Met[/bold green]\n\n"
+                f"[bold]Requirements Summary:[/bold]\n"
+                f"• [green]Minimum Nodes[/green]: {details.get('min_nodes', 'N/A')} (Current: {details.get('current_nodes', 'N/A')})\n"
+                f"• [green]Minimum Delegate Stake[/green]: {format_balance(details.get('min_delegate_stake', 0))} (Current: {format_balance(details.get('current_delegate_stake', 0))})\n"
+                f"• [green]Initial Coldkeys[/green]: {details.get('initial_coldkeys', 0)}\n"
+                f"• [green]Stake Factor[/green]: {'✅ Met' if details.get('stake_factor', {}).get('met', False) else '❌ Not Met'}\n"
+                f"• [green]Network Consensus[/green]: {'✅ Ready' if details.get('consensus', {}).get('met', False) else '❌ Not Ready'}\n\n"
+                f"[yellow]💡 Proceeding with activation...[/yellow]",
+                title="Requirements Check Passed",
+                border_style="green",
+            )
+        )
 
         response = client.activate_subnet(subnet_id, key_name=key_name)
 
@@ -424,18 +430,20 @@ def activate(
                     f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
                 )
 
-            console.print(Panel(
-                f"[bold green]🚀 Subnet Activation Complete![/bold green]\n\n"
-                f"Subnet {subnet_id} is now active and:\n"
-                f"• Has an open slot for rewards distribution\n"
-                f"• Initial coldkeys have been removed\n"
-                f"• Anyone can now register nodes\n"
-                f"• Subnet is earning and distributing rewards\n\n"
-                f"[yellow]📊 Monitor your subnet:[/yellow]\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Activation Success",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]🚀 Subnet Activation Complete![/bold green]\n\n"
+                    f"Subnet {subnet_id} is now active and:\n"
+                    f"• Has an open slot for rewards distribution\n"
+                    f"• Initial coldkeys have been removed\n"
+                    f"• Anyone can now register nodes\n"
+                    f"• Subnet is earning and distributing rewards\n\n"
+                    f"[yellow]📊 Monitor your subnet:[/yellow]\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Activation Success",
+                    border_style="green",
+                )
+            )
         else:
             print_error(f"❌ Failed to activate subnet: {response.message}")
             raise typer.Exit(1)
@@ -631,20 +639,22 @@ def pause(
                     f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
                 )
 
-            console.print(Panel(
-                f"[bold yellow]⏸️ Subnet Paused Successfully![/bold yellow]\n\n"
-                f"Subnet {subnet_id} is now paused and:\n"
-                f"• All functionality is suspended\n"
-                f"• Validator election stopped\n"
-                f"• Emissions distribution paused\n"
-                f"• Penalties will increase if not unpaused\n\n"
-                f"[yellow]📊 Monitor your subnet:[/yellow]\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]\n\n"
-                f"[yellow]🔄 To unpause:[/yellow]\n"
-                f"Use: [bold]htcli subnet unpause --subnet-id {subnet_id} --key-name {key_name}[/bold]",
-                title="Pause Success",
-                border_style="yellow"
-            ))
+            console.print(
+                Panel(
+                    f"[bold yellow]⏸️ Subnet Paused Successfully![/bold yellow]\n\n"
+                    f"Subnet {subnet_id} is now paused and:\n"
+                    f"• All functionality is suspended\n"
+                    f"• Validator election stopped\n"
+                    f"• Emissions distribution paused\n"
+                    f"• Penalties will increase if not unpaused\n\n"
+                    f"[yellow]📊 Monitor your subnet:[/yellow]\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]\n\n"
+                    f"[yellow]🔄 To unpause:[/yellow]\n"
+                    f"Use: [bold]htcli subnet unpause --subnet-id {subnet_id} --key-name {key_name}[/bold]",
+                    title="Pause Success",
+                    border_style="yellow",
+                )
+            )
         else:
             print_error(f"❌ Failed to pause subnet: {response.message}")
             raise typer.Exit(1)
@@ -755,19 +765,21 @@ def unpause(
                     f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
                 )
 
-            console.print(Panel(
-                f"[bold green]▶️ Subnet Unpaused Successfully![/bold green]\n\n"
-                f"Subnet {subnet_id} is now active and:\n"
-                f"• Consensus resumes on next epoch\n"
-                f"• Validator election active\n"
-                f"• Emissions distribution resumed\n"
-                f"• Registered nodes pushed back in queue\n"
-                f"• Idle nodes unaffected\n\n"
-                f"[yellow]📊 Monitor your subnet:[/yellow]\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Unpause Success",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]▶️ Subnet Unpaused Successfully![/bold green]\n\n"
+                    f"Subnet {subnet_id} is now active and:\n"
+                    f"• Consensus resumes on next epoch\n"
+                    f"• Validator election active\n"
+                    f"• Emissions distribution resumed\n"
+                    f"• Registered nodes pushed back in queue\n"
+                    f"• Idle nodes unaffected\n\n"
+                    f"[yellow]📊 Monitor your subnet:[/yellow]\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Unpause Success",
+                    border_style="green",
+                )
+            )
         else:
             print_error(f"❌ Failed to unpause subnet: {response.message}")
             raise typer.Exit(1)
@@ -802,6 +814,7 @@ def remove(
 # SUBNET OWNER OPERATIONS
 # ============================================================================
 
+
 @app.command()
 def owner_update_name(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
@@ -819,6 +832,7 @@ def owner_update_name(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]📝 Update Subnet Name Guide[/bold cyan]\n\n"
             f"This will update the name of subnet {subnet_id} to '{name}':\n\n"
@@ -836,7 +850,7 @@ def owner_update_name(
             f"• Name changes affect subnet discoverability\n"
             f"• Consider the impact on your subnet's branding",
             title="[bold blue]📝 Update Subnet Name[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
@@ -857,28 +871,35 @@ def owner_update_name(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
         # Check ownership (user must be the owner to update)
         subnet_response = client.get_subnet_data(subnet_id)
         if not subnet_response.success:
-            print_error(f"❌ Failed to get subnet information: {subnet_response.message}")
+            print_error(
+                f"❌ Failed to get subnet information: {subnet_response.message}"
+            )
             raise typer.Exit(1)
 
         subnet_info = subnet_response.data
 
         # Check if subnet exists
-        if not subnet_info.get('exists', False):
+        if not subnet_info.get("exists", False):
             print_error(f"❌ Subnet {subnet_id} does not exist.")
             raise typer.Exit(1)
 
         # Check ownership (user must be the owner to update)
         from ..utils.ownership import get_user_addresses, user_owns_subnet
+
         user_addresses = get_user_addresses()
         if not user_owns_subnet(subnet_info, user_addresses):
-            print_error(f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update subnet information.")
+            print_error(
+                f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update subnet information."
+            )
             raise typer.Exit(1)
 
         print_info(f"📝 Updating subnet {subnet_id} name to '{name}'...")
@@ -886,22 +907,30 @@ def owner_update_name(
         response = client.owner_update_name(subnet_id, name, key_name=key_name)
 
         if response.success:
-            print_success(f"✅ Subnet {subnet_id} name updated to '{name}' successfully!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            print_success(
+                f"✅ Subnet {subnet_id} name updated to '{name}' successfully!"
+            )
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]📝 Name Update Complete![/bold green]\n\n"
-                f"Subnet {subnet_id} is now named '{name}'.\n"
-                f"• On-chain information updated\n"
-                f"• Subnet discoverability improved\n"
-                f"• Branding updated successfully\n\n"
-                f"[yellow]📊 Verify Changes:[/yellow]\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Name Update Success",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]📝 Name Update Complete![/bold green]\n\n"
+                    f"Subnet {subnet_id} is now named '{name}'.\n"
+                    f"• On-chain information updated\n"
+                    f"• Subnet discoverability improved\n"
+                    f"• Branding updated successfully\n\n"
+                    f"[yellow]📊 Verify Changes:[/yellow]\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Name Update Success",
+                    border_style="green",
+                )
+            )
         else:
             print_error(f"❌ Failed to update subnet name: {response.message}")
             raise typer.Exit(1)
@@ -928,6 +957,7 @@ def owner_update_repo(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]🔗 Update Subnet Repository Guide[/bold cyan]\n\n"
             f"This will update the repository URL of subnet {subnet_id} to '{repo}':\n\n"
@@ -945,7 +975,7 @@ def owner_update_repo(
             f"• Ensure the repository is public and accessible\n"
             f"• Consider the impact on developer adoption",
             title="[bold blue]🔗 Update Subnet Repository[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
@@ -966,28 +996,35 @@ def owner_update_repo(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
         # Check ownership (user must be the owner to update)
         subnet_response = client.get_subnet_data(subnet_id)
         if not subnet_response.success:
-            print_error(f"❌ Failed to get subnet information: {subnet_response.message}")
+            print_error(
+                f"❌ Failed to get subnet information: {subnet_response.message}"
+            )
             raise typer.Exit(1)
 
         subnet_info = subnet_response.data
 
         # Check if subnet exists
-        if not subnet_info.get('exists', False):
+        if not subnet_info.get("exists", False):
             print_error(f"❌ Subnet {subnet_id} does not exist.")
             raise typer.Exit(1)
 
         # Check ownership (user must be the owner to update)
         from ..utils.ownership import get_user_addresses, user_owns_subnet
+
         user_addresses = get_user_addresses()
         if not user_owns_subnet(subnet_info, user_addresses):
-            print_error(f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update subnet information.")
+            print_error(
+                f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update subnet information."
+            )
             raise typer.Exit(1)
 
         print_info(f"🔗 Updating subnet {subnet_id} repository to '{repo}'...")
@@ -995,22 +1032,30 @@ def owner_update_repo(
         response = client.owner_update_repo(subnet_id, repo, key_name=key_name)
 
         if response.success:
-            print_success(f"✅ Subnet {subnet_id} repository updated to '{repo}' successfully!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            print_success(
+                f"✅ Subnet {subnet_id} repository updated to '{repo}' successfully!"
+            )
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]🔗 Repository Update Complete![/bold green]\n\n"
-                f"Subnet {subnet_id} repository is now '{repo}'.\n"
-                f"• Source code location updated\n"
-                f"• Developer accessibility improved\n"
-                f"• On-chain information updated\n\n"
-                f"[yellow]📊 Verify Changes:[/yellow]\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Repository Update Success",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]🔗 Repository Update Complete![/bold green]\n\n"
+                    f"Subnet {subnet_id} repository is now '{repo}'.\n"
+                    f"• Source code location updated\n"
+                    f"• Developer accessibility improved\n"
+                    f"• On-chain information updated\n\n"
+                    f"[yellow]📊 Verify Changes:[/yellow]\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Repository Update Success",
+                    border_style="green",
+                )
+            )
         else:
             print_error(f"❌ Failed to update subnet repository: {response.message}")
             raise typer.Exit(1)
@@ -1023,7 +1068,9 @@ def owner_update_repo(
 @app.command()
 def owner_update_description(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
-    description: str = typer.Option(..., "--description", "-d", help="New subnet description"),
+    description: str = typer.Option(
+        ..., "--description", "-d", help="New subnet description"
+    ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing (required for owner)"
     ),
@@ -1037,6 +1084,7 @@ def owner_update_description(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]📄 Update Subnet Description Guide[/bold cyan]\n\n"
             f"This will update the description of subnet {subnet_id}:\n\n"
@@ -1054,7 +1102,7 @@ def owner_update_description(
             f"• Make the description clear and compelling\n"
             f"• Consider the impact on adoption",
             title="[bold blue]📄 Update Subnet Description[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
@@ -1075,51 +1123,66 @@ def owner_update_description(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
         # Check ownership (user must be the owner to update)
         subnet_response = client.get_subnet_data(subnet_id)
         if not subnet_response.success:
-            print_error(f"❌ Failed to get subnet information: {subnet_response.message}")
+            print_error(
+                f"❌ Failed to get subnet information: {subnet_response.message}"
+            )
             raise typer.Exit(1)
 
         subnet_info = subnet_response.data
 
         # Check if subnet exists
-        if not subnet_info.get('exists', False):
+        if not subnet_info.get("exists", False):
             print_error(f"❌ Subnet {subnet_id} does not exist.")
             raise typer.Exit(1)
 
         # Check ownership (user must be the owner to update)
         from ..utils.ownership import get_user_addresses, user_owns_subnet
+
         user_addresses = get_user_addresses()
         if not user_owns_subnet(subnet_info, user_addresses):
-            print_error(f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update subnet information.")
+            print_error(
+                f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update subnet information."
+            )
             raise typer.Exit(1)
 
         print_info(f"📄 Updating subnet {subnet_id} description...")
 
-        response = client.owner_update_description(subnet_id, description, key_name=key_name)
+        response = client.owner_update_description(
+            subnet_id, description, key_name=key_name
+        )
 
         if response.success:
             print_success(f"✅ Subnet {subnet_id} description updated successfully!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]📄 Description Update Complete![/bold green]\n\n"
-                f"Subnet {subnet_id} description has been updated.\n"
-                f"• On-chain information updated\n"
-                f"• User understanding improved\n"
-                f"• Subnet presentation enhanced\n\n"
-                f"[yellow]📊 Verify Changes:[/yellow]\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Description Update Success",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]📄 Description Update Complete![/bold green]\n\n"
+                    f"Subnet {subnet_id} description has been updated.\n"
+                    f"• On-chain information updated\n"
+                    f"• User understanding improved\n"
+                    f"• Subnet presentation enhanced\n\n"
+                    f"[yellow]📊 Verify Changes:[/yellow]\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Description Update Success",
+                    border_style="green",
+                )
+            )
         else:
             print_error(f"❌ Failed to update subnet description: {response.message}")
             raise typer.Exit(1)
@@ -1132,7 +1195,9 @@ def owner_update_description(
 @app.command()
 def owner_transfer_ownership(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
-    new_owner: str = typer.Option(..., "--new-owner", "-o", help="New owner account address"),
+    new_owner: str = typer.Option(
+        ..., "--new-owner", "-o", help="New owner account address"
+    ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing (required for owner)"
     ),
@@ -1146,6 +1211,7 @@ def owner_transfer_ownership(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]👑 Transfer Subnet Ownership Guide[/bold cyan]\n\n"
             f"This will transfer ownership of subnet {subnet_id} to {new_owner}:\n\n"
@@ -1164,13 +1230,15 @@ def owner_transfer_ownership(
             f"• You can undo before acceptance\n"
             f"• Verify the new owner address carefully",
             title="[bold red]👑 Transfer Subnet Ownership[/bold red]",
-            border_style="red"
+            border_style="red",
         )
         console.print(guidance_panel)
         console.print()
 
         # Ask for confirmation
-        if not typer.confirm(f"Transfer ownership of subnet {subnet_id} to {new_owner}?"):
+        if not typer.confirm(
+            f"Transfer ownership of subnet {subnet_id} to {new_owner}?"
+        ):
             print_info("Subnet ownership transfer cancelled.")
             return
 
@@ -1185,54 +1253,71 @@ def owner_transfer_ownership(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
         # Check ownership (user must be the owner to transfer)
         subnet_response = client.get_subnet_data(subnet_id)
         if not subnet_response.success:
-            print_error(f"❌ Failed to get subnet information: {subnet_response.message}")
+            print_error(
+                f"❌ Failed to get subnet information: {subnet_response.message}"
+            )
             raise typer.Exit(1)
 
         subnet_info = subnet_response.data
 
         # Check if subnet exists
-        if not subnet_info.get('exists', False):
+        if not subnet_info.get("exists", False):
             print_error(f"❌ Subnet {subnet_id} does not exist.")
             raise typer.Exit(1)
 
         # Check ownership (user must be the owner to transfer)
         from ..utils.ownership import get_user_addresses, user_owns_subnet
+
         user_addresses = get_user_addresses()
         if not user_owns_subnet(subnet_info, user_addresses):
-            print_error(f"❌ You are not the owner of subnet {subnet_id}. Only the owner can transfer ownership.")
+            print_error(
+                f"❌ You are not the owner of subnet {subnet_id}. Only the owner can transfer ownership."
+            )
             raise typer.Exit(1)
 
-        print_info(f"👑 Initiating ownership transfer of subnet {subnet_id} to {new_owner}...")
+        print_info(
+            f"👑 Initiating ownership transfer of subnet {subnet_id} to {new_owner}..."
+        )
 
-        response = client.transfer_subnet_ownership(subnet_id, new_owner, key_name=key_name)
+        response = client.transfer_subnet_ownership(
+            subnet_id, new_owner, key_name=key_name
+        )
 
         if response.success:
             print_success(f"✅ Ownership transfer initiated for subnet {subnet_id}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold yellow]👑 Ownership Transfer Initiated![/bold yellow]\n\n"
-                f"Subnet {subnet_id} ownership transfer to {new_owner}:\n"
-                f"• Transfer initiated successfully\n"
-                f"• New owner must accept the transfer\n"
-                f"• You retain ownership until acceptance\n"
-                f"• Can be undone before acceptance\n\n"
-                f"[yellow]📋 Next Steps:[/yellow]\n"
-                f"• New owner runs: [bold]htcli subnet owner-accept-ownership --subnet-id {subnet_id}[/bold]\n"
-                f"• To undo: [bold]htcli subnet owner-undo-transfer --subnet-id {subnet_id}[/bold]\n"
-                f"• Monitor: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Transfer Initiated",
-                border_style="yellow"
-            ))
+            console.print(
+                Panel(
+                    f"[bold yellow]👑 Ownership Transfer Initiated![/bold yellow]\n\n"
+                    f"Subnet {subnet_id} ownership transfer to {new_owner}:\n"
+                    f"• Transfer initiated successfully\n"
+                    f"• New owner must accept the transfer\n"
+                    f"• You retain ownership until acceptance\n"
+                    f"• Can be undone before acceptance\n\n"
+                    f"[yellow]📋 Next Steps:[/yellow]\n"
+                    f"• New owner runs: [bold]htcli subnet owner-accept-ownership --subnet-id {subnet_id}[/bold]\n"
+                    f"• To undo: [bold]htcli subnet owner-undo-transfer --subnet-id {subnet_id}[/bold]\n"
+                    f"• Monitor: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Transfer Initiated",
+                    border_style="yellow",
+                )
+            )
         else:
             print_error(f"❌ Failed to initiate ownership transfer: {response.message}")
             raise typer.Exit(1)
@@ -1258,6 +1343,7 @@ def owner_accept_ownership(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]👑 Accept Subnet Ownership Guide[/bold cyan]\n\n"
             f"This will accept ownership of subnet {subnet_id}:\n\n"
@@ -1276,7 +1362,7 @@ def owner_accept_ownership(
             f"• You gain 24% of subnet emissions\n"
             f"• Previous owner loses all control",
             title="[bold green]👑 Accept Subnet Ownership[/bold green]",
-            border_style="green"
+            border_style="green",
         )
         console.print(guidance_panel)
         console.print()
@@ -1288,7 +1374,9 @@ def owner_accept_ownership(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet ownership operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet ownership operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
@@ -1298,27 +1386,33 @@ def owner_accept_ownership(
 
         if response.success:
             print_success(f"✅ Successfully accepted ownership of subnet {subnet_id}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]👑 Ownership Accepted![/bold green]\n\n"
-                f"You are now the owner of subnet {subnet_id}.\n"
-                f"• Full control over subnet operations\n"
-                f"• 24% of subnet emissions\n"
-                f"• All owner privileges activated\n"
-                f"• Previous owner no longer has control\n\n"
-                f"[yellow]🎯 Your New Capabilities:[/yellow]\n"
-                f"• Activate/pause subnet\n"
-                f"• Update subnet information\n"
-                f"• Manage nodes and policies\n"
-                f"• Transfer ownership to others\n\n"
-                f"[yellow]📊 Monitor Your Subnet:[/yellow]\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Ownership Transfer Complete",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]👑 Ownership Accepted![/bold green]\n\n"
+                    f"You are now the owner of subnet {subnet_id}.\n"
+                    f"• Full control over subnet operations\n"
+                    f"• 24% of subnet emissions\n"
+                    f"• All owner privileges activated\n"
+                    f"• Previous owner no longer has control\n\n"
+                    f"[yellow]🎯 Your New Capabilities:[/yellow]\n"
+                    f"• Activate/pause subnet\n"
+                    f"• Update subnet information\n"
+                    f"• Manage nodes and policies\n"
+                    f"• Transfer ownership to others\n\n"
+                    f"[yellow]📊 Monitor Your Subnet:[/yellow]\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Ownership Transfer Complete",
+                    border_style="green",
+                )
+            )
         else:
             print_error(f"❌ Failed to accept ownership: {response.message}")
             raise typer.Exit(1)
@@ -1332,7 +1426,10 @@ def owner_accept_ownership(
 def owner_undo_transfer(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
     key_name: Optional[str] = typer.Option(
-        None, "--key-name", "-k", help="Key name for signing (required for current owner)"
+        None,
+        "--key-name",
+        "-k",
+        help="Key name for signing (required for current owner)",
     ),
     show_guidance: bool = typer.Option(
         True, "--guidance/--no-guidance", help="Show comprehensive guidance"
@@ -1344,6 +1441,7 @@ def owner_undo_transfer(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]🔄 Undo Ownership Transfer Guide[/bold cyan]\n\n"
             f"This will undo the pending ownership transfer for subnet {subnet_id}:\n\n"
@@ -1362,7 +1460,7 @@ def owner_undo_transfer(
             f"• You retain full ownership\n"
             f"• Can initiate new transfer if needed",
             title="[bold yellow]🔄 Undo Ownership Transfer[/bold yellow]",
-            border_style="yellow"
+            border_style="yellow",
         )
         console.print(guidance_panel)
         console.print()
@@ -1374,7 +1472,9 @@ def owner_undo_transfer(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet ownership operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet ownership operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
@@ -1383,23 +1483,31 @@ def owner_undo_transfer(
         response = client.undo_subnet_ownership_transfer(subnet_id, key_name=key_name)
 
         if response.success:
-            print_success(f"✅ Successfully undone ownership transfer for subnet {subnet_id}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            print_success(
+                f"✅ Successfully undone ownership transfer for subnet {subnet_id}!"
+            )
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold yellow]🔄 Transfer Undone![/bold yellow]\n\n"
-                f"Ownership transfer for subnet {subnet_id} has been cancelled.\n"
-                f"• You remain the subnet owner\n"
-                f"• Transfer is completely cancelled\n"
-                f"• New owner cannot accept\n"
-                f"• Full control maintained\n\n"
-                f"[yellow]📊 Verify Status:[/yellow]\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Transfer Undone",
-                border_style="yellow"
-            ))
+            console.print(
+                Panel(
+                    f"[bold yellow]🔄 Transfer Undone![/bold yellow]\n\n"
+                    f"Ownership transfer for subnet {subnet_id} has been cancelled.\n"
+                    f"• You remain the subnet owner\n"
+                    f"• Transfer is completely cancelled\n"
+                    f"• New owner cannot accept\n"
+                    f"• Full control maintained\n\n"
+                    f"[yellow]📊 Verify Status:[/yellow]\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Transfer Undone",
+                    border_style="yellow",
+                )
+            )
         else:
             print_error(f"❌ Failed to undo ownership transfer: {response.message}")
             raise typer.Exit(1)
@@ -1426,6 +1534,7 @@ def owner_remove_node(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]🗑️ Remove Subnet Node Guide[/bold cyan]\n\n"
             f"This will remove node {node_id} from subnet {subnet_id}:\n\n"
@@ -1444,7 +1553,7 @@ def owner_remove_node(
             f"• Consider impact on consensus\n"
             f"• Ensure minimum node requirements",
             title="[bold red]🗑️ Remove Subnet Node[/bold red]",
-            border_style="red"
+            border_style="red",
         )
         console.print(guidance_panel)
         console.print()
@@ -1465,55 +1574,72 @@ def owner_remove_node(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
         # Check ownership (user must be the owner to remove nodes)
         subnet_response = client.get_subnet_data(subnet_id)
         if not subnet_response.success:
-            print_error(f"❌ Failed to get subnet information: {subnet_response.message}")
+            print_error(
+                f"❌ Failed to get subnet information: {subnet_response.message}"
+            )
             raise typer.Exit(1)
 
         subnet_info = subnet_response.data
 
         # Check if subnet exists
-        if not subnet_info.get('exists', False):
+        if not subnet_info.get("exists", False):
             print_error(f"❌ Subnet {subnet_id} does not exist.")
             raise typer.Exit(1)
 
         # Check ownership (user must be the owner to remove nodes)
         from ..utils.ownership import get_user_addresses, user_owns_subnet
+
         user_addresses = get_user_addresses()
         if not user_owns_subnet(subnet_info, user_addresses):
-            print_error(f"❌ You are not the owner of subnet {subnet_id}. Only the owner can remove nodes.")
+            print_error(
+                f"❌ You are not the owner of subnet {subnet_id}. Only the owner can remove nodes."
+            )
             raise typer.Exit(1)
 
         print_info(f"🗑️ Removing node {node_id} from subnet {subnet_id}...")
 
-        response = client.owner_remove_subnet_node(subnet_id, node_id, key_name=key_name)
+        response = client.owner_remove_subnet_node(
+            subnet_id, node_id, key_name=key_name
+        )
 
         if response.success:
-            print_success(f"✅ Successfully removed node {node_id} from subnet {subnet_id}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            print_success(
+                f"✅ Successfully removed node {node_id} from subnet {subnet_id}!"
+            )
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold red]🗑️ Node Removed![/bold red]\n\n"
-                f"Node {node_id} has been removed from subnet {subnet_id}.\n"
-                f"• Node is no longer a validator\n"
-                f"• Node stops earning rewards\n"
-                f"• Subnet capacity reduced\n"
-                f"• Node operator notified\n\n"
-                f"[yellow]📊 Monitor Impact:[/yellow]\n"
-                f"• Check subnet performance\n"
-                f"• Monitor consensus stability\n"
-                f"• Consider adding new nodes\n\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Node Removal Complete",
-                border_style="red"
-            ))
+            console.print(
+                Panel(
+                    f"[bold red]🗑️ Node Removed![/bold red]\n\n"
+                    f"Node {node_id} has been removed from subnet {subnet_id}.\n"
+                    f"• Node is no longer a validator\n"
+                    f"• Node stops earning rewards\n"
+                    f"• Subnet capacity reduced\n"
+                    f"• Node operator notified\n\n"
+                    f"[yellow]📊 Monitor Impact:[/yellow]\n"
+                    f"• Check subnet performance\n"
+                    f"• Monitor consensus stability\n"
+                    f"• Consider adding new nodes\n\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Node Removal Complete",
+                    border_style="red",
+                )
+            )
         else:
             print_error(f"❌ Failed to remove node: {response.message}")
             raise typer.Exit(1)
@@ -1540,6 +1666,7 @@ def owner_update_churn_limit(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]⚙️ Update Churn Limit Guide[/bold cyan]\n\n"
             f"This will update the churn limit for subnet {subnet_id} to {churn_limit}:\n\n"
@@ -1559,13 +1686,15 @@ def owner_update_churn_limit(
             f"• Monitor activation patterns\n"
             f"• Ensure adequate capacity",
             title="[bold blue]⚙️ Update Churn Limit[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
 
         # Ask for confirmation
-        if not typer.confirm(f"Update churn limit for subnet {subnet_id} to {churn_limit}?"):
+        if not typer.confirm(
+            f"Update churn limit for subnet {subnet_id} to {churn_limit}?"
+        ):
             print_info("Churn limit update cancelled.")
             return
 
@@ -1580,55 +1709,72 @@ def owner_update_churn_limit(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
         # Check ownership (user must be the owner to update parameters)
         subnet_response = client.get_subnet_data(subnet_id)
         if not subnet_response.success:
-            print_error(f"❌ Failed to get subnet information: {subnet_response.message}")
+            print_error(
+                f"❌ Failed to get subnet information: {subnet_response.message}"
+            )
             raise typer.Exit(1)
 
         subnet_info = subnet_response.data
 
         # Check if subnet exists
-        if not subnet_info.get('exists', False):
+        if not subnet_info.get("exists", False):
             print_error(f"❌ Subnet {subnet_id} does not exist.")
             raise typer.Exit(1)
 
         # Check ownership (user must be the owner to update parameters)
         from ..utils.ownership import get_user_addresses, user_owns_subnet
+
         user_addresses = get_user_addresses()
         if not user_owns_subnet(subnet_info, user_addresses):
-            print_error(f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters.")
+            print_error(
+                f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters."
+            )
             raise typer.Exit(1)
 
         print_info(f"⚙️ Updating churn limit for subnet {subnet_id} to {churn_limit}...")
 
-        response = client.owner_update_churn_limit(subnet_id, churn_limit, key_name=key_name)
+        response = client.owner_update_churn_limit(
+            subnet_id, churn_limit, key_name=key_name
+        )
 
         if response.success:
-            print_success(f"✅ Successfully updated churn limit for subnet {subnet_id} to {churn_limit}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            print_success(
+                f"✅ Successfully updated churn limit for subnet {subnet_id} to {churn_limit}!"
+            )
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]⚙️ Churn Limit Updated![/bold green]\n\n"
-                f"Subnet {subnet_id} churn limit is now {churn_limit}.\n"
-                f"• {churn_limit} nodes can activate per epoch\n"
-                f"• Queue processing speed adjusted\n"
-                f"• Node onboarding rate changed\n"
-                f"• Growth pattern modified\n\n"
-                f"[yellow]📊 Monitor Impact:[/yellow]\n"
-                f"• Watch queue processing speed\n"
-                f"• Monitor node activation patterns\n"
-                f"• Check subnet growth rate\n\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Churn Limit Update Complete",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]⚙️ Churn Limit Updated![/bold green]\n\n"
+                    f"Subnet {subnet_id} churn limit is now {churn_limit}.\n"
+                    f"• {churn_limit} nodes can activate per epoch\n"
+                    f"• Queue processing speed adjusted\n"
+                    f"• Node onboarding rate changed\n"
+                    f"• Growth pattern modified\n\n"
+                    f"[yellow]📊 Monitor Impact:[/yellow]\n"
+                    f"• Watch queue processing speed\n"
+                    f"• Monitor node activation patterns\n"
+                    f"• Check subnet growth rate\n\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Churn Limit Update Complete",
+                    border_style="green",
+                )
+            )
         else:
             print_error(f"❌ Failed to update churn limit: {response.message}")
             raise typer.Exit(1)
@@ -1641,7 +1787,9 @@ def owner_update_churn_limit(
 @app.command()
 def owner_update_min_stake(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
-    min_stake: int = typer.Option(..., "--min-stake", "-m", help="New minimum stake amount"),
+    min_stake: int = typer.Option(
+        ..., "--min-stake", "-m", help="New minimum stake amount"
+    ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing (required for owner)"
     ),
@@ -1655,6 +1803,7 @@ def owner_update_min_stake(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]💰 Update Minimum Stake Guide[/bold cyan]\n\n"
             f"This will update the minimum stake for subnet {subnet_id} to {format_balance(min_stake)}:\n\n"
@@ -1677,13 +1826,15 @@ def owner_update_min_stake(
             f"  - Validating\n"
             f"  - Attesting",
             title="[bold red]💰 Update Minimum Stake[/bold red]",
-            border_style="red"
+            border_style="red",
         )
         console.print(guidance_panel)
         console.print()
 
         # Ask for confirmation
-        if not typer.confirm(f"Update minimum stake for subnet {subnet_id} to {format_balance(min_stake)}?"):
+        if not typer.confirm(
+            f"Update minimum stake for subnet {subnet_id} to {format_balance(min_stake)}?"
+        ):
             print_info("Minimum stake update cancelled.")
             return
 
@@ -1698,55 +1849,74 @@ def owner_update_min_stake(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
         # Check ownership (user must be the owner to update parameters)
         subnet_response = client.get_subnet_data(subnet_id)
         if not subnet_response.success:
-            print_error(f"❌ Failed to get subnet information: {subnet_response.message}")
+            print_error(
+                f"❌ Failed to get subnet information: {subnet_response.message}"
+            )
             raise typer.Exit(1)
 
         subnet_info = subnet_response.data
 
         # Check if subnet exists
-        if not subnet_info.get('exists', False):
+        if not subnet_info.get("exists", False):
             print_error(f"❌ Subnet {subnet_id} does not exist.")
             raise typer.Exit(1)
 
         # Check ownership (user must be the owner to update parameters)
         from ..utils.ownership import get_user_addresses, user_owns_subnet
+
         user_addresses = get_user_addresses()
         if not user_owns_subnet(subnet_info, user_addresses):
-            print_error(f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters.")
+            print_error(
+                f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters."
+            )
             raise typer.Exit(1)
 
-        print_info(f"💰 Updating minimum stake for subnet {subnet_id} to {format_balance(min_stake)}...")
+        print_info(
+            f"💰 Updating minimum stake for subnet {subnet_id} to {format_balance(min_stake)}..."
+        )
 
-        response = client.owner_update_min_stake(subnet_id, min_stake, key_name=key_name)
+        response = client.owner_update_min_stake(
+            subnet_id, min_stake, key_name=key_name
+        )
 
         if response.success:
-            print_success(f"✅ Successfully updated minimum stake for subnet {subnet_id} to {format_balance(min_stake)}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            print_success(
+                f"✅ Successfully updated minimum stake for subnet {subnet_id} to {format_balance(min_stake)}!"
+            )
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]💰 Minimum Stake Updated![/bold green]\n\n"
-                f"Subnet {subnet_id} minimum stake is now {format_balance(min_stake)}.\n"
-                f"• New nodes must meet this requirement\n"
-                f"• Existing nodes may be affected\n"
-                f"• Registration requirements changed\n"
-                f"• Quality threshold adjusted\n\n"
-                f"[yellow]📊 Monitor Impact:[/yellow]\n"
-                f"• Check if existing nodes are affected\n"
-                f"• Monitor node registration patterns\n"
-                f"• Watch subnet quality changes\n\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Minimum Stake Update Complete",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]💰 Minimum Stake Updated![/bold green]\n\n"
+                    f"Subnet {subnet_id} minimum stake is now {format_balance(min_stake)}.\n"
+                    f"• New nodes must meet this requirement\n"
+                    f"• Existing nodes may be affected\n"
+                    f"• Registration requirements changed\n"
+                    f"• Quality threshold adjusted\n\n"
+                    f"[yellow]📊 Monitor Impact:[/yellow]\n"
+                    f"• Check if existing nodes are affected\n"
+                    f"• Monitor node registration patterns\n"
+                    f"• Watch subnet quality changes\n\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Minimum Stake Update Complete",
+                    border_style="green",
+                )
+            )
         else:
             print_error(f"❌ Failed to update minimum stake: {response.message}")
             raise typer.Exit(1)
@@ -1759,7 +1929,9 @@ def owner_update_min_stake(
 @app.command()
 def owner_update_max_stake(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
-    max_stake: int = typer.Option(..., "--max-stake", "-m", help="New maximum stake amount"),
+    max_stake: int = typer.Option(
+        ..., "--max-stake", "-m", help="New maximum stake amount"
+    ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing (required for owner)"
     ),
@@ -1773,6 +1945,7 @@ def owner_update_max_stake(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]💰 Update Maximum Stake Guide[/bold cyan]\n\n"
             f"This will update the maximum stake for subnet {subnet_id} to {format_balance(max_stake)}:\n\n"
@@ -1792,13 +1965,15 @@ def owner_update_max_stake(
             f"• Balance scalability with stability\n"
             f"• Monitor registration patterns",
             title="[bold blue]💰 Update Maximum Stake[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
 
         # Ask for confirmation
-        if not typer.confirm(f"Update maximum stake for subnet {subnet_id} to {format_balance(max_stake)}?"):
+        if not typer.confirm(
+            f"Update maximum stake for subnet {subnet_id} to {format_balance(max_stake)}?"
+        ):
             print_info("Maximum stake update cancelled.")
             return
 
@@ -1813,55 +1988,74 @@ def owner_update_max_stake(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
         # Check ownership (user must be the owner to update parameters)
         subnet_response = client.get_subnet_data(subnet_id)
         if not subnet_response.success:
-            print_error(f"❌ Failed to get subnet information: {subnet_response.message}")
+            print_error(
+                f"❌ Failed to get subnet information: {subnet_response.message}"
+            )
             raise typer.Exit(1)
 
         subnet_info = subnet_response.data
 
         # Check if subnet exists
-        if not subnet_info.get('exists', False):
+        if not subnet_info.get("exists", False):
             print_error(f"❌ Subnet {subnet_id} does not exist.")
             raise typer.Exit(1)
 
         # Check ownership (user must be the owner to update parameters)
         from ..utils.ownership import get_user_addresses, user_owns_subnet
+
         user_addresses = get_user_addresses()
         if not user_owns_subnet(subnet_info, user_addresses):
-            print_error(f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters.")
+            print_error(
+                f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters."
+            )
             raise typer.Exit(1)
 
-        print_info(f"💰 Updating maximum stake for subnet {subnet_id} to {format_balance(max_stake)}...")
+        print_info(
+            f"💰 Updating maximum stake for subnet {subnet_id} to {format_balance(max_stake)}..."
+        )
 
-        response = client.owner_update_max_stake(subnet_id, max_stake, key_name=key_name)
+        response = client.owner_update_max_stake(
+            subnet_id, max_stake, key_name=key_name
+        )
 
         if response.success:
-            print_success(f"✅ Successfully updated maximum stake for subnet {subnet_id} to {format_balance(max_stake)}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            print_success(
+                f"✅ Successfully updated maximum stake for subnet {subnet_id} to {format_balance(max_stake)}!"
+            )
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]💰 Maximum Stake Updated![/bold green]\n\n"
-                f"Subnet {subnet_id} maximum stake is now {format_balance(max_stake)}.\n"
-                f"• Node registration limit adjusted\n"
-                f"• Growth capacity modified\n"
-                f"• Scalability parameters changed\n"
-                f"• Registration requirements updated\n\n"
-                f"[yellow]📊 Monitor Impact:[/yellow]\n"
-                f"• Watch node registration patterns\n"
-                f"• Monitor growth capacity\n"
-                f"• Check scalability metrics\n\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Maximum Stake Update Complete",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]💰 Maximum Stake Updated![/bold green]\n\n"
+                    f"Subnet {subnet_id} maximum stake is now {format_balance(max_stake)}.\n"
+                    f"• Node registration limit adjusted\n"
+                    f"• Growth capacity modified\n"
+                    f"• Scalability parameters changed\n"
+                    f"• Registration requirements updated\n\n"
+                    f"[yellow]📊 Monitor Impact:[/yellow]\n"
+                    f"• Watch node registration patterns\n"
+                    f"• Monitor growth capacity\n"
+                    f"• Check scalability metrics\n\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Maximum Stake Update Complete",
+                    border_style="green",
+                )
+            )
         else:
             print_error(f"❌ Failed to update maximum stake: {response.message}")
             raise typer.Exit(1)
@@ -1874,7 +2068,9 @@ def owner_update_max_stake(
 @app.command()
 def owner_update_registration_epochs(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
-    epochs: int = typer.Option(..., "--epochs", "-e", help="New registration queue epochs"),
+    epochs: int = typer.Option(
+        ..., "--epochs", "-e", help="New registration queue epochs"
+    ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing (required for owner)"
     ),
@@ -1888,6 +2084,7 @@ def owner_update_registration_epochs(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]⏱️ Update Registration Queue Epochs Guide[/bold cyan]\n\n"
             f"This will update the registration queue epochs for subnet {subnet_id} to {epochs}:\n\n"
@@ -1907,13 +2104,15 @@ def owner_update_registration_epochs(
             f"• Monitor activation patterns\n"
             f"• Works with churn limit",
             title="[bold blue]⏱️ Update Registration Queue Epochs[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
 
         # Ask for confirmation
-        if not typer.confirm(f"Update registration queue epochs for subnet {subnet_id} to {epochs}?"):
+        if not typer.confirm(
+            f"Update registration queue epochs for subnet {subnet_id} to {epochs}?"
+        ):
             print_info("Registration queue epochs update cancelled.")
             return
 
@@ -1928,57 +2127,78 @@ def owner_update_registration_epochs(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
         # Check ownership (user must be the owner to update parameters)
         subnet_response = client.get_subnet_data(subnet_id)
         if not subnet_response.success:
-            print_error(f"❌ Failed to get subnet information: {subnet_response.message}")
+            print_error(
+                f"❌ Failed to get subnet information: {subnet_response.message}"
+            )
             raise typer.Exit(1)
 
         subnet_info = subnet_response.data
 
         # Check if subnet exists
-        if not subnet_info.get('exists', False):
+        if not subnet_info.get("exists", False):
             print_error(f"❌ Subnet {subnet_id} does not exist.")
             raise typer.Exit(1)
 
         # Check ownership (user must be the owner to update parameters)
         from ..utils.ownership import get_user_addresses, user_owns_subnet
+
         user_addresses = get_user_addresses()
         if not user_owns_subnet(subnet_info, user_addresses):
-            print_error(f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters.")
+            print_error(
+                f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters."
+            )
             raise typer.Exit(1)
 
-        print_info(f"⏱️ Updating registration queue epochs for subnet {subnet_id} to {epochs}...")
+        print_info(
+            f"⏱️ Updating registration queue epochs for subnet {subnet_id} to {epochs}..."
+        )
 
-        response = client.owner_update_registration_epochs(subnet_id, epochs, key_name=key_name)
+        response = client.owner_update_registration_epochs(
+            subnet_id, epochs, key_name=key_name
+        )
 
         if response.success:
-            print_success(f"✅ Successfully updated registration queue epochs for subnet {subnet_id} to {epochs}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            print_success(
+                f"✅ Successfully updated registration queue epochs for subnet {subnet_id} to {epochs}!"
+            )
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]⏱️ Registration Queue Epochs Updated![/bold green]\n\n"
-                f"Subnet {subnet_id} registration queue epochs is now {epochs}.\n"
-                f"• Nodes wait {epochs} epochs before activation\n"
-                f"• Queue processing timing adjusted\n"
-                f"• Node onboarding rate modified\n"
-                f"• Growth pattern changed\n\n"
-                f"[yellow]📊 Monitor Impact:[/yellow]\n"
-                f"• Watch queue processing speed\n"
-                f"• Monitor node activation timing\n"
-                f"• Check growth patterns\n\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Registration Epochs Update Complete",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]⏱️ Registration Queue Epochs Updated![/bold green]\n\n"
+                    f"Subnet {subnet_id} registration queue epochs is now {epochs}.\n"
+                    f"• Nodes wait {epochs} epochs before activation\n"
+                    f"• Queue processing timing adjusted\n"
+                    f"• Node onboarding rate modified\n"
+                    f"• Growth pattern changed\n\n"
+                    f"[yellow]📊 Monitor Impact:[/yellow]\n"
+                    f"• Watch queue processing speed\n"
+                    f"• Monitor node activation timing\n"
+                    f"• Check growth patterns\n\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Registration Epochs Update Complete",
+                    border_style="green",
+                )
+            )
         else:
-            print_error(f"❌ Failed to update registration queue epochs: {response.message}")
+            print_error(
+                f"❌ Failed to update registration queue epochs: {response.message}"
+            )
             raise typer.Exit(1)
 
     except Exception as e:
@@ -1989,7 +2209,9 @@ def owner_update_registration_epochs(
 @app.command()
 def owner_update_activation_grace_epochs(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
-    epochs: int = typer.Option(..., "--epochs", "-e", help="New activation grace epochs"),
+    epochs: int = typer.Option(
+        ..., "--epochs", "-e", help="New activation grace epochs"
+    ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing (required for owner)"
     ),
@@ -2003,6 +2225,7 @@ def owner_update_activation_grace_epochs(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]⏱️ Update Activation Grace Epochs Guide[/bold cyan]\n\n"
             f"This will update the activation grace epochs for subnet {subnet_id} to {epochs}:\n\n"
@@ -2022,13 +2245,15 @@ def owner_update_activation_grace_epochs(
             f"• Monitor activation success rates\n"
             f"• Works with registration epochs",
             title="[bold blue]⏱️ Update Activation Grace Epochs[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
 
         # Ask for confirmation
-        if not typer.confirm(f"Update activation grace epochs for subnet {subnet_id} to {epochs}?"):
+        if not typer.confirm(
+            f"Update activation grace epochs for subnet {subnet_id} to {epochs}?"
+        ):
             print_info("Activation grace epochs update cancelled.")
             return
 
@@ -2043,57 +2268,78 @@ def owner_update_activation_grace_epochs(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
         # Check ownership (user must be the owner to update parameters)
         subnet_response = client.get_subnet_data(subnet_id)
         if not subnet_response.success:
-            print_error(f"❌ Failed to get subnet information: {subnet_response.message}")
+            print_error(
+                f"❌ Failed to get subnet information: {subnet_response.message}"
+            )
             raise typer.Exit(1)
 
         subnet_info = subnet_response.data
 
         # Check if subnet exists
-        if not subnet_info.get('exists', False):
+        if not subnet_info.get("exists", False):
             print_error(f"❌ Subnet {subnet_id} does not exist.")
             raise typer.Exit(1)
 
         # Check ownership (user must be the owner to update parameters)
         from ..utils.ownership import get_user_addresses, user_owns_subnet
+
         user_addresses = get_user_addresses()
         if not user_owns_subnet(subnet_info, user_addresses):
-            print_error(f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters.")
+            print_error(
+                f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters."
+            )
             raise typer.Exit(1)
 
-        print_info(f"⏱️ Updating activation grace epochs for subnet {subnet_id} to {epochs}...")
+        print_info(
+            f"⏱️ Updating activation grace epochs for subnet {subnet_id} to {epochs}..."
+        )
 
-        response = client.owner_update_activation_grace_epochs(subnet_id, epochs, key_name=key_name)
+        response = client.owner_update_activation_grace_epochs(
+            subnet_id, epochs, key_name=key_name
+        )
 
         if response.success:
-            print_success(f"✅ Successfully updated activation grace epochs for subnet {subnet_id} to {epochs}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            print_success(
+                f"✅ Successfully updated activation grace epochs for subnet {subnet_id} to {epochs}!"
+            )
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]⏱️ Activation Grace Epochs Updated![/bold green]\n\n"
-                f"Subnet {subnet_id} activation grace epochs is now {epochs}.\n"
-                f"• Nodes have {epochs} epochs grace period\n"
-                f"• More flexible activation timing\n"
-                f"• Better success rate for nodes\n"
-                f"• Improved subnet reliability\n\n"
-                f"[yellow]📊 Monitor Impact:[/yellow]\n"
-                f"• Watch activation success rates\n"
-                f"• Monitor node onboarding\n"
-                f"• Check subnet stability\n\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Activation Grace Epochs Update Complete",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]⏱️ Activation Grace Epochs Updated![/bold green]\n\n"
+                    f"Subnet {subnet_id} activation grace epochs is now {epochs}.\n"
+                    f"• Nodes have {epochs} epochs grace period\n"
+                    f"• More flexible activation timing\n"
+                    f"• Better success rate for nodes\n"
+                    f"• Improved subnet reliability\n\n"
+                    f"[yellow]📊 Monitor Impact:[/yellow]\n"
+                    f"• Watch activation success rates\n"
+                    f"• Monitor node onboarding\n"
+                    f"• Check subnet stability\n\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Activation Grace Epochs Update Complete",
+                    border_style="green",
+                )
+            )
         else:
-            print_error(f"❌ Failed to update activation grace epochs: {response.message}")
+            print_error(
+                f"❌ Failed to update activation grace epochs: {response.message}"
+            )
             raise typer.Exit(1)
 
     except Exception as e:
@@ -2104,7 +2350,9 @@ def owner_update_activation_grace_epochs(
 @app.command()
 def owner_update_idle_epochs(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
-    epochs: int = typer.Option(..., "--epochs", "-e", help="New idle classification epochs"),
+    epochs: int = typer.Option(
+        ..., "--epochs", "-e", help="New idle classification epochs"
+    ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing (required for owner)"
     ),
@@ -2118,6 +2366,7 @@ def owner_update_idle_epochs(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]⏱️ Update Idle Classification Epochs Guide[/bold cyan]\n\n"
             f"This will update the idle classification epochs for subnet {subnet_id} to {epochs}:\n\n"
@@ -2137,13 +2386,15 @@ def owner_update_idle_epochs(
             f"• Monitor validator selection\n"
             f"• Works with other classification epochs",
             title="[bold blue]⏱️ Update Idle Classification Epochs[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
 
         # Ask for confirmation
-        if not typer.confirm(f"Update idle classification epochs for subnet {subnet_id} to {epochs}?"):
+        if not typer.confirm(
+            f"Update idle classification epochs for subnet {subnet_id} to {epochs}?"
+        ):
             print_info("Idle classification epochs update cancelled.")
             return
 
@@ -2158,57 +2409,76 @@ def owner_update_idle_epochs(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
         # Check ownership (user must be the owner to update parameters)
         subnet_response = client.get_subnet_data(subnet_id)
         if not subnet_response.success:
-            print_error(f"❌ Failed to get subnet information: {subnet_response.message}")
+            print_error(
+                f"❌ Failed to get subnet information: {subnet_response.message}"
+            )
             raise typer.Exit(1)
 
         subnet_info = subnet_response.data
 
         # Check if subnet exists
-        if not subnet_info.get('exists', False):
+        if not subnet_info.get("exists", False):
             print_error(f"❌ Subnet {subnet_id} does not exist.")
             raise typer.Exit(1)
 
         # Check ownership (user must be the owner to update parameters)
         from ..utils.ownership import get_user_addresses, user_owns_subnet
+
         user_addresses = get_user_addresses()
         if not user_owns_subnet(subnet_info, user_addresses):
-            print_error(f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters.")
+            print_error(
+                f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters."
+            )
             raise typer.Exit(1)
 
-        print_info(f"⏱️ Updating idle classification epochs for subnet {subnet_id} to {epochs}...")
+        print_info(
+            f"⏱️ Updating idle classification epochs for subnet {subnet_id} to {epochs}..."
+        )
 
         response = client.owner_update_idle_epochs(subnet_id, epochs, key_name=key_name)
 
         if response.success:
-            print_success(f"✅ Successfully updated idle classification epochs for subnet {subnet_id} to {epochs}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            print_success(
+                f"✅ Successfully updated idle classification epochs for subnet {subnet_id} to {epochs}!"
+            )
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]⏱️ Idle Classification Epochs Updated![/bold green]\n\n"
-                f"Subnet {subnet_id} idle classification epochs is now {epochs}.\n"
-                f"• Nodes stay idle for {epochs} epochs\n"
-                f"• Progression timing adjusted\n"
-                f"• Validator selection affected\n"
-                f"• Performance parameters modified\n\n"
-                f"[yellow]📊 Monitor Impact:[/yellow]\n"
-                f"• Watch node progression\n"
-                f"• Monitor validator selection\n"
-                f"• Check subnet performance\n\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Idle Epochs Update Complete",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]⏱️ Idle Classification Epochs Updated![/bold green]\n\n"
+                    f"Subnet {subnet_id} idle classification epochs is now {epochs}.\n"
+                    f"• Nodes stay idle for {epochs} epochs\n"
+                    f"• Progression timing adjusted\n"
+                    f"• Validator selection affected\n"
+                    f"• Performance parameters modified\n\n"
+                    f"[yellow]📊 Monitor Impact:[/yellow]\n"
+                    f"• Watch node progression\n"
+                    f"• Monitor validator selection\n"
+                    f"• Check subnet performance\n\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Idle Epochs Update Complete",
+                    border_style="green",
+                )
+            )
         else:
-            print_error(f"❌ Failed to update idle classification epochs: {response.message}")
+            print_error(
+                f"❌ Failed to update idle classification epochs: {response.message}"
+            )
             raise typer.Exit(1)
 
     except Exception as e:
@@ -2219,7 +2489,9 @@ def owner_update_idle_epochs(
 @app.command()
 def owner_update_included_epochs(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
-    epochs: int = typer.Option(..., "--epochs", "-e", help="New included classification epochs"),
+    epochs: int = typer.Option(
+        ..., "--epochs", "-e", help="New included classification epochs"
+    ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing (required for owner)"
     ),
@@ -2233,6 +2505,7 @@ def owner_update_included_epochs(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]⏱️ Update Included Classification Epochs Guide[/bold cyan]\n\n"
             f"This will update the included classification epochs for subnet {subnet_id} to {epochs}:\n\n"
@@ -2252,13 +2525,15 @@ def owner_update_included_epochs(
             f"• Monitor validator pool size\n"
             f"• Critical for subnet performance",
             title="[bold blue]⏱️ Update Included Classification Epochs[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
 
         # Ask for confirmation
-        if not typer.confirm(f"Update included classification epochs for subnet {subnet_id} to {epochs}?"):
+        if not typer.confirm(
+            f"Update included classification epochs for subnet {subnet_id} to {epochs}?"
+        ):
             print_info("Included classification epochs update cancelled.")
             return
 
@@ -2273,57 +2548,78 @@ def owner_update_included_epochs(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
         # Check ownership (user must be the owner to update parameters)
         subnet_response = client.get_subnet_data(subnet_id)
         if not subnet_response.success:
-            print_error(f"❌ Failed to get subnet information: {subnet_response.message}")
+            print_error(
+                f"❌ Failed to get subnet information: {subnet_response.message}"
+            )
             raise typer.Exit(1)
 
         subnet_info = subnet_response.data
 
         # Check if subnet exists
-        if not subnet_info.get('exists', False):
+        if not subnet_info.get("exists", False):
             print_error(f"❌ Subnet {subnet_id} does not exist.")
             raise typer.Exit(1)
 
         # Check ownership (user must be the owner to update parameters)
         from ..utils.ownership import get_user_addresses, user_owns_subnet
+
         user_addresses = get_user_addresses()
         if not user_owns_subnet(subnet_info, user_addresses):
-            print_error(f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters.")
+            print_error(
+                f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters."
+            )
             raise typer.Exit(1)
 
-        print_info(f"⏱️ Updating included classification epochs for subnet {subnet_id} to {epochs}...")
+        print_info(
+            f"⏱️ Updating included classification epochs for subnet {subnet_id} to {epochs}..."
+        )
 
-        response = client.owner_update_included_epochs(subnet_id, epochs, key_name=key_name)
+        response = client.owner_update_included_epochs(
+            subnet_id, epochs, key_name=key_name
+        )
 
         if response.success:
-            print_success(f"✅ Successfully updated included classification epochs for subnet {subnet_id} to {epochs}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            print_success(
+                f"✅ Successfully updated included classification epochs for subnet {subnet_id} to {epochs}!"
+            )
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]⏱️ Included Classification Epochs Updated![/bold green]\n\n"
-                f"Subnet {subnet_id} included classification epochs is now {epochs}.\n"
-                f"• Nodes stay included for {epochs} epochs\n"
-                f"• Validator promotion timing adjusted\n"
-                f"• Validator pool size affected\n"
-                f"• Consensus stability modified\n\n"
-                f"[yellow]📊 Monitor Impact:[/yellow]\n"
-                f"• Watch validator pool size\n"
-                f"• Monitor consensus stability\n"
-                f"• Check subnet performance\n\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Included Epochs Update Complete",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]⏱️ Included Classification Epochs Updated![/bold green]\n\n"
+                    f"Subnet {subnet_id} included classification epochs is now {epochs}.\n"
+                    f"• Nodes stay included for {epochs} epochs\n"
+                    f"• Validator promotion timing adjusted\n"
+                    f"• Validator pool size affected\n"
+                    f"• Consensus stability modified\n\n"
+                    f"[yellow]📊 Monitor Impact:[/yellow]\n"
+                    f"• Watch validator pool size\n"
+                    f"• Monitor consensus stability\n"
+                    f"• Check subnet performance\n\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Included Epochs Update Complete",
+                    border_style="green",
+                )
+            )
         else:
-            print_error(f"❌ Failed to update included classification epochs: {response.message}")
+            print_error(
+                f"❌ Failed to update included classification epochs: {response.message}"
+            )
             raise typer.Exit(1)
 
     except Exception as e:
@@ -2334,7 +2630,9 @@ def owner_update_included_epochs(
 @app.command()
 def owner_update_max_penalties(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
-    max_penalties: int = typer.Option(..., "--max-penalties", "-p", help="New maximum node penalties"),
+    max_penalties: int = typer.Option(
+        ..., "--max-penalties", "-p", help="New maximum node penalties"
+    ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing (required for owner)"
     ),
@@ -2348,6 +2646,7 @@ def owner_update_max_penalties(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]⚠️ Update Maximum Node Penalties Guide[/bold cyan]\n\n"
             f"This will update the maximum node penalties for subnet {subnet_id} to {max_penalties}:\n\n"
@@ -2367,13 +2666,15 @@ def owner_update_max_penalties(
             f"• Monitor penalty patterns\n"
             f"• Balance tolerance with quality",
             title="[bold red]⚠️ Update Maximum Node Penalties[/bold red]",
-            border_style="red"
+            border_style="red",
         )
         console.print(guidance_panel)
         console.print()
 
         # Ask for confirmation
-        if not typer.confirm(f"Update maximum node penalties for subnet {subnet_id} to {max_penalties}?"):
+        if not typer.confirm(
+            f"Update maximum node penalties for subnet {subnet_id} to {max_penalties}?"
+        ):
             print_info("Maximum node penalties update cancelled.")
             return
 
@@ -2388,57 +2689,78 @@ def owner_update_max_penalties(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
         # Check ownership (user must be the owner to update parameters)
         subnet_response = client.get_subnet_data(subnet_id)
         if not subnet_response.success:
-            print_error(f"❌ Failed to get subnet information: {subnet_response.message}")
+            print_error(
+                f"❌ Failed to get subnet information: {subnet_response.message}"
+            )
             raise typer.Exit(1)
 
         subnet_info = subnet_response.data
 
         # Check if subnet exists
-        if not subnet_info.get('exists', False):
+        if not subnet_info.get("exists", False):
             print_error(f"❌ Subnet {subnet_id} does not exist.")
             raise typer.Exit(1)
 
         # Check ownership (user must be the owner to update parameters)
         from ..utils.ownership import get_user_addresses, user_owns_subnet
+
         user_addresses = get_user_addresses()
         if not user_owns_subnet(subnet_info, user_addresses):
-            print_error(f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters.")
+            print_error(
+                f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters."
+            )
             raise typer.Exit(1)
 
-        print_info(f"⚠️ Updating maximum node penalties for subnet {subnet_id} to {max_penalties}...")
+        print_info(
+            f"⚠️ Updating maximum node penalties for subnet {subnet_id} to {max_penalties}..."
+        )
 
-        response = client.owner_update_max_penalties(subnet_id, max_penalties, key_name=key_name)
+        response = client.owner_update_max_penalties(
+            subnet_id, max_penalties, key_name=key_name
+        )
 
         if response.success:
-            print_success(f"✅ Successfully updated maximum node penalties for subnet {subnet_id} to {max_penalties}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            print_success(
+                f"✅ Successfully updated maximum node penalties for subnet {subnet_id} to {max_penalties}!"
+            )
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]⚠️ Maximum Node Penalties Updated![/bold green]\n\n"
-                f"Subnet {subnet_id} maximum node penalties is now {max_penalties}.\n"
-                f"• Validators can have up to {max_penalties} penalties\n"
-                f"• Quality standards adjusted\n"
-                f"• Validator retention affected\n"
-                f"• Performance requirements modified\n\n"
-                f"[yellow]📊 Monitor Impact:[/yellow]\n"
-                f"• Watch validator quality\n"
-                f"• Monitor penalty patterns\n"
-                f"• Check subnet reliability\n\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Maximum Penalties Update Complete",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]⚠️ Maximum Node Penalties Updated![/bold green]\n\n"
+                    f"Subnet {subnet_id} maximum node penalties is now {max_penalties}.\n"
+                    f"• Validators can have up to {max_penalties} penalties\n"
+                    f"• Quality standards adjusted\n"
+                    f"• Validator retention affected\n"
+                    f"• Performance requirements modified\n\n"
+                    f"[yellow]📊 Monitor Impact:[/yellow]\n"
+                    f"• Watch validator quality\n"
+                    f"• Monitor penalty patterns\n"
+                    f"• Check subnet reliability\n\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Maximum Penalties Update Complete",
+                    border_style="green",
+                )
+            )
         else:
-            print_error(f"❌ Failed to update maximum node penalties: {response.message}")
+            print_error(
+                f"❌ Failed to update maximum node penalties: {response.message}"
+            )
             raise typer.Exit(1)
 
     except Exception as e:
@@ -2449,7 +2771,9 @@ def owner_update_max_penalties(
 @app.command()
 def owner_add_initial_coldkeys(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
-    coldkeys: str = typer.Option(..., "--coldkeys", "-c", help="Comma-separated list of coldkey addresses"),
+    coldkeys: str = typer.Option(
+        ..., "--coldkeys", "-c", help="Comma-separated list of coldkey addresses"
+    ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing (required for owner)"
     ),
@@ -2466,6 +2790,7 @@ def owner_add_initial_coldkeys(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]🔑 Add Initial Coldkeys Guide[/bold cyan]\n\n"
             f"This will add {len(coldkey_list)} initial coldkeys to subnet {subnet_id}:\n\n"
@@ -2485,13 +2810,15 @@ def owner_add_initial_coldkeys(
             f"• Consider your launch strategy\n"
             f"• Verify coldkey addresses carefully",
             title="[bold blue]🔑 Add Initial Coldkeys[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
 
         # Ask for confirmation
-        if not typer.confirm(f"Add {len(coldkey_list)} initial coldkeys to subnet {subnet_id}?"):
+        if not typer.confirm(
+            f"Add {len(coldkey_list)} initial coldkeys to subnet {subnet_id}?"
+        ):
             print_info("Initial coldkeys addition cancelled.")
             return
 
@@ -2511,55 +2838,74 @@ def owner_add_initial_coldkeys(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
         # Check ownership (user must be the owner to update parameters)
         subnet_response = client.get_subnet_data(subnet_id)
         if not subnet_response.success:
-            print_error(f"❌ Failed to get subnet information: {subnet_response.message}")
+            print_error(
+                f"❌ Failed to get subnet information: {subnet_response.message}"
+            )
             raise typer.Exit(1)
 
         subnet_info = subnet_response.data
 
         # Check if subnet exists
-        if not subnet_info.get('exists', False):
+        if not subnet_info.get("exists", False):
             print_error(f"❌ Subnet {subnet_id} does not exist.")
             raise typer.Exit(1)
 
         # Check ownership (user must be the owner to update parameters)
         from ..utils.ownership import get_user_addresses, user_owns_subnet
+
         user_addresses = get_user_addresses()
         if not user_owns_subnet(subnet_info, user_addresses):
-            print_error(f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters.")
+            print_error(
+                f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters."
+            )
             raise typer.Exit(1)
 
-        print_info(f"🔑 Adding {len(coldkey_list)} initial coldkeys to subnet {subnet_id}...")
+        print_info(
+            f"🔑 Adding {len(coldkey_list)} initial coldkeys to subnet {subnet_id}..."
+        )
 
-        response = client.owner_add_initial_coldkeys(subnet_id, coldkey_list, key_name=key_name)
+        response = client.owner_add_initial_coldkeys(
+            subnet_id, coldkey_list, key_name=key_name
+        )
 
         if response.success:
-            print_success(f"✅ Successfully added {len(coldkey_list)} initial coldkeys to subnet {subnet_id}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            print_success(
+                f"✅ Successfully added {len(coldkey_list)} initial coldkeys to subnet {subnet_id}!"
+            )
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]🔑 Initial Coldkeys Added![/bold green]\n\n"
-                f"Subnet {subnet_id} now has {len(coldkey_list)} additional initial coldkeys.\n"
-                f"• These coldkeys can register nodes\n"
-                f"• Only available during registration phase\n"
-                f"• Will be removed after activation\n"
-                f"• Launch strategy enhanced\n\n"
-                f"[yellow]📊 Monitor Impact:[/yellow]\n"
-                f"• Watch node registration patterns\n"
-                f"• Monitor subnet growth\n"
-                f"• Check activation readiness\n\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Initial Coldkeys Addition Complete",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]🔑 Initial Coldkeys Added![/bold green]\n\n"
+                    f"Subnet {subnet_id} now has {len(coldkey_list)} additional initial coldkeys.\n"
+                    f"• These coldkeys can register nodes\n"
+                    f"• Only available during registration phase\n"
+                    f"• Will be removed after activation\n"
+                    f"• Launch strategy enhanced\n\n"
+                    f"[yellow]📊 Monitor Impact:[/yellow]\n"
+                    f"• Watch node registration patterns\n"
+                    f"• Monitor subnet growth\n"
+                    f"• Check activation readiness\n\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Initial Coldkeys Addition Complete",
+                    border_style="green",
+                )
+            )
         else:
             print_error(f"❌ Failed to add initial coldkeys: {response.message}")
             raise typer.Exit(1)
@@ -2572,7 +2918,9 @@ def owner_add_initial_coldkeys(
 @app.command()
 def owner_remove_initial_coldkeys(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
-    coldkeys: str = typer.Option(..., "--coldkeys", "-c", help="Comma-separated list of coldkey addresses"),
+    coldkeys: str = typer.Option(
+        ..., "--coldkeys", "-c", help="Comma-separated list of coldkey addresses"
+    ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing (required for owner)"
     ),
@@ -2589,6 +2937,7 @@ def owner_remove_initial_coldkeys(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]🔑 Remove Initial Coldkeys Guide[/bold cyan]\n\n"
             f"This will remove {len(coldkey_list)} initial coldkeys from subnet {subnet_id}:\n\n"
@@ -2608,13 +2957,15 @@ def owner_remove_initial_coldkeys(
             f"• Consider impact on registrations\n"
             f"• Verify coldkey addresses carefully",
             title="[bold red]🔑 Remove Initial Coldkeys[/bold red]",
-            border_style="red"
+            border_style="red",
         )
         console.print(guidance_panel)
         console.print()
 
         # Ask for confirmation
-        if not typer.confirm(f"Remove {len(coldkey_list)} initial coldkeys from subnet {subnet_id}?"):
+        if not typer.confirm(
+            f"Remove {len(coldkey_list)} initial coldkeys from subnet {subnet_id}?"
+        ):
             print_info("Initial coldkeys removal cancelled.")
             return
 
@@ -2634,55 +2985,74 @@ def owner_remove_initial_coldkeys(
 
     # Check if key_name is provided (required for owner operations)
     if not key_name:
-        print_error("❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for subnet owner operations. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
         # Check ownership (user must be the owner to update parameters)
         subnet_response = client.get_subnet_data(subnet_id)
         if not subnet_response.success:
-            print_error(f"❌ Failed to get subnet information: {subnet_response.message}")
+            print_error(
+                f"❌ Failed to get subnet information: {subnet_response.message}"
+            )
             raise typer.Exit(1)
 
         subnet_info = subnet_response.data
 
         # Check if subnet exists
-        if not subnet_info.get('exists', False):
+        if not subnet_info.get("exists", False):
             print_error(f"❌ Subnet {subnet_id} does not exist.")
             raise typer.Exit(1)
 
         # Check ownership (user must be the owner to update parameters)
         from ..utils.ownership import get_user_addresses, user_owns_subnet
+
         user_addresses = get_user_addresses()
         if not user_owns_subnet(subnet_info, user_addresses):
-            print_error(f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters.")
+            print_error(
+                f"❌ You are not the owner of subnet {subnet_id}. Only the owner can update parameters."
+            )
             raise typer.Exit(1)
 
-        print_info(f"🔑 Removing {len(coldkey_list)} initial coldkeys from subnet {subnet_id}...")
+        print_info(
+            f"🔑 Removing {len(coldkey_list)} initial coldkeys from subnet {subnet_id}..."
+        )
 
-        response = client.owner_remove_initial_coldkeys(subnet_id, coldkey_list, key_name=key_name)
+        response = client.owner_remove_initial_coldkeys(
+            subnet_id, coldkey_list, key_name=key_name
+        )
 
         if response.success:
-            print_success(f"✅ Successfully removed {len(coldkey_list)} initial coldkeys from subnet {subnet_id}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            print_success(
+                f"✅ Successfully removed {len(coldkey_list)} initial coldkeys from subnet {subnet_id}!"
+            )
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold red]🔑 Initial Coldkeys Removed![/bold red]\n\n"
-                f"Subnet {subnet_id} has {len(coldkey_list)} fewer initial coldkeys.\n"
-                f"• These coldkeys can no longer register nodes\n"
-                f"• May affect existing registrations\n"
-                f"• Launch strategy modified\n"
-                f"• Registration access reduced\n\n"
-                f"[yellow]📊 Monitor Impact:[/yellow]\n"
-                f"• Check existing node registrations\n"
-                f"• Monitor registration patterns\n"
-                f"• Verify launch strategy\n\n"
-                f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
-                title="Initial Coldkeys Removal Complete",
-                border_style="red"
-            ))
+            console.print(
+                Panel(
+                    f"[bold red]🔑 Initial Coldkeys Removed![/bold red]\n\n"
+                    f"Subnet {subnet_id} has {len(coldkey_list)} fewer initial coldkeys.\n"
+                    f"• These coldkeys can no longer register nodes\n"
+                    f"• May affect existing registrations\n"
+                    f"• Launch strategy modified\n"
+                    f"• Registration access reduced\n\n"
+                    f"[yellow]📊 Monitor Impact:[/yellow]\n"
+                    f"• Check existing node registrations\n"
+                    f"• Monitor registration patterns\n"
+                    f"• Verify launch strategy\n\n"
+                    f"Use: [bold]htcli subnet info --subnet-id {subnet_id}[/bold]",
+                    title="Initial Coldkeys Removal Complete",
+                    border_style="red",
+                )
+            )
         else:
             print_error(f"❌ Failed to remove initial coldkeys: {response.message}")
             raise typer.Exit(1)

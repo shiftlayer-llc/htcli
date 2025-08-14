@@ -99,7 +99,7 @@ class SubnetClient:
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet activation",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -157,7 +157,7 @@ class SubnetClient:
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet pause",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -215,7 +215,7 @@ class SubnetClient:
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet unpause",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -508,12 +508,7 @@ class SubnetClient:
             logger.error(f"Failed to add subnet node: {str(e)}")
             raise
 
-    def activate_subnet_node(
-        self,
-        subnet_id: int,
-        node_id: int,
-        keypair=None
-    ):
+    def activate_subnet_node(self, subnet_id: int, node_id: int, keypair=None):
         """Activate a subnet node using Network.activate_subnet_node with real transaction submission."""
         try:
             if not self.substrate:
@@ -565,12 +560,7 @@ class SubnetClient:
             logger.error(f"Failed to activate subnet node: {str(e)}")
             raise
 
-    def deactivate_subnet_node(
-        self,
-        subnet_id: int,
-        node_id: int,
-        keypair=None
-    ):
+    def deactivate_subnet_node(self, subnet_id: int, node_id: int, keypair=None):
         """Deactivate a subnet node using Network.deactivate_subnet_node with real transaction submission."""
         try:
             if not self.substrate:
@@ -622,12 +612,7 @@ class SubnetClient:
             logger.error(f"Failed to deactivate subnet node: {str(e)}")
             raise
 
-    def reactivate_subnet_node(
-        self,
-        subnet_id: int,
-        node_id: int,
-        keypair=None
-    ):
+    def reactivate_subnet_node(self, subnet_id: int, node_id: int, keypair=None):
         """Reactivate a subnet node using Network.reactivate_subnet_node with real transaction submission."""
         try:
             if not self.substrate:
@@ -680,11 +665,7 @@ class SubnetClient:
             raise
 
     def cleanup_expired_node(
-        self,
-        subnet_id: int,
-        node_id: int,
-        cleanup_type: str,
-        keypair=None
+        self, subnet_id: int, node_id: int, cleanup_type: str, keypair=None
     ):
         """Cleanup expired nodes that failed to activate or reactivate."""
         try:
@@ -746,11 +727,7 @@ class SubnetClient:
             raise
 
     def update_node_delegate_reward_rate(
-        self,
-        subnet_id: int,
-        node_id: int,
-        new_delegate_reward_rate: int,
-        keypair=None
+        self, subnet_id: int, node_id: int, new_delegate_reward_rate: int, keypair=None
     ):
         """Update subnet node delegate reward rate using Network.update_delegate_reward_rate."""
         try:
@@ -805,11 +782,7 @@ class SubnetClient:
             raise
 
     def update_node_coldkey(
-        self,
-        subnet_id: int,
-        hotkey: str,
-        new_coldkey: str,
-        keypair=None
+        self, subnet_id: int, hotkey: str, new_coldkey: str, keypair=None
     ):
         """Update subnet node coldkey using Network.update_coldkey."""
         try:
@@ -863,11 +836,7 @@ class SubnetClient:
             raise
 
     def update_node_hotkey(
-        self,
-        subnet_id: int,
-        old_hotkey: str,
-        new_hotkey: str,
-        keypair=None
+        self, subnet_id: int, old_hotkey: str, new_hotkey: str, keypair=None
     ):
         """Update subnet node hotkey using Network.update_hotkey."""
         try:
@@ -921,11 +890,7 @@ class SubnetClient:
             raise
 
     def add_to_node_delegate_stake(
-        self,
-        subnet_id: int,
-        node_id: int,
-        amount: int,
-        keypair=None
+        self, subnet_id: int, node_id: int, amount: int, keypair=None
     ):
         """Add stake to a specific subnet node using Network.add_to_node_delegate_stake."""
         try:
@@ -980,11 +945,7 @@ class SubnetClient:
             raise
 
     def remove_node_delegate_stake(
-        self,
-        subnet_id: int,
-        node_id: int,
-        shares: int,
-        keypair=None
+        self, subnet_id: int, node_id: int, shares: int, keypair=None
     ):
         """Remove stake from a specific subnet node using Network.remove_node_delegate_stake."""
         try:
@@ -1039,12 +1000,7 @@ class SubnetClient:
             raise
 
     def transfer_node_delegate_stake(
-        self,
-        subnet_id: int,
-        node_id: int,
-        to_account: str,
-        shares: int,
-        keypair=None
+        self, subnet_id: int, node_id: int, to_account: str, shares: int, keypair=None
     ):
         """Transfer node delegate stake shares to another account using Network.transfer_node_delegate_stake."""
         try:
@@ -1100,11 +1056,7 @@ class SubnetClient:
             raise
 
     def increase_node_delegate_stake(
-        self,
-        subnet_id: int,
-        node_id: int,
-        amount: int,
-        keypair=None
+        self, subnet_id: int, node_id: int, amount: int, keypair=None
     ):
         """Increase node delegate stake pool using Network.increase_node_delegate_stake."""
         try:
@@ -1419,7 +1371,9 @@ class SubnetClient:
     # SUBNET OWNER OPERATIONS
     # ============================================================================
 
-    def owner_update_name(self, subnet_id: int, name: str, key_name: str = None, keypair=None):
+    def owner_update_name(
+        self, subnet_id: int, name: str, key_name: str = None, keypair=None
+    ):
         """Update subnet name using Network.owner_update_name."""
         try:
             if not self.substrate:
@@ -1428,11 +1382,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet owner update",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -1470,7 +1425,9 @@ class SubnetClient:
             logger.error(f"Failed to update subnet name: {str(e)}")
             raise
 
-    def owner_update_repo(self, subnet_id: int, repo: str, key_name: str = None, keypair=None):
+    def owner_update_repo(
+        self, subnet_id: int, repo: str, key_name: str = None, keypair=None
+    ):
         """Update subnet repository using Network.owner_update_repo."""
         try:
             if not self.substrate:
@@ -1479,11 +1436,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet owner update",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -1521,7 +1479,9 @@ class SubnetClient:
             logger.error(f"Failed to update subnet repository: {str(e)}")
             raise
 
-    def owner_update_description(self, subnet_id: int, description: str, key_name: str = None, keypair=None):
+    def owner_update_description(
+        self, subnet_id: int, description: str, key_name: str = None, keypair=None
+    ):
         """Update subnet description using Network.owner_update_description."""
         try:
             if not self.substrate:
@@ -1530,11 +1490,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet owner update",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -1572,7 +1533,9 @@ class SubnetClient:
             logger.error(f"Failed to update subnet description: {str(e)}")
             raise
 
-    def transfer_subnet_ownership(self, subnet_id: int, new_owner: str, key_name: str = None, keypair=None):
+    def transfer_subnet_ownership(
+        self, subnet_id: int, new_owner: str, key_name: str = None, keypair=None
+    ):
         """Transfer subnet ownership using Network.transfer_subnet_ownership."""
         try:
             if not self.substrate:
@@ -1581,11 +1544,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -1623,7 +1587,9 @@ class SubnetClient:
             logger.error(f"Failed to transfer subnet ownership: {str(e)}")
             raise
 
-    def accept_subnet_ownership(self, subnet_id: int, key_name: str = None, keypair=None):
+    def accept_subnet_ownership(
+        self, subnet_id: int, key_name: str = None, keypair=None
+    ):
         """Accept subnet ownership using Network.accept_subnet_ownership."""
         try:
             if not self.substrate:
@@ -1632,11 +1598,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -1674,7 +1641,9 @@ class SubnetClient:
             logger.error(f"Failed to accept subnet ownership: {str(e)}")
             raise
 
-    def undo_subnet_ownership_transfer(self, subnet_id: int, key_name: str = None, keypair=None):
+    def undo_subnet_ownership_transfer(
+        self, subnet_id: int, key_name: str = None, keypair=None
+    ):
         """Undo subnet ownership transfer using Network.transfer_subnet_ownership with zero address."""
         try:
             if not self.substrate:
@@ -1683,11 +1652,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -1728,7 +1698,9 @@ class SubnetClient:
             logger.error(f"Failed to undo subnet ownership transfer: {str(e)}")
             raise
 
-    def owner_remove_subnet_node(self, subnet_id: int, node_id: int, key_name: str = None, keypair=None):
+    def owner_remove_subnet_node(
+        self, subnet_id: int, node_id: int, key_name: str = None, keypair=None
+    ):
         """Remove a subnet node using Network.owner_remove_subnet_node."""
         try:
             if not self.substrate:
@@ -1737,11 +1709,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -1779,7 +1752,9 @@ class SubnetClient:
             logger.error(f"Failed to remove subnet node: {str(e)}")
             raise
 
-    def owner_update_churn_limit(self, subnet_id: int, churn_limit: int, key_name: str = None, keypair=None):
+    def owner_update_churn_limit(
+        self, subnet_id: int, churn_limit: int, key_name: str = None, keypair=None
+    ):
         """Update churn limit using Network.owner_update_churn_limit."""
         try:
             if not self.substrate:
@@ -1788,11 +1763,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet owner update",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -1830,7 +1806,9 @@ class SubnetClient:
             logger.error(f"Failed to update churn limit: {str(e)}")
             raise
 
-    def owner_update_min_stake(self, subnet_id: int, min_stake: int, key_name: str = None, keypair=None):
+    def owner_update_min_stake(
+        self, subnet_id: int, min_stake: int, key_name: str = None, keypair=None
+    ):
         """Update minimum stake using Network.owner_update_min_stake."""
         try:
             if not self.substrate:
@@ -1839,11 +1817,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet owner update",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -1881,7 +1860,9 @@ class SubnetClient:
             logger.error(f"Failed to update minimum stake: {str(e)}")
             raise
 
-    def owner_update_max_stake(self, subnet_id: int, max_stake: int, key_name: str = None, keypair=None):
+    def owner_update_max_stake(
+        self, subnet_id: int, max_stake: int, key_name: str = None, keypair=None
+    ):
         """Update maximum stake using Network.owner_update_max_stake."""
         try:
             if not self.substrate:
@@ -1890,11 +1871,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet owner update",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -1932,7 +1914,9 @@ class SubnetClient:
             logger.error(f"Failed to update maximum stake: {str(e)}")
             raise
 
-    def owner_update_registration_epochs(self, subnet_id: int, epochs: int, key_name: str = None, keypair=None):
+    def owner_update_registration_epochs(
+        self, subnet_id: int, epochs: int, key_name: str = None, keypair=None
+    ):
         """Update registration queue epochs using Network.owner_update_registration_classification_epochs."""
         try:
             if not self.substrate:
@@ -1941,11 +1925,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet owner update",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -1983,7 +1968,9 @@ class SubnetClient:
             logger.error(f"Failed to update registration epochs: {str(e)}")
             raise
 
-    def owner_update_activation_grace_epochs(self, subnet_id: int, epochs: int, key_name: str = None, keypair=None):
+    def owner_update_activation_grace_epochs(
+        self, subnet_id: int, epochs: int, key_name: str = None, keypair=None
+    ):
         """Update activation grace epochs using Network.owner_update_activation_grace_epochs."""
         try:
             if not self.substrate:
@@ -1992,11 +1979,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet owner update",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -2034,7 +2022,9 @@ class SubnetClient:
             logger.error(f"Failed to update activation grace epochs: {str(e)}")
             raise
 
-    def owner_update_idle_epochs(self, subnet_id: int, epochs: int, key_name: str = None, keypair=None):
+    def owner_update_idle_epochs(
+        self, subnet_id: int, epochs: int, key_name: str = None, keypair=None
+    ):
         """Update idle classification epochs using Network.owner_update_idle_classification_epochs."""
         try:
             if not self.substrate:
@@ -2043,11 +2033,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet owner update",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -2085,7 +2076,9 @@ class SubnetClient:
             logger.error(f"Failed to update idle classification epochs: {str(e)}")
             raise
 
-    def owner_update_included_epochs(self, subnet_id: int, epochs: int, key_name: str = None, keypair=None):
+    def owner_update_included_epochs(
+        self, subnet_id: int, epochs: int, key_name: str = None, keypair=None
+    ):
         """Update included classification epochs using Network.owner_update_included_classification_epochs."""
         try:
             if not self.substrate:
@@ -2094,11 +2087,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet owner update",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -2136,7 +2130,9 @@ class SubnetClient:
             logger.error(f"Failed to update included classification epochs: {str(e)}")
             raise
 
-    def owner_update_max_penalties(self, subnet_id: int, max_penalties: int, key_name: str = None, keypair=None):
+    def owner_update_max_penalties(
+        self, subnet_id: int, max_penalties: int, key_name: str = None, keypair=None
+    ):
         """Update maximum node penalties using Network.owner_max_node_penalties."""
         try:
             if not self.substrate:
@@ -2145,11 +2141,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -2187,7 +2184,9 @@ class SubnetClient:
             logger.error(f"Failed to update maximum node penalties: {str(e)}")
             raise
 
-    def owner_add_initial_coldkeys(self, subnet_id: int, coldkeys: list, key_name: str = None, keypair=None):
+    def owner_add_initial_coldkeys(
+        self, subnet_id: int, coldkeys: list, key_name: str = None, keypair=None
+    ):
         """Add initial coldkeys using Network.owner_add_initial_coldkeys."""
         try:
             if not self.substrate:
@@ -2196,11 +2195,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -2238,7 +2238,9 @@ class SubnetClient:
             logger.error(f"Failed to add initial coldkeys: {str(e)}")
             raise
 
-    def owner_remove_initial_coldkeys(self, subnet_id: int, coldkeys: list, key_name: str = None, keypair=None):
+    def owner_remove_initial_coldkeys(
+        self, subnet_id: int, coldkeys: list, key_name: str = None, keypair=None
+    ):
         """Remove initial coldkeys using Network.owner_remove_initial_coldkeys."""
         try:
             if not self.substrate:
@@ -2247,11 +2249,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -2293,7 +2296,9 @@ class SubnetClient:
     # Staking Information Methods
     # ============================================================================
 
-    def get_node_staking_info(self, subnet_id: int, node_id: int, user_address: str = None):
+    def get_node_staking_info(
+        self, subnet_id: int, node_id: int, user_address: str = None
+    ):
         """Get comprehensive staking information for a specific node."""
         try:
             if not self.substrate:
@@ -2335,7 +2340,9 @@ class SubnetClient:
             user_stake_value = 0
             if user_node_shares > 0 and node_delegate_stake > 0:
                 # Calculate proportional stake value
-                user_stake_value = (user_node_shares / node_delegate_stake) * node_delegate_stake
+                user_stake_value = (
+                    user_node_shares / node_delegate_stake
+                ) * node_delegate_stake
 
             staking_info = {
                 "subnet_id": subnet_id,
@@ -2348,13 +2355,15 @@ class SubnetClient:
                 "node_classification": node_classification,
                 "node_penalties": node_penalties,
                 "total_delegators": self._get_node_delegator_count(subnet_id, node_id),
-                "estimated_rewards": self._calculate_node_rewards(node_delegate_stake, node_reward_rate),
+                "estimated_rewards": self._calculate_node_rewards(
+                    node_delegate_stake, node_reward_rate
+                ),
             }
 
             return StakeInfoResponse(
                 success=True,
                 message="Node staking information retrieved successfully",
-                data=staking_info
+                data=staking_info,
             )
 
         except Exception as e:
@@ -2362,7 +2371,7 @@ class SubnetClient:
             return StakeInfoResponse(
                 success=False,
                 message=f"Failed to get node staking info: {str(e)}",
-                data={}
+                data={},
             )
 
     def get_subnet_staking_info(self, subnet_id: int, user_address: str = None):
@@ -2394,15 +2403,15 @@ class SubnetClient:
             )
 
             # Get subnet statistics
-            subnet_stats = self._safe_query_value(
-                "SubnetStatistics", subnet_id, {}
-            )
+            subnet_stats = self._safe_query_value("SubnetStatistics", subnet_id, {})
 
             # Calculate user's stake value (if shares available)
             user_stake_value = 0
             if user_subnet_shares > 0 and subnet_delegate_stake > 0:
                 # Calculate proportional stake value
-                user_stake_value = (user_subnet_shares / subnet_delegate_stake) * subnet_delegate_stake
+                user_stake_value = (
+                    user_subnet_shares / subnet_delegate_stake
+                ) * subnet_delegate_stake
 
             # Get subnet nodes for additional context
             subnet_nodes = self._get_subnet_nodes(subnet_id)
@@ -2417,15 +2426,23 @@ class SubnetClient:
                 "subnet_stats": subnet_stats,
                 "total_delegators": self._get_subnet_delegator_count(subnet_id),
                 "total_nodes": len(subnet_nodes),
-                "active_nodes": len([n for n in subnet_nodes if n.get("classification", {}).get("class") == "Validator"]),
-                "estimated_rewards": self._calculate_subnet_rewards(subnet_delegate_stake, subnet_reward_rate),
+                "active_nodes": len(
+                    [
+                        n
+                        for n in subnet_nodes
+                        if n.get("classification", {}).get("class") == "Validator"
+                    ]
+                ),
+                "estimated_rewards": self._calculate_subnet_rewards(
+                    subnet_delegate_stake, subnet_reward_rate
+                ),
                 "nodes": subnet_nodes,
             }
 
             return StakeInfoResponse(
                 success=True,
                 message="Subnet staking information retrieved successfully",
-                data=staking_info
+                data=staking_info,
             )
 
         except Exception as e:
@@ -2433,7 +2450,7 @@ class SubnetClient:
             return StakeInfoResponse(
                 success=False,
                 message=f"Failed to get subnet staking info: {str(e)}",
-                data={}
+                data={},
             )
 
     def get_general_staking_info(self, user_address: str = None):
@@ -2446,13 +2463,11 @@ class SubnetClient:
             subnets_response = self.get_subnets_data()
             if not subnets_response.success:
                 return StakeInfoResponse(
-                    success=False,
-                    message="Failed to retrieve subnets data",
-                    data={}
+                    success=False, message="Failed to retrieve subnets data", data={}
                 )
 
             subnets = subnets_response.data.get("subnets", [])
-            
+
             # Collect staking information for all subnets
             all_staking_info = []
             total_user_stake = 0
@@ -2462,13 +2477,17 @@ class SubnetClient:
                 subnet_id = subnet.get("subnet_id")
                 if subnet_id:
                     # Get subnet staking info
-                    subnet_staking = self.get_subnet_staking_info(subnet_id, user_address)
+                    subnet_staking = self.get_subnet_staking_info(
+                        subnet_id, user_address
+                    )
                     if subnet_staking.success:
                         subnet_data = subnet_staking.data
                         all_staking_info.append(subnet_data)
-                        
+
                         # Accumulate totals
-                        total_network_stake += subnet_data.get("subnet_delegate_stake", 0)
+                        total_network_stake += subnet_data.get(
+                            "subnet_delegate_stake", 0
+                        )
                         if user_address:
                             total_user_stake += subnet_data.get("user_stake_value", 0)
 
@@ -2477,10 +2496,20 @@ class SubnetClient:
                 "total_subnets": len(subnets),
                 "total_network_stake": total_network_stake,
                 "total_user_stake": total_user_stake,
-                "user_stake_percentage": (total_user_stake / total_network_stake * 100) if total_network_stake > 0 else 0,
-                "average_reward_rate": self._calculate_average_reward_rate(all_staking_info),
-                "top_performing_subnets": self._get_top_performing_subnets(all_staking_info),
-                "recommendations": self._generate_staking_recommendations(all_staking_info, user_address),
+                "user_stake_percentage": (
+                    (total_user_stake / total_network_stake * 100)
+                    if total_network_stake > 0
+                    else 0
+                ),
+                "average_reward_rate": self._calculate_average_reward_rate(
+                    all_staking_info
+                ),
+                "top_performing_subnets": self._get_top_performing_subnets(
+                    all_staking_info
+                ),
+                "recommendations": self._generate_staking_recommendations(
+                    all_staking_info, user_address
+                ),
             }
 
             general_info = {
@@ -2492,7 +2521,7 @@ class SubnetClient:
             return StakeInfoResponse(
                 success=True,
                 message="General staking information retrieved successfully",
-                data=general_info
+                data=general_info,
             )
 
         except Exception as e:
@@ -2500,7 +2529,7 @@ class SubnetClient:
             return StakeInfoResponse(
                 success=False,
                 message=f"Failed to get general staking info: {str(e)}",
-                data={}
+                data={},
             )
 
     # ============================================================================
@@ -2530,11 +2559,9 @@ class SubnetClient:
         try:
             # Query subnet nodes from storage
             nodes_data = self.substrate.query(
-                module="Network", 
-                storage_function="SubnetNodesData", 
-                params=[subnet_id]
+                module="Network", storage_function="SubnetNodesData", params=[subnet_id]
             )
-            
+
             if nodes_data and nodes_data.value:
                 return nodes_data.value
             return []
@@ -2546,7 +2573,9 @@ class SubnetClient:
         try:
             # Simple reward calculation (this would be more complex in reality)
             if stake_amount > 0 and reward_rate > 0:
-                return (stake_amount * reward_rate) / 1000000  # Assuming 6 decimal precision
+                return (
+                    stake_amount * reward_rate
+                ) / 1000000  # Assuming 6 decimal precision
             return 0.0
         except Exception:
             return 0.0
@@ -2556,7 +2585,9 @@ class SubnetClient:
         try:
             # Simple reward calculation (this would be more complex in reality)
             if stake_amount > 0 and reward_rate > 0:
-                return (stake_amount * reward_rate) / 1000000  # Assuming 6 decimal precision
+                return (
+                    stake_amount * reward_rate
+                ) / 1000000  # Assuming 6 decimal precision
             return 0.0
         except Exception:
             return 0.0
@@ -2566,7 +2597,7 @@ class SubnetClient:
         try:
             if not staking_info:
                 return 0.0
-            
+
             total_rate = sum(info.get("subnet_reward_rate", 0) for info in staking_info)
             return total_rate / len(staking_info)
         except Exception:
@@ -2577,50 +2608,57 @@ class SubnetClient:
         try:
             # Sort by reward rate and return top performers
             sorted_subnets = sorted(
-                staking_info, 
-                key=lambda x: x.get("subnet_reward_rate", 0), 
-                reverse=True
+                staking_info, key=lambda x: x.get("subnet_reward_rate", 0), reverse=True
             )
             return sorted_subnets[:limit]
         except Exception:
             return []
 
-    def _generate_staking_recommendations(self, staking_info: list, user_address: str = None) -> list:
+    def _generate_staking_recommendations(
+        self, staking_info: list, user_address: str = None
+    ) -> list:
         """Generate staking recommendations based on current data."""
         try:
             recommendations = []
-            
+
             if not staking_info:
                 recommendations.append("No subnets available for staking")
                 return recommendations
 
             # Find subnets with high reward rates
             high_reward_subnets = [
-                info for info in staking_info 
+                info
+                for info in staking_info
                 if info.get("subnet_reward_rate", 0) > 5000  # Example threshold
             ]
-            
+
             if high_reward_subnets:
-                recommendations.append(f"Consider staking in {len(high_reward_subnets)} high-reward subnets")
+                recommendations.append(
+                    f"Consider staking in {len(high_reward_subnets)} high-reward subnets"
+                )
 
             # Find subnets with low user stake (diversification opportunity)
             if user_address:
                 low_stake_subnets = [
-                    info for info in staking_info 
+                    info
+                    for info in staking_info
                     if info.get("user_stake_value", 0) < 1000  # Example threshold
                 ]
-                
+
                 if low_stake_subnets:
-                    recommendations.append(f"Diversify by staking in {len(low_stake_subnets)} additional subnets")
+                    recommendations.append(
+                        f"Diversify by staking in {len(low_stake_subnets)} additional subnets"
+                    )
 
             # Performance-based recommendations
             active_subnets = [
-                info for info in staking_info 
-                if info.get("active_nodes", 0) > 0
+                info for info in staking_info if info.get("active_nodes", 0) > 0
             ]
-            
+
             if active_subnets:
-                recommendations.append(f"Focus on {len(active_subnets)} subnets with active nodes")
+                recommendations.append(
+                    f"Focus on {len(active_subnets)} subnets with active nodes"
+                )
 
             if not recommendations:
                 recommendations.append("Monitor subnets for staking opportunities")
@@ -2634,7 +2672,9 @@ class SubnetClient:
     # Automatic Stake Removal Methods
     # ============================================================================
 
-    def remove_node_stake_automatically(self, subnet_id: int, node_id: int, key_name: str = None, keypair=None):
+    def remove_node_stake_automatically(
+        self, subnet_id: int, node_id: int, key_name: str = None, keypair=None
+    ):
         """Automatically remove all stake from a node after node removal."""
         try:
             if not self.substrate:
@@ -2643,11 +2683,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for automatic stake removal",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -2657,7 +2698,7 @@ class SubnetClient:
                 return StakeRemoveResponse(
                     success=False,
                     message="Failed to get node stake information for automatic removal",
-                    data={}
+                    data={},
                 )
 
             stake_data = node_stake_info.data
@@ -2667,7 +2708,7 @@ class SubnetClient:
                 return StakeRemoveResponse(
                     success=True,
                     message="No stake to remove from this node",
-                    data={"removed_amount": 0, "shares_removed": 0}
+                    data={"removed_amount": 0, "shares_removed": 0},
                 )
 
             # Remove all stake shares from the node
@@ -2677,8 +2718,8 @@ class SubnetClient:
                 call_params={
                     "subnet_id": subnet_id,
                     "subnet_node_id": node_id,
-                    "node_delegate_stake_shares_to_be_removed": user_node_shares
-                }
+                    "node_delegate_stake_shares_to_be_removed": user_node_shares,
+                },
             )
 
             if keypair:
@@ -2696,7 +2737,9 @@ class SubnetClient:
                 node_delegate_stake = stake_data.get("node_delegate_stake", 0)
                 estimated_removed_value = 0
                 if node_delegate_stake > 0:
-                    estimated_removed_value = (user_node_shares / node_delegate_stake) * node_delegate_stake
+                    estimated_removed_value = (
+                        user_node_shares / node_delegate_stake
+                    ) * node_delegate_stake
 
                 return StakeRemoveResponse(
                     success=True,
@@ -2709,8 +2752,8 @@ class SubnetClient:
                         "shares_removed": user_node_shares,
                         "subnet_id": subnet_id,
                         "node_id": node_id,
-                        "unbonding_started": True
-                    }
+                        "unbonding_started": True,
+                    },
                 )
             else:
                 # Return composed call data for manual submission
@@ -2725,8 +2768,8 @@ class SubnetClient:
                         "shares_removed": user_node_shares,
                         "subnet_id": subnet_id,
                         "node_id": node_id,
-                        "unbonding_started": False
-                    }
+                        "unbonding_started": False,
+                    },
                 )
 
         except Exception as e:
@@ -2734,10 +2777,12 @@ class SubnetClient:
             return StakeRemoveResponse(
                 success=False,
                 message=f"Failed to remove node stake automatically: {str(e)}",
-                data={}
+                data={},
             )
 
-    def remove_subnet_stake_automatically(self, subnet_id: int, key_name: str = None, keypair=None):
+    def remove_subnet_stake_automatically(
+        self, subnet_id: int, key_name: str = None, keypair=None
+    ):
         """Automatically remove all stake from a subnet after subnet removal."""
         try:
             if not self.substrate:
@@ -2746,11 +2791,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
+
                 # Get secure password for keypair
                 password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for automatic subnet stake removal",
-                    allow_default=True
+                    allow_default=True,
                 )
                 keypair = load_keypair(key_name, password)
 
@@ -2760,7 +2806,7 @@ class SubnetClient:
                 return StakeRemoveResponse(
                     success=False,
                     message="Failed to get subnet stake information for automatic removal",
-                    data={}
+                    data={},
                 )
 
             stake_data = subnet_stake_info.data
@@ -2770,7 +2816,7 @@ class SubnetClient:
                 return StakeRemoveResponse(
                     success=True,
                     message="No stake to remove from this subnet",
-                    data={"removed_amount": 0, "shares_removed": 0}
+                    data={"removed_amount": 0, "shares_removed": 0},
                 )
 
             # Remove all stake shares from the subnet
@@ -2779,8 +2825,8 @@ class SubnetClient:
                 call_function="remove_delegate_stake",
                 call_params={
                     "subnet_id": subnet_id,
-                    "shares_to_be_removed": user_subnet_shares
-                }
+                    "shares_to_be_removed": user_subnet_shares,
+                },
             )
 
             if keypair:
@@ -2798,7 +2844,9 @@ class SubnetClient:
                 subnet_delegate_stake = stake_data.get("subnet_delegate_stake", 0)
                 estimated_removed_value = 0
                 if subnet_delegate_stake > 0:
-                    estimated_removed_value = (user_subnet_shares / subnet_delegate_stake) * subnet_delegate_stake
+                    estimated_removed_value = (
+                        user_subnet_shares / subnet_delegate_stake
+                    ) * subnet_delegate_stake
 
                 return StakeRemoveResponse(
                     success=True,
@@ -2811,8 +2859,8 @@ class SubnetClient:
                         "shares_removed": user_subnet_shares,
                         "subnet_id": subnet_id,
                         "node_id": None,
-                        "unbonding_started": True
-                    }
+                        "unbonding_started": True,
+                    },
                 )
             else:
                 # Return composed call data for manual submission
@@ -2827,8 +2875,8 @@ class SubnetClient:
                         "shares_removed": user_subnet_shares,
                         "subnet_id": subnet_id,
                         "node_id": None,
-                        "unbonding_started": False
-                    }
+                        "unbonding_started": False,
+                    },
                 )
 
         except Exception as e:
@@ -2836,7 +2884,7 @@ class SubnetClient:
             return StakeRemoveResponse(
                 success=False,
                 message=f"Failed to remove subnet stake automatically: {str(e)}",
-                data={}
+                data={},
             )
 
     # ============================================================================
@@ -2855,9 +2903,11 @@ class SubnetClient:
                 return {
                     "can_activate": False,
                     "requirements_met": False,
-                    "errors": [f"Failed to get subnet data: {subnet_data_response.message}"],
+                    "errors": [
+                        f"Failed to get subnet data: {subnet_data_response.message}"
+                    ],
                     "warnings": [],
-                    "details": {}
+                    "details": {},
                 }
 
             subnet_data = subnet_data_response.data
@@ -2866,7 +2916,7 @@ class SubnetClient:
                 "requirements_met": True,
                 "errors": [],
                 "warnings": [],
-                "details": {}
+                "details": {},
             }
 
             # Check 1: Subnet must be in registration phase
@@ -2874,40 +2924,50 @@ class SubnetClient:
             if subnet_status != "Registration":
                 requirements["can_activate"] = False
                 requirements["requirements_met"] = False
-                requirements["errors"].append(f"Subnet must be in registration phase, current status: {subnet_status}")
+                requirements["errors"].append(
+                    f"Subnet must be in registration phase, current status: {subnet_status}"
+                )
 
             # Check 2: Minimum nodes requirement
             min_nodes = self._get_minimum_nodes_requirement(subnet_id)
             current_nodes = self._get_current_registered_nodes(subnet_id)
-            
+
             requirements["details"]["min_nodes"] = min_nodes
             requirements["details"]["current_nodes"] = current_nodes
-            
+
             if current_nodes < min_nodes:
                 requirements["can_activate"] = False
                 requirements["requirements_met"] = False
-                requirements["errors"].append(f"Minimum {min_nodes} nodes required, current: {current_nodes}")
+                requirements["errors"].append(
+                    f"Minimum {min_nodes} nodes required, current: {current_nodes}"
+                )
             elif current_nodes == min_nodes:
-                requirements["warnings"].append(f"Exactly minimum nodes ({current_nodes}), consider adding more for stability")
+                requirements["warnings"].append(
+                    f"Exactly minimum nodes ({current_nodes}), consider adding more for stability"
+                )
 
             # Check 3: Minimum delegate stake requirement
             min_delegate_stake = self._get_minimum_delegate_stake_requirement(subnet_id)
             current_delegate_stake = self._get_current_delegate_stake(subnet_id)
-            
+
             requirements["details"]["min_delegate_stake"] = min_delegate_stake
             requirements["details"]["current_delegate_stake"] = current_delegate_stake
-            
+
             if current_delegate_stake < min_delegate_stake:
                 requirements["can_activate"] = False
                 requirements["requirements_met"] = False
-                requirements["errors"].append(f"Minimum {min_delegate_stake} TENSOR delegate stake required, current: {current_delegate_stake}")
+                requirements["errors"].append(
+                    f"Minimum {min_delegate_stake} TENSOR delegate stake required, current: {current_delegate_stake}"
+                )
             elif current_delegate_stake == min_delegate_stake:
-                requirements["warnings"].append(f"Exactly minimum delegate stake ({current_delegate_stake}), consider adding more for stability")
+                requirements["warnings"].append(
+                    f"Exactly minimum delegate stake ({current_delegate_stake}), consider adding more for stability"
+                )
 
             # Check 4: Stake factor requirements
             stake_factor_requirements = self._check_stake_factor_requirements(subnet_id)
             requirements["details"]["stake_factor"] = stake_factor_requirements
-            
+
             if not stake_factor_requirements["met"]:
                 requirements["can_activate"] = False
                 requirements["requirements_met"] = False
@@ -2916,14 +2976,18 @@ class SubnetClient:
             # Check 5: Initial coldkeys requirement
             initial_coldkeys = self._get_initial_coldkeys(subnet_id)
             requirements["details"]["initial_coldkeys"] = len(initial_coldkeys)
-            
+
             if len(initial_coldkeys) == 0:
-                requirements["warnings"].append("No initial coldkeys found - this may be expected for some subnets")
+                requirements["warnings"].append(
+                    "No initial coldkeys found - this may be expected for some subnets"
+                )
 
             # Check 6: Network consensus requirements
-            consensus_requirements = self._check_network_consensus_requirements(subnet_id)
+            consensus_requirements = self._check_network_consensus_requirements(
+                subnet_id
+            )
             requirements["details"]["consensus"] = consensus_requirements
-            
+
             if not consensus_requirements["met"]:
                 requirements["can_activate"] = False
                 requirements["requirements_met"] = False
@@ -2938,7 +3002,7 @@ class SubnetClient:
                 "requirements_met": False,
                 "errors": [f"Failed to check requirements: {str(e)}"],
                 "warnings": [],
-                "details": {}
+                "details": {},
             }
 
     def _get_minimum_nodes_requirement(self, subnet_id: int) -> int:
@@ -2955,7 +3019,9 @@ class SubnetClient:
         """Get the current number of registered nodes for a subnet."""
         try:
             # Query registered nodes count
-            registered_nodes = self._safe_query_value("RegisteredSubnetNodesCount", subnet_id, 0)
+            registered_nodes = self._safe_query_value(
+                "RegisteredSubnetNodesCount", subnet_id, 0
+            )
             return registered_nodes
         except Exception:
             return 0
@@ -2964,7 +3030,9 @@ class SubnetClient:
         """Get the minimum delegate stake required for subnet activation."""
         try:
             # Query the minimum delegate stake requirement
-            min_stake = self._safe_query_value("SubnetMinDelegateStake", subnet_id, 1000000)  # Default 1 TENSOR
+            min_stake = self._safe_query_value(
+                "SubnetMinDelegateStake", subnet_id, 1000000
+            )  # Default 1 TENSOR
             return max(min_stake, 1000000)  # Ensure reasonable minimum
         except Exception:
             return 1000000  # Default minimum
@@ -2973,7 +3041,9 @@ class SubnetClient:
         """Get the current delegate stake for a subnet."""
         try:
             # Query current delegate stake
-            delegate_stake = self._safe_query_value("TotalSubnetDelegateStakeBalance", subnet_id, 0)
+            delegate_stake = self._safe_query_value(
+                "TotalSubnetDelegateStakeBalance", subnet_id, 0
+            )
             return delegate_stake
         except Exception:
             return 0
@@ -2983,12 +3053,12 @@ class SubnetClient:
         try:
             # Get subnet configuration
             subnet_data = self._safe_query_value("SubnetsData", subnet_id, {})
-            
+
             if not subnet_data:
                 return {
                     "met": False,
                     "errors": ["Subnet data not found"],
-                    "details": {}
+                    "details": {},
                 }
 
             min_stake = subnet_data.get("min_stake", 0)
@@ -3001,18 +3071,22 @@ class SubnetClient:
                 "details": {
                     "min_stake": min_stake,
                     "max_stake": max_stake,
-                    "current_delegate_stake": current_delegate_stake
-                }
+                    "current_delegate_stake": current_delegate_stake,
+                },
             }
 
             # Check minimum stake factor
             if min_stake > 0 and current_delegate_stake < min_stake:
                 requirements["met"] = False
-                requirements["errors"].append(f"Current delegate stake ({current_delegate_stake}) below minimum ({min_stake})")
+                requirements["errors"].append(
+                    f"Current delegate stake ({current_delegate_stake}) below minimum ({min_stake})"
+                )
 
             # Check maximum stake factor (if applicable)
             if max_stake > 0 and current_delegate_stake > max_stake:
-                requirements["warnings"] = [f"Current delegate stake ({current_delegate_stake}) above maximum ({max_stake})"]
+                requirements["warnings"] = [
+                    f"Current delegate stake ({current_delegate_stake}) above maximum ({max_stake})"
+                ]
 
             return requirements
 
@@ -3020,14 +3094,16 @@ class SubnetClient:
             return {
                 "met": False,
                 "errors": [f"Failed to check stake factor requirements: {str(e)}"],
-                "details": {}
+                "details": {},
             }
 
     def _get_initial_coldkeys(self, subnet_id: int) -> list:
         """Get the initial coldkeys for a subnet."""
         try:
             # Query initial coldkeys
-            initial_coldkeys = self._safe_query_value("SubnetRegistrationInitialColdkeys", subnet_id, [])
+            initial_coldkeys = self._safe_query_value(
+                "SubnetRegistrationInitialColdkeys", subnet_id, []
+            )
             return initial_coldkeys if initial_coldkeys else []
         except Exception:
             return []
@@ -3036,13 +3112,11 @@ class SubnetClient:
         """Check network consensus requirements for subnet activation."""
         try:
             # Get network consensus parameters
-            consensus_params = self._safe_query_value("NetworkConsensusParams", None, {})
-            
-            requirements = {
-                "met": True,
-                "errors": [],
-                "details": consensus_params
-            }
+            consensus_params = self._safe_query_value(
+                "NetworkConsensusParams", None, {}
+            )
+
+            requirements = {"met": True, "errors": [], "details": consensus_params}
 
             # Check if network is ready for new subnet activation
             # This would typically check network load, consensus state, etc.
@@ -3050,13 +3124,17 @@ class SubnetClient:
             max_network_load = consensus_params.get("max_network_load", 100)
 
             if network_load > max_network_load * 0.9:  # 90% threshold
-                requirements["warnings"] = [f"Network load is high ({network_load}%), activation may be delayed"]
+                requirements["warnings"] = [
+                    f"Network load is high ({network_load}%), activation may be delayed"
+                ]
 
             # Check consensus state
             consensus_state = consensus_params.get("consensus_state", "Unknown")
             if consensus_state != "Ready":
                 requirements["met"] = False
-                requirements["errors"].append(f"Network consensus not ready: {consensus_state}")
+                requirements["errors"].append(
+                    f"Network consensus not ready: {consensus_state}"
+                )
 
             return requirements
 
@@ -3064,5 +3142,5 @@ class SubnetClient:
             return {
                 "met": False,
                 "errors": [f"Failed to check consensus requirements: {str(e)}"],
-                "details": {}
+                "details": {},
             }

@@ -495,6 +495,163 @@ class SubnetClient:
             logger.error(f"Failed to add subnet node: {str(e)}")
             raise
 
+    def activate_subnet_node(
+        self,
+        subnet_id: int,
+        node_id: int,
+        keypair=None
+    ):
+        """Activate a subnet node using Network.activate_subnet_node with real transaction submission."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Prepare call parameters according to official specification
+            call_params = {
+                "subnet_id": subnet_id,
+                "subnet_node_id": node_id,
+            }
+
+            # Compose the call using Network pallet
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="activate_subnet_node",
+                call_params=call_params,
+            )
+
+            # If keypair provided, submit real transaction
+            if keypair:
+                # Create and submit transaction
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                # Submit and wait for confirmation
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                # Return real transaction details
+                return NodeAddResponse(
+                    success=True,
+                    message="Node activated successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                # Return composed call data for manual submission
+                return NodeAddResponse(
+                    success=True,
+                    message="Node activation call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to activate subnet node: {str(e)}")
+            raise
+
+    def get_subnet_node_status(self, subnet_id: int, node_id: int):
+        """Get detailed status of a specific subnet node."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Get current epoch
+            current_epoch = self.substrate.query(
+                module="Network",
+                storage_function="CurrentEpoch",
+            )
+            current_epoch_value = current_epoch.value if current_epoch else 0
+
+            # Try to get node from active nodes first
+            node_data = self.substrate.query(
+                module="Network",
+                storage_function="SubnetNodesData",
+                params=[subnet_id, node_id],
+            )
+
+            if node_data and node_data.value:
+                # Node is active
+                raw_data = node_data.value
+                if not isinstance(raw_data, dict):
+                    raw_data = {}
+
+                node_info = {
+                    "node_id": node_id,
+                    "subnet_id": subnet_id,
+                    "classification": "Active",  # Will be refined based on data
+                    "hotkey": raw_data.get("hotkey", ""),
+                    "peer_id": raw_data.get("peer_id", ""),
+                    "stake": raw_data.get("stake", 0),
+                    "delegate_reward_rate": raw_data.get("delegate_reward_rate", 0),
+                    "registration_epoch": raw_data.get("registration_epoch", 0),
+                    "start_epoch": raw_data.get("start_epoch", 0),
+                    "current_epoch": current_epoch_value,
+                    "attestation_ratio": raw_data.get("attestation_ratio", 0),
+                    "penalties": raw_data.get("penalties", 0),
+                    "grace_epochs": raw_data.get("grace_epochs", 0),
+                    "idle_epochs": raw_data.get("idle_epochs", 0),
+                    "status": "Active",
+                }
+
+                # Determine classification based on attestation ratio
+                attestation_ratio = raw_data.get("attestation_ratio", 0)
+                if attestation_ratio >= 66:
+                    node_info["classification"] = "Included"
+                else:
+                    node_info["classification"] = "Idle"
+
+            else:
+                # Try to get from registered nodes
+                registered_node_data = self.substrate.query(
+                    module="Network",
+                    storage_function="RegisteredSubnetNodesData",
+                    params=[subnet_id, node_id],
+                )
+
+                if registered_node_data and registered_node_data.value:
+                    # Node is registered but not active
+                    raw_data = registered_node_data.value
+                    if not isinstance(raw_data, dict):
+                        raw_data = {}
+
+                    node_info = {
+                        "node_id": node_id,
+                        "subnet_id": subnet_id,
+                        "classification": "Registered",
+                        "hotkey": raw_data.get("hotkey", ""),
+                        "peer_id": raw_data.get("peer_id", ""),
+                        "stake": raw_data.get("stake", 0),
+                        "delegate_reward_rate": raw_data.get("delegate_reward_rate", 0),
+                        "registration_epoch": raw_data.get("registration_epoch", 0),
+                        "start_epoch": raw_data.get("start_epoch", 0),
+                        "current_epoch": current_epoch_value,
+                        "attestation_ratio": 0,
+                        "penalties": 0,
+                        "grace_epochs": raw_data.get("grace_epochs", 0),
+                        "idle_epochs": raw_data.get("idle_epochs", 0),
+                        "status": "Registered",
+                    }
+                else:
+                    # Node not found
+                    return NodeAddResponse(
+                        success=False,
+                        message=f"Node {node_id} not found in subnet {subnet_id}",
+                        data={},
+                    )
+
+            return NodeAddResponse(
+                success=True,
+                message=f"Node {node_id} status retrieved successfully",
+                data={"node": node_info},
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to get subnet node status: {str(e)}")
+            raise
+
     def get_subnet_nodes(self, subnet_id: int):
         """Get subnet nodes using storage queries."""
         try:

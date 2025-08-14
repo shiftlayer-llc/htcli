@@ -92,6 +92,37 @@ class HypertensorClient:
         """Add a node to a subnet."""
         return self.subnet.add_subnet_node(request, keypair)
 
+    def register_subnet_node(
+        self,
+        subnet_id: int,
+        hotkey: str,
+        peer_id: str,
+        bootnode_peer_id: str,
+        client_peer_id: str,
+        stake_amount: int,
+        delegate_reward_rate: int,
+        bootnode: str = None,
+        keypair=None
+    ):
+        """Register a subnet node with all required parameters."""
+        return self.subnet.register_subnet_node(
+            subnet_id, hotkey, peer_id, bootnode_peer_id, client_peer_id,
+            stake_amount, delegate_reward_rate, bootnode, keypair
+        )
+
+    def activate_subnet_node(
+        self,
+        subnet_id: int,
+        node_id: int,
+        keypair=None
+    ):
+        """Activate a subnet node."""
+        return self.subnet.activate_subnet_node(subnet_id, node_id, keypair)
+
+    def get_subnet_node_status(self, subnet_id: int, node_id: int):
+        """Get detailed status of a specific subnet node."""
+        return self.subnet.get_subnet_node_status(subnet_id, node_id)
+
     def get_subnet_nodes(self, subnet_id: int):
         """Get subnet nodes."""
         return self.subnet.get_subnet_nodes(subnet_id)

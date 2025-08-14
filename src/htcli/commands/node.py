@@ -154,42 +154,71 @@ def show_comprehensive_guidance(operation: str, details: dict):
 
 
 @app.command()
-def add(
-    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID to join"),
-    hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey address"),
+def register(
+    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID to register to"),
+    hotkey: str = typer.Option(..., "--hotkey", "-h", help="Hotkey address (node identity)"),
     peer_id: str = typer.Option(..., "--peer-id", "-p", help="Peer ID for networking"),
+    bootnode_peer_id: str = typer.Option(..., "--bootnode-peer-id", "-b", help="Bootstrap peer ID for bootnode"),
+    client_peer_id: str = typer.Option(..., "--client-peer-id", "-c", help="Client peer ID for client-side operations"),
     stake_amount: int = typer.Option(
-        ..., "--stake", "-st", help="Initial stake amount (in smallest units)"
+        ..., "--stake", "-st", help="Initial stake amount (in smallest units, minimum 100 TENSOR)"
     ),
-    delegate_reward_rate: float = typer.Option(
-        0.1, "--reward-rate", "-r", help="Delegate reward rate (0.0-1.0)"
+    delegate_reward_rate: int = typer.Option(
+        ..., "--reward-rate", "-r", help="Delegate reward rate (in smallest units)"
+    ),
+    bootnode: Optional[str] = typer.Option(
+        None, "--bootnode", help="Bootnode multiaddress for DHT connection (optional)"
     ),
     key_name: Optional[str] = typer.Option(
-        None, "--key-name", "-k", help="Key name for signing"
+        None, "--key-name", "-k", help="Key name for signing (required for registration)"
     ),
     show_guidance: bool = typer.Option(
         True, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
 ):
-    """Add a node to a subnet with comprehensive guidance."""
+    """Register a subnet node with comprehensive guidance."""
     client = get_client()
 
     # Show comprehensive guidance
     if show_guidance:
-        show_comprehensive_guidance(
-            "add",
-            {
-                "Subnet ID": subnet_id,
-                "Hotkey": hotkey,
-                "Peer ID": peer_id,
-                "Stake Amount": format_balance(stake_amount),
-                "Reward Rate": f"{delegate_reward_rate * 100:.1f}%",
-            },
+        from rich.panel import Panel
+        guidance_panel = Panel(
+            f"[bold cyan]🔗 Register Subnet Node Guide[/bold cyan]\n\n"
+            f"This will register your node to subnet {subnet_id}:\n\n"
+            f"[bold]What is Node Registration:[/bold]\n"
+            f"• Registers your node to participate in subnet consensus\n"
+            f"• Transfers stake as proof-of-stake requirement\n"
+            f"• Node enters activation queue with start epoch\n"
+            f"• Hotkey becomes network-unique identifier\n\n"
+            f"[bold]Registration Parameters:[/bold]\n"
+            f"• Subnet ID: {subnet_id}\n"
+            f"• Hotkey: {hotkey}\n"
+            f"• Peer ID: {peer_id}\n"
+            f"• Bootnode Peer ID: {bootnode_peer_id}\n"
+            f"• Client Peer ID: {client_peer_id}\n"
+            f"• Stake Amount: {format_balance(stake_amount)}\n"
+            f"• Reward Rate: {format_balance(delegate_reward_rate)}\n"
+            f"• Bootnode: {bootnode or 'Not provided'}\n\n"
+            f"[bold]Requirements:[/bold]\n"
+            f"• Minimum 100 TENSOR stake (subnet may require more)\n"
+            f"• Hotkey must be network-unique (never used before)\n"
+            f"• Hotkey cannot match your coldkey\n"
+            f"• Valid peer IDs for networking\n"
+            f"• Sufficient balance for staking\n\n"
+            f"[yellow]⚠️ Important:[/yellow]\n"
+            f"• Hotkeys are network-unique for security\n"
+            f"• Node enters queue after registration\n"
+            f"• Start epoch assigned based on queue position\n"
+            f"• Grace epochs allow flexible activation timing",
+            title="[bold blue]🔗 Register Subnet Node[/bold blue]",
+            border_style="blue"
         )
+        console.print(guidance_panel)
+        console.print()
 
         # Ask for confirmation
-        if not typer.confirm("Do you want to proceed with adding this node?"):
-            print_info("Node addition cancelled.")
+        if not typer.confirm(f"Register node to subnet {subnet_id} with {format_balance(stake_amount)} stake?"):
+            print_info("Node registration cancelled.")
             return
 
     # Validate inputs
@@ -205,66 +234,400 @@ def add(
         print_error("❌ Invalid peer ID format. Must be a valid MultiHash.")
         raise typer.Exit(1)
 
+    if not validate_peer_id(bootnode_peer_id):
+        print_error("❌ Invalid bootnode peer ID format. Must be a valid MultiHash.")
+        raise typer.Exit(1)
+
+    if not validate_peer_id(client_peer_id):
+        print_error("❌ Invalid client peer ID format. Must be a valid MultiHash.")
+        raise typer.Exit(1)
+
     if not validate_amount(stake_amount):
         print_error("❌ Invalid stake amount. Must be positive.")
         raise typer.Exit(1)
 
-    if not (0.0 <= delegate_reward_rate <= 1.0):
-        print_error("❌ Invalid reward rate. Must be between 0.0 and 1.0.")
+    # Check minimum stake requirement (100 TENSOR = 100 * 10^18)
+    min_stake = 100 * 10**18
+    if stake_amount < min_stake:
+        print_error(f"❌ Stake amount too low. Minimum required: {format_balance(min_stake)}")
+        raise typer.Exit(1)
+
+    if not validate_amount(delegate_reward_rate):
+        print_error("❌ Invalid delegate reward rate. Must be positive.")
+        raise typer.Exit(1)
+
+    # Check if key_name is provided (required for registration)
+    if not key_name:
+        print_error("❌ Key name is required for node registration. Use --key-name to specify your signing key.")
         raise typer.Exit(1)
 
     try:
-        print_info(f"🔄 Adding node to subnet {subnet_id}...")
+        print_info(f"🔄 Registering node to subnet {subnet_id}...")
 
-        request = SubnetNodeAddRequest(
+        # Load keypair for signing
+        from ..utils.crypto import load_keypair
+        # TODO: Get password from user or config
+        password = "default_password_12345"  # This should be improved
+        keypair = load_keypair(key_name, password)
+
+        response = client.register_subnet_node(
             subnet_id=subnet_id,
             hotkey=hotkey,
             peer_id=peer_id,
+            bootnode_peer_id=bootnode_peer_id,
+            client_peer_id=client_peer_id,
+            stake_amount=stake_amount,
             delegate_reward_rate=delegate_reward_rate,
-            stake_to_be_added=stake_amount,
-            a="1.0",  # Default values - these should be configurable
-            b="1.0",
-            c="1.0",
+            bootnode=bootnode,
+            keypair=keypair
         )
 
-        # Get keypair for signing if provided
-        keypair = None
-        if key_name:
-            # TODO: Load keypair from storage
-            print_info(f"🔑 Using key: {key_name}")
-
-        response = client.add_subnet_node(request, keypair)
-
         if response.success:
-            print_success(f"✅ Node successfully added to subnet {subnet_id}!")
-            console.print(
-                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
-            )
+            print_success(f"✅ Node successfully registered to subnet {subnet_id}!")
+            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
             if response.block_number:
-                console.print(
-                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
-                )
+                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
 
-            console.print(
-                Panel(
-                    f"[bold green]🎉 Node Registration Complete![/bold green]\n\n"
-                    f"Your node has been successfully registered to subnet {subnet_id}.\n"
-                    f"• Hotkey: {hotkey}\n"
-                    f"• Peer ID: {peer_id}\n"
-                    f"• Initial Stake: {format_balance(stake_amount)}\n"
-                    f"• Reward Rate: {delegate_reward_rate * 100:.1f}%\n\n"
-                    f"[yellow]⏳ Your node is now in the activation queue.[/yellow]\n"
-                    f"Monitor status with: [bold]htcli node list --subnet-id {subnet_id}[/bold]",
-                    title="Success",
-                    border_style="green",
-                )
-            )
+            console.print(Panel(
+                f"[bold green]🎉 Node Registration Complete![/bold green]\n\n"
+                f"Your node has been successfully registered to subnet {subnet_id}.\n"
+                f"• Hotkey: {hotkey}\n"
+                f"• Peer ID: {peer_id}\n"
+                f"• Bootnode Peer ID: {bootnode_peer_id}\n"
+                f"• Client Peer ID: {client_peer_id}\n"
+                f"• Initial Stake: {format_balance(stake_amount)}\n"
+                f"• Reward Rate: {format_balance(delegate_reward_rate)}\n"
+                f"• Bootnode: {bootnode or 'Not provided'}\n\n"
+                f"[yellow]⏳ Your node is now in the activation queue.[/yellow]\n"
+                f"• Node has Registered classification\n"
+                f"• Assigned start epoch for activation\n"
+                f"• Grace epochs allow flexible activation\n"
+                f"• Monitor status with: [bold]htcli node list --subnet-id {subnet_id}[/bold]\n\n"
+                f"[yellow]📊 Next Steps:[/yellow]\n"
+                f"• Wait for start epoch to activate\n"
+                f"• Monitor queue position\n"
+                f"• Prepare for validation duties",
+                title="Registration Success",
+                border_style="green"
+            ))
         else:
-            print_error(f"❌ Failed to add node: {response.message}")
+            print_error(f"❌ Failed to register node: {response.message}")
             raise typer.Exit(1)
 
     except Exception as e:
-        print_error(f"❌ Failed to add node to subnet: {str(e)}")
+        print_error(f"❌ Failed to register node to subnet: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def activate(
+    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID to activate in"),
+    node_id: int = typer.Option(..., "--node-id", "-n", help="Node ID to activate"),
+    key_name: Optional[str] = typer.Option(
+        None, "--key-name", "-k", help="Key name for signing (required for activation)"
+    ),
+    show_guidance: bool = typer.Option(
+        True, "--guidance/--no-guidance", help="Show comprehensive guidance"
+    ),
+):
+    """Activate a registered subnet node with comprehensive guidance."""
+    client = get_client()
+
+    # Show comprehensive guidance
+    if show_guidance:
+        from rich.panel import Panel
+        guidance_panel = Panel(
+            f"[bold cyan]🚀 Activate Subnet Node Guide[/bold cyan]\n\n"
+            f"This will activate node {node_id} in subnet {subnet_id}:\n\n"
+            f"[bold]What is Node Activation:[/bold]\n"
+            f"• Moves node from Registered to Active status\n"
+            f"• Node enters Idle classification for idle epochs\n"
+            f"• Node can participate in validation after activation\n"
+            f"• Must be done within queue period + grace epochs\n\n"
+            f"[bold]Activation Timeline:[/bold]\n"
+            f"• Start Epoch: When node can first activate\n"
+            f"• Grace Epochs: Flexible activation window\n"
+            f"• Idle Epochs: Node stays in Idle classification\n"
+            f"• Included: Automatic upgrade after idle epochs\n\n"
+            f"[bold]Activation Requirements:[/bold]\n"
+            f"• Node must be in Registered status\n"
+            f"• Must be within activation timeframe\n"
+            f"• Subnet must have available slots (or replacement policy)\n"
+            f"• Valid signing key required\n\n"
+            f"[bold]Full Subnet Handling:[/bold]\n"
+            f"• If subnet slots are full:\n"
+            f"  - Node can replace existing node\n"
+            f"  - Or be pushed back into queue\n"
+            f"• Must activate within allowed period\n\n"
+            f"[yellow]⚠️ Important:[/yellow]\n"
+            f"• Activation window is time-limited\n"
+            f"• Missing activation requires re-registration\n"
+            f"• Node enters Idle classification after activation\n"
+            f"• Included classification requires 66%+ attestation ratio",
+            title="[bold blue]🚀 Activate Subnet Node[/bold blue]",
+            border_style="blue"
+        )
+        console.print(guidance_panel)
+        console.print()
+
+        # Ask for confirmation
+        if not typer.confirm(f"Activate node {node_id} in subnet {subnet_id}?"):
+            print_info("Node activation cancelled.")
+            return
+
+    # Validate inputs
+    if not validate_subnet_id(subnet_id):
+        print_error("❌ Invalid subnet ID. Must be a positive integer.")
+        raise typer.Exit(1)
+
+    if not validate_node_id(node_id):
+        print_error("❌ Invalid node ID. Must be a positive integer.")
+        raise typer.Exit(1)
+
+    # Check if key_name is provided (required for activation)
+    if not key_name:
+        print_error("❌ Key name is required for node activation. Use --key-name to specify your signing key.")
+        raise typer.Exit(1)
+
+    try:
+        print_info(f"🔄 Activating node {node_id} in subnet {subnet_id}...")
+
+        # Load keypair for signing
+        from ..utils.crypto import load_keypair
+        # TODO: Get password from user or config
+        password = "default_password_12345"  # This should be improved
+        keypair = load_keypair(key_name, password)
+
+        response = client.activate_subnet_node(
+            subnet_id=subnet_id,
+            node_id=node_id,
+            keypair=keypair
+        )
+
+        if response.success:
+            print_success(f"✅ Node {node_id} successfully activated in subnet {subnet_id}!")
+            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            if response.block_number:
+                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+
+            console.print(Panel(
+                f"[bold green]🚀 Node Activation Complete![/bold green]\n\n"
+                f"Node {node_id} has been successfully activated in subnet {subnet_id}.\n\n"
+                f"[yellow]📊 Node Status Changes:[/yellow]\n"
+                f"• Status: Registered → Active\n"
+                f"• Classification: Idle (for idle epochs)\n"
+                f"• Storage: Moved to SubnetNodesData\n"
+                f"• Count: Added to TotalSubnetNodes\n\n"
+                f"[yellow]⏳ Next Phases:[/yellow]\n"
+                f"• Idle Classification: Node stays idle for idle epochs\n"
+                f"• Included Classification: Automatic upgrade after idle epochs\n"
+                f"• Attestation Requirement: 66%+ ratio for included status\n"
+                f"• Validation: Node can participate in consensus\n\n"
+                f"[yellow]📋 Monitor Progress:[/yellow]\n"
+                f"• Check status: [bold]htcli node list --subnet-id {subnet_id}[/bold]\n"
+                f"• Monitor classification changes\n"
+                f"• Track attestation ratios",
+                title="Activation Success",
+                border_style="green"
+            ))
+        else:
+            print_error(f"❌ Failed to activate node: {response.message}")
+            raise typer.Exit(1)
+
+    except Exception as e:
+        print_error(f"❌ Failed to activate node: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def status(
+    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
+    node_id: int = typer.Option(..., "--node-id", "-n", help="Node ID to check"),
+    format_type: str = typer.Option(
+        "table", "--format", "-f", help="Output format (table/json)"
+    ),
+    show_guidance: bool = typer.Option(
+        True, "--guidance/--no-guidance", help="Show comprehensive guidance"
+    ),
+):
+    """Show detailed node status and classification information."""
+    client = get_client()
+
+    # Show comprehensive guidance
+    if show_guidance:
+        from rich.panel import Panel
+        guidance_panel = Panel(
+            f"[bold cyan]📊 Node Status & Classification Guide[/bold cyan]\n\n"
+            f"This will show detailed status for node {node_id} in subnet {subnet_id}:\n\n"
+            f"[bold]Node Classifications:[/bold]\n"
+            f"• [yellow]Registered[/yellow]: Node is in registration queue\n"
+            f"• [blue]Idle[/blue]: Node is active but not yet included\n"
+            f"• [green]Included[/green]: Node participates in consensus\n"
+            f"• [red]Validator[/red]: Node is a validator (highest level)\n\n"
+            f"[bold]Status Information:[/bold]\n"
+            f"• Current classification and epoch\n"
+            f"• Activation eligibility and timing\n"
+            f"• Stake amounts and reward rates\n"
+            f"• Attestation ratios and penalties\n"
+            f"• Network participation status\n\n"
+            f"[bold]Timeline Tracking:[/bold]\n"
+            f"• Registration epoch and queue position\n"
+            f"• Start epoch for activation\n"
+            f"• Grace period remaining\n"
+            f"• Classification upgrade progress\n\n"
+            f"[yellow]💡 Tip:[/yellow] Monitor this regularly to track your node's progress!",
+            title="[bold blue]📊 Node Status Guide[/bold blue]",
+            border_style="blue"
+        )
+        console.print(guidance_panel)
+        console.print()
+
+    # Validate inputs
+    if not validate_subnet_id(subnet_id):
+        print_error("❌ Invalid subnet ID. Must be a positive integer.")
+        raise typer.Exit(1)
+
+    if not validate_node_id(node_id):
+        print_error("❌ Invalid node ID. Must be a positive integer.")
+        raise typer.Exit(1)
+
+    try:
+        print_info(f"📊 Checking status for node {node_id} in subnet {subnet_id}...")
+
+        # Get node data
+        response = client.get_subnet_node_status(subnet_id, node_id)
+
+        if response.success:
+            node_data = response.data.get("node", {})
+
+            if format_type == "json":
+                console.print_json(data=node_data)
+            else:
+                # Create detailed status panel
+                from rich.panel import Panel
+                from rich.table import Table
+
+                # Determine classification color
+                classification = node_data.get("classification", "Unknown")
+                if classification == "Registered":
+                    class_color = "yellow"
+                elif classification == "Idle":
+                    class_color = "blue"
+                elif classification == "Included":
+                    class_color = "green"
+                elif classification == "Validator":
+                    class_color = "red"
+                else:
+                    class_color = "white"
+
+                # Create status panel
+                status_panel = Panel(
+                    f"[bold]Node ID:[/bold] {node_id}\n"
+                    f"[bold]Subnet ID:[/bold] {subnet_id}\n"
+                    f"[bold]Classification:[/bold] [{class_color}]{classification}[/{class_color}]\n"
+                    f"[bold]Hotkey:[/bold] {node_data.get('hotkey', 'N/A')}\n"
+                    f"[bold]Peer ID:[/bold] {node_data.get('peer_id', 'N/A')}\n"
+                    f"[bold]Stake:[/bold] {format_balance(node_data.get('stake', 0))}\n"
+                    f"[bold]Reward Rate:[/bold] {format_balance(node_data.get('delegate_reward_rate', 0))}\n"
+                    f"[bold]Registration Epoch:[/bold] {node_data.get('registration_epoch', 'N/A')}\n"
+                    f"[bold]Start Epoch:[/bold] {node_data.get('start_epoch', 'N/A')}\n"
+                    f"[bold]Current Epoch:[/bold] {node_data.get('current_epoch', 'N/A')}\n"
+                    f"[bold]Attestation Ratio:[/bold] {node_data.get('attestation_ratio', 'N/A')}%\n"
+                    f"[bold]Penalties:[/bold] {node_data.get('penalties', 0)}",
+                    title=f"[bold green]Node {node_id} Status[/bold green]",
+                    border_style="green"
+                )
+                console.print(status_panel)
+                console.print()
+
+                # Create timeline table
+                timeline_table = Table(title="[bold cyan]Node Timeline[/bold cyan]")
+                timeline_table.add_column("Phase", style="cyan", no_wrap=True)
+                timeline_table.add_column("Status", style="white")
+                timeline_table.add_column("Epoch", style="yellow")
+                timeline_table.add_column("Notes", style="dim")
+
+                # Add timeline rows
+                registration_epoch = node_data.get('registration_epoch', 'N/A')
+                start_epoch = node_data.get('start_epoch', 'N/A')
+                current_epoch = node_data.get('current_epoch', 'N/A')
+                grace_epochs = node_data.get('grace_epochs', 'N/A')
+                idle_epochs = node_data.get('idle_epochs', 'N/A')
+
+                timeline_table.add_row("Registration", "✅ Complete", str(registration_epoch), "Node registered to subnet")
+                timeline_table.add_row("Queue Period", "⏳ Active", f"{registration_epoch} → {start_epoch}", "Waiting for activation window")
+                timeline_table.add_row("Activation Window", "🎯 Ready", f"{start_epoch} + {grace_epochs}", "Can activate now")
+                timeline_table.add_row("Idle Classification", "🔄 Progress", f"{idle_epochs} epochs", "Building attestation ratio")
+                timeline_table.add_row("Included Classification", "📈 Target", "Auto-upgrade", "Requires 66%+ attestation")
+
+                console.print(timeline_table)
+                console.print()
+
+                # Create action recommendations
+                classification = node_data.get("classification", "Unknown")
+                if classification == "Registered":
+                    action_panel = Panel(
+                        f"[bold yellow]🎯 Next Action Required:[/bold yellow]\n\n"
+                        f"Your node is registered and ready for activation!\n\n"
+                        f"[bold]Activation Command:[/bold]\n"
+                        f"htcli node activate --subnet-id {subnet_id} --node-id {node_id} --key-name <your-key>\n\n"
+                        f"[yellow]⚠️ Important:[/yellow]\n"
+                        f"• Activation window is time-limited\n"
+                        f"• Must activate within grace period\n"
+                        f"• Missing activation requires re-registration",
+                        title="[bold yellow]🚀 Ready to Activate[/bold yellow]",
+                        border_style="yellow"
+                    )
+                elif classification == "Idle":
+                    action_panel = Panel(
+                        f"[bold blue]🔄 Node is Active:[/bold blue]\n\n"
+                        f"Your node is in Idle classification and building attestation ratio.\n\n"
+                        f"[bold]Current Status:[/bold]\n"
+                        f"• Active in subnet {subnet_id}\n"
+                        f"• Building attestation ratio\n"
+                        f"• Working towards Included classification\n\n"
+                        f"[yellow]📊 Monitor Progress:[/yellow]\n"
+                        f"• Check attestation ratio regularly\n"
+                        f"• Ensure 66%+ ratio for Included upgrade\n"
+                        f"• Monitor for penalties",
+                        title="[bold blue]⏳ Building Attestation[/bold blue]",
+                        border_style="blue"
+                    )
+                elif classification == "Included":
+                    action_panel = Panel(
+                        f"[bold green]✅ Node is Included:[/bold green]\n\n"
+                        f"Your node is successfully included in consensus!\n\n"
+                        f"[bold]Current Status:[/bold]\n"
+                        f"• Participating in consensus\n"
+                        f"• Earning rewards\n"
+                        f"• Contributing to network security\n\n"
+                        f"[yellow]🎉 Congratulations![/yellow]\n"
+                        f"• Your node is fully operational\n"
+                        f"• Continue monitoring performance\n"
+                        f"• Maintain good attestation ratio",
+                        title="[bold green]🎉 Fully Operational[/bold green]",
+                        border_style="green"
+                    )
+                else:
+                    action_panel = Panel(
+                        f"[bold white]📊 Node Status: {classification}[/bold white]\n\n"
+                        f"Your node is in {classification} classification.\n\n"
+                        f"[yellow]💡 Monitor:[/yellow]\n"
+                        f"• Check status regularly\n"
+                        f"• Monitor for any issues\n"
+                        f"• Follow subnet guidelines",
+                        title="[bold white]📊 Status Monitor[/bold white]",
+                        border_style="white"
+                    )
+
+                console.print(action_panel)
+
+        else:
+            print_error(f"❌ Failed to get node status: {response.message}")
+            raise typer.Exit(1)
+
+    except Exception as e:
+        print_error(f"❌ Failed to get node status: {str(e)}")
         raise typer.Exit(1)
 
 
@@ -482,73 +845,4 @@ def list(
 
     except Exception as e:
         print_error(f"❌ Failed to list subnet nodes: {str(e)}")
-        raise typer.Exit(1)
-
-
-@app.command()
-def status(
-    subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
-    node_id: int = typer.Option(..., "--node-id", "-n", help="Node ID"),
-    format_type: str = typer.Option(
-        "table", "--format", "-f", help="Output format (table/json)"
-    ),
-):
-    """Get detailed status of a specific node."""
-    client = get_client()
-
-    # Validate inputs
-    if not validate_subnet_id(subnet_id):
-        print_error("❌ Invalid subnet ID. Must be a positive integer.")
-        raise typer.Exit(1)
-
-    if not validate_node_id(node_id):
-        print_error("❌ Invalid node ID. Must be a positive integer.")
-        raise typer.Exit(1)
-
-    try:
-        print_info(f"🔄 Retrieving status for node {node_id} in subnet {subnet_id}...")
-
-        # Get all nodes and find the specific one
-        response = client.get_subnet_nodes(subnet_id)
-
-        if response.success:
-            nodes = response.data
-            target_node = None
-
-            for node in nodes:
-                if node.get("node_id") == node_id:
-                    target_node = node
-                    break
-
-            if not target_node:
-                print_error(f"❌ Node {node_id} not found in subnet {subnet_id}")
-                raise typer.Exit(1)
-
-            if format_type == "json":
-                console.print_json(data=target_node)
-            else:
-                # Display detailed node information
-                console.print(
-                    Panel(
-                        f"[bold cyan]📊 Node {node_id} Status[/bold cyan]\n\n"
-                        f"• Subnet ID: {subnet_id}\n"
-                        f"• Node ID: {node_id}\n"
-                        f"• Hotkey: {target_node.get('hotkey', 'N/A')}\n"
-                        f"• Peer ID: {target_node.get('peer_id', 'N/A')}\n"
-                        f"• Status: {target_node.get('status', 'Unknown')}\n"
-                        f"• Stake: {format_balance(target_node.get('stake', 0))}\n"
-                        f"• Reward Rate: {target_node.get('delegate_reward_rate', 0) * 100:.1f}%\n"
-                        f"• Last Active: {target_node.get('last_active', 'N/A')}",
-                        title="Node Status",
-                        border_style="cyan",
-                    )
-                )
-
-            print_success(f"✅ Retrieved status for node {node_id}")
-        else:
-            print_error(f"❌ Failed to retrieve node status: {response.message}")
-            raise typer.Exit(1)
-
-    except Exception as e:
-        print_error(f"❌ Failed to get node status: {str(e)}")
         raise typer.Exit(1)

@@ -8,6 +8,7 @@ import logging
 from substrateinterface import SubstrateInterface
 from ..models.requests import SubnetRegisterRequest, SubnetNodeAddRequest
 from ..models.responses import *
+from ..utils.password import get_secure_password
 
 logger = logging.getLogger(__name__)
 
@@ -94,8 +95,12 @@ class SubnetClient:
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
 
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet activation",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             # Compose the call using Network pallet
@@ -148,8 +153,12 @@ class SubnetClient:
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
 
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet pause",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             # Compose the call using Network pallet
@@ -202,8 +211,12 @@ class SubnetClient:
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
 
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet unpause",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             # Compose the call using Network pallet
@@ -1415,8 +1428,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet owner update",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             call_data = self.substrate.compose_call(
@@ -1462,8 +1479,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet owner update",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             call_data = self.substrate.compose_call(
@@ -1509,8 +1530,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet owner update",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             call_data = self.substrate.compose_call(
@@ -1556,8 +1581,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             call_data = self.substrate.compose_call(
@@ -1603,8 +1632,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             call_data = self.substrate.compose_call(
@@ -1650,8 +1683,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             # Use zero address to undo transfer
@@ -1700,8 +1737,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             call_data = self.substrate.compose_call(
@@ -1747,8 +1788,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet owner update",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             call_data = self.substrate.compose_call(
@@ -1794,8 +1839,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet owner update",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             call_data = self.substrate.compose_call(
@@ -1841,8 +1890,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet owner update",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             call_data = self.substrate.compose_call(
@@ -1888,8 +1941,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet owner update",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             call_data = self.substrate.compose_call(
@@ -1935,8 +1992,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet owner update",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             call_data = self.substrate.compose_call(
@@ -1982,8 +2043,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet owner update",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             call_data = self.substrate.compose_call(
@@ -2029,8 +2094,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet owner update",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             call_data = self.substrate.compose_call(
@@ -2076,8 +2145,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             call_data = self.substrate.compose_call(
@@ -2123,8 +2196,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             call_data = self.substrate.compose_call(
@@ -2170,8 +2247,12 @@ class SubnetClient:
             # Load keypair if key_name provided
             if key_name and not keypair:
                 from ..utils.crypto import load_keypair
-                # TODO: Get password from user or config
-                password = "default_password_12345"  # This should be improved
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair",
+                    allow_default=True
+                )
                 keypair = load_keypair(key_name, password)
 
             call_data = self.substrate.compose_call(

@@ -8,6 +8,7 @@ from typing import Optional
 from substrateinterface import Keypair
 from cryptography.fernet import Fernet
 import base64
+from .password import get_secure_password
 
 
 class KeypairInfo:
@@ -45,8 +46,12 @@ def generate_keypair(
             ss58_address=keypair.ss58_address,
         )
 
-        # Always save keypair (use default password if none provided)
-        save_password = password or "default_password_12345"
+        # Get secure password for saving
+        save_password = password or get_secure_password(
+            name, 
+            prompt_message="Enter password to secure this keypair",
+            allow_default=True
+        )
         save_keypair(name, keypair, save_password)
 
         return keypair_info
@@ -81,8 +86,12 @@ def import_keypair(
             ss58_address=keypair.ss58_address,
         )
 
-        # Always save keypair (use default password if none provided)
-        save_password = password or "default_password_12345"
+        # Get secure password for saving
+        save_password = password or get_secure_password(
+            name, 
+            prompt_message="Enter password to secure this imported keypair",
+            allow_default=True
+        )
         save_keypair(name, keypair, save_password)
 
         return keypair_info
@@ -126,7 +135,7 @@ def save_keypair(name: str, keypair: Keypair, password: str):
         raise Exception(f"Failed to save keypair: {str(e)}")
 
 
-def load_keypair(name: str, password: str) -> Keypair:
+def load_keypair(name: str, password: Optional[str] = None) -> Keypair:
     """Load a keypair from disk."""
     try:
         wallet_dir = Path.home() / ".htcli" / "wallets"
@@ -137,6 +146,13 @@ def load_keypair(name: str, password: str) -> Keypair:
 
         with open(keypair_file, "r") as f:
             keypair_data = json.load(f)
+
+        # Get secure password for decryption
+        decrypt_password = password or get_secure_password(
+            name, 
+            prompt_message="Enter password to unlock this keypair",
+            allow_default=True
+        )
 
         # Decrypt private key
         salt = base64.b64decode(keypair_data["salt"])

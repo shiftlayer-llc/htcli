@@ -267,8 +267,12 @@ def register(
 
         # Load keypair for signing
         from ..utils.crypto import load_keypair
-        # TODO: Get password from user or config
-        password = "default_password_12345"  # This should be improved
+        # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet node registration",
+                    allow_default=True
+                )
         keypair = load_keypair(key_name, password)
 
         response = client.register_subnet_node(
@@ -395,8 +399,12 @@ def activate(
 
         # Load keypair for signing
         from ..utils.crypto import load_keypair
-        # TODO: Get password from user or config
-        password = "default_password_12345"  # This should be improved
+        # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet activation",
+                    allow_default=True
+                )
         keypair = load_keypair(key_name, password)
 
         response = client.activate_subnet_node(
@@ -779,8 +787,12 @@ def remove(
 
         # Load keypair for signing
         from ..utils.crypto import load_keypair
-        # TODO: Get password from user or config
-        password = "default_password_12345"  # This should be improved
+        # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet node removal",
+                    allow_default=True
+                )
         keypair = load_keypair(key_name, password)
 
         # Remove the node
@@ -1002,8 +1014,12 @@ def deactivate(
 
         # Load keypair for signing
         from ..utils.crypto import load_keypair
-        # TODO: Get password from user or config
-        password = "default_password_12345"  # This should be improved
+        # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet activation",
+                    allow_default=True
+                )
         keypair = load_keypair(key_name, password)
 
         # Deactivate the node
@@ -1142,8 +1158,12 @@ def reactivate(
 
         # Load keypair for signing
         from ..utils.crypto import load_keypair
-        # TODO: Get password from user or config
-        password = "default_password_12345"  # This should be improved
+        # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for subnet activation",
+                    allow_default=True
+                )
         keypair = load_keypair(key_name, password)
 
         # Reactivate the node
@@ -1279,8 +1299,12 @@ def cleanup_expired(
         keypair = None
         if key_name:
             from ..utils.crypto import load_keypair
-            # TODO: Get password from user or config
-            password = "default_password_12345"  # This should be improved
+            # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for expired node cleanup",
+                    allow_default=True
+                )
             keypair = load_keypair(key_name, password)
 
         # Cleanup the expired node
@@ -1421,8 +1445,12 @@ def update(
 
         # Load keypair for signing
         from ..utils.crypto import load_keypair
-        # TODO: Get password from user or config
-        password = "default_password_12345"  # This should be improved
+        # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair",
+                    allow_default=True
+                )
         keypair = load_keypair(key_name, password)
 
         # Update the node's delegate reward rate
@@ -1571,8 +1599,12 @@ def update_coldkey(
 
         # Load keypair for signing (current hotkey)
         from ..utils.crypto import load_keypair
-        # TODO: Get password from user or config
-        password = "default_password_12345"  # This should be improved
+        # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair",
+                    allow_default=True
+                )
         keypair = load_keypair(key_name, password)
 
         # Get current hotkey from keypair
@@ -1731,8 +1763,12 @@ def update_hotkey(
 
         # Load keypair for signing (current coldkey)
         from ..utils.crypto import load_keypair
-        # TODO: Get password from user or config
-        password = "default_password_12345"  # This should be improved
+        # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair",
+                    allow_default=True
+                )
         keypair = load_keypair(key_name, password)
 
         # Get current coldkey from keypair

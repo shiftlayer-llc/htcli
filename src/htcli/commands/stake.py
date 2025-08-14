@@ -370,8 +370,12 @@ def remove(
 
         # Load keypair for signing
         from ..utils.crypto import load_keypair
-        # TODO: Get password from user or config
-        password = "default_password_12345"  # This should be improved
+        # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair",
+                    allow_default=True
+                )
         keypair = load_keypair(key_name, password)
 
         # TODO: Implement actual stake removal
@@ -569,8 +573,12 @@ def delegate_add(
         keypair = None
         if key_name:
             from ..utils.crypto import load_keypair
-            # TODO: Get password from user or config
-            password = "default_password_12345"  # This should be improved
+            # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for delegate stake addition",
+                    allow_default=True
+                )
             keypair = load_keypair(key_name, password)
             print_info(f"🔑 Using key: {key_name}")
 
@@ -676,8 +684,12 @@ def delegate_remove(
         keypair = None
         if key_name:
             from ..utils.crypto import load_keypair
-            # TODO: Get password from user or config
-            password = "default_password_12345"  # This should be improved
+            # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for delegate stake removal",
+                    allow_default=True
+                )
             keypair = load_keypair(key_name, password)
             print_info(f"🔑 Using key: {key_name}")
 
@@ -783,8 +795,12 @@ def delegate_increase(
         keypair = None
         if key_name:
             from ..utils.crypto import load_keypair
-            # TODO: Get password from user or config
-            password = "default_password_12345"  # This should be improved
+            # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for delegate stake increase",
+                    allow_default=True
+                )
             keypair = load_keypair(key_name, password)
             print_info(f"🔑 Using key: {key_name}")
 
@@ -901,8 +917,12 @@ def delegate_transfer(
         keypair = None
         if key_name:
             from ..utils.crypto import load_keypair
-            # TODO: Get password from user or config
-            password = "default_password_12345"  # This should be improved
+            # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for delegate stake transfer",
+                    allow_default=True
+                )
             keypair = load_keypair(key_name, password)
             print_info(f"🔑 Using key: {key_name}")
 
@@ -1037,8 +1057,12 @@ def node_add(
 
         # Load keypair for signing
         from ..utils.crypto import load_keypair
-        # TODO: Get password from user or config
-        password = "default_password_12345"  # This should be improved
+        # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for node delegate stake addition",
+                    allow_default=True
+                )
         keypair = load_keypair(key_name, password)
 
         # Add stake to the specific node
@@ -1184,8 +1208,12 @@ def node_remove(
 
         # Load keypair for signing
         from ..utils.crypto import load_keypair
-        # TODO: Get password from user or config
-        password = "default_password_12345"  # This should be improved
+        # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for node removal",
+                    allow_default=True
+                )
         keypair = load_keypair(key_name, password)
 
         # Remove stake from the specific node
@@ -1336,8 +1364,12 @@ def node_transfer(
 
         # Load keypair for signing
         from ..utils.crypto import load_keypair
-        # TODO: Get password from user or config
-        password = "default_password_12345"  # This should be improved
+        # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for node delegate stake transfer",
+                    allow_default=True
+                )
         keypair = load_keypair(key_name, password)
 
         # Transfer stake shares to another account
@@ -1484,8 +1516,12 @@ def node_increase(
 
         # Load keypair for signing
         from ..utils.crypto import load_keypair
-        # TODO: Get password from user or config
-        password = "default_password_12345"  # This should be improved
+        # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for node delegate stake increase",
+                    allow_default=True
+                )
         keypair = load_keypair(key_name, password)
 
         # Increase the node's delegate stake pool

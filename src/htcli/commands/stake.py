@@ -7,6 +7,8 @@ import typer
 from rich.console import Console
 from rich.panel import Panel
 from typing import Optional
+
+from ..utils.password import get_secure_password
 from ..models.requests import StakeAddRequest, StakeRemoveRequest
 from ..utils.validation import (
     validate_subnet_id,
@@ -251,14 +253,15 @@ def add(
         keypair = None
         if key_name:
             # Load keypair for signing
-        from ..utils.crypto import load_keypair
-        # Get secure password for keypair
-        password = get_secure_password(
-            key_name,
-            prompt_message="Enter password to unlock keypair",
-            allow_default=True
-        )
-        keypair = load_keypair(key_name, password)
+            from ..utils.crypto import load_keypair
+
+            # Get secure password for keypair
+            password = get_secure_password(
+                key_name,
+                prompt_message="Enter password to unlock keypair",
+                allow_default=True,
+            )
+            keypair = load_keypair(key_name, password)
             print_info(f"🔑 Using key: {key_name}")
 
         response = client.add_to_stake(request, keypair)
@@ -298,9 +301,14 @@ def add(
 @app.command()
 def remove(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
-    node_id: int = typer.Option(..., "--node-id", "-n", help="Node ID to remove stake from"),
+    node_id: int = typer.Option(
+        ..., "--node-id", "-n", help="Node ID to remove stake from"
+    ),
     amount: Optional[int] = typer.Option(
-        None, "--amount", "-a", help="Amount to remove (in smallest units, default: all stake)"
+        None,
+        "--amount",
+        "-a",
+        help="Amount to remove (in smallest units, default: all stake)",
     ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing"
@@ -315,6 +323,7 @@ def remove(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]📤 Remove Stake from Node Guide[/bold cyan]\n\n"
             f"This will remove stake from node {node_id} in subnet {subnet_id}:\n\n"
@@ -344,14 +353,16 @@ def remove(
             f"• Consider partial removal to maintain some rewards\n"
             f"• Check current stake before removal",
             title="[bold blue]📤 Remove Stake[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
 
         # Ask for confirmation
         amount_text = f"{format_balance(amount)}" if amount else "all stake"
-        if not typer.confirm(f"Remove {amount_text} from node {node_id} in subnet {subnet_id}?"):
+        if not typer.confirm(
+            f"Remove {amount_text} from node {node_id} in subnet {subnet_id}?"
+        ):
             print_info("Stake removal cancelled.")
             return
 
@@ -370,7 +381,9 @@ def remove(
 
     # Check if key_name is provided (required for stake removal)
     if not key_name:
-        print_error("❌ Key name is required for stake removal. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for stake removal. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
@@ -378,119 +391,114 @@ def remove(
 
         # Load keypair for signing
         from ..utils.crypto import load_keypair
+
         # Get secure password for keypair
 
         password = get_secure_password(
             key_name,
             prompt_message="Enter password to unlock keypair",
-            allow_default=True
+            allow_default=True,
         )
         keypair = load_keypair(key_name, password)
 
         # Implement actual stake removal
         stake_removal_response = client.remove_node_stake_automatically(
-            subnet_id=subnet_id,
-            node_id=node_id,
-            key_name=key_name
+            subnet_id=subnet_id, node_id=node_id, key_name=key_name
         )
-        
+
         if stake_removal_response.success:
             stake_data = stake_removal_response.data
             removed_amount = stake_data.get("removed_amount", 0)
             shares_removed = stake_data.get("shares_removed", 0)
-            
+
             print_success(f"✅ Stake removal completed successfully!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{stake_removal_response.transaction_hash}[/bold cyan]")
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{stake_removal_response.transaction_hash}[/bold cyan]"
+            )
             if stake_removal_response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{stake_removal_response.block_number}[/bold cyan]")
-            
-            console.print(Panel(
-                f"[bold green]🔄 Stake Removal Success![/bold green]
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{stake_removal_response.block_number}[/bold cyan]"
+                )
 
-"
-                f"Successfully removed stake from node {node_id}:
-
-"
-                f"[yellow]📊 Removal Details:[/yellow]
-"
-                f"• [green]Shares Removed[/green]: {shares_removed:,}
-"
-                f"• [green]Estimated Value[/green]: {format_balance(removed_amount)} TENSOR
-"
-                f"• [green]Unbonding Started[/green]: Yes
-
-"
-                f"[yellow]⏳ Next Steps:[/yellow]
-"
-                f"• Wait for unbonding period to complete
-"
-                f"• Monitor unbonding status
-"
-                f"• Claim tokens when ready
-
-"
-                f"[yellow]💡 Tip:[/yellow]
-"
-                f"• Use 'htcli stake info' to monitor progress
-"
-                f"• Consider staking to other nodes/subnets",
-                title="Stake Removal Complete",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]🔄 Stake Removal Success![/bold green]\n\n"
+                    f"Successfully removed stake from node {node_id}:\n\n"
+                    f"[yellow]📊 Removal Details:[/yellow]\n"
+                    f"• [green]Shares Removed[/green]: {shares_removed:,}\n"
+                    f"• [green]Estimated Value[/green]: {format_balance(removed_amount)} TENSOR\n"
+                    f"• [green]Unbonding Started[/green]: Yes\n\n"
+                    f"[yellow]⏳ Next Steps:[/yellow]\n"
+                    f"• Wait for unbonding period to complete\n"
+                    f"• Monitor unbonding status\n"
+                    f"• Claim tokens when ready\n\n"
+                    f"[yellow]💡 Tip:[/yellow]\n"
+                    f"• Use 'htcli stake info' to monitor progress\n"
+                    f"• Consider staking to other nodes/subnets",
+                    title="Stake Removal Complete",
+                    border_style="green",
+                )
+            )
         else:
             print_error(f"❌ Stake removal failed: {stake_removal_response.message}")
             raise typer.Exit(1)
         # For now, show what would happen
-        console.print(Panel(
-            f"[bold yellow]🔄 Stake Removal Process[/bold yellow]\n\n"
-            f"This would remove stake from node {node_id}:\n\n"
-            f"[bold]Current Implementation Status:[/bold]\n"
-            f"• [yellow]Mock Implementation[/yellow] - Not yet connected to blockchain\n"
-            f"• [yellow]Stake Removal Logic[/yellow] - Ready for implementation\n"
-            f"• [yellow]Unbonding Process[/yellow] - Will be implemented\n\n"
-            f"[bold]What Would Happen:[/bold]\n"
-            f"• Query current stake amount for node {node_id}\n"
-            f"• Remove {'all stake' if not amount else format_balance(amount)}\n"
-            f"• Initiate unbonding process\n"
-            f"• Update stake position\n"
-            f"• Process unbonding period\n\n"
-            f"[bold]Next Steps After Implementation:[/bold]\n"
-            f"• Check unbonding status: htcli stake info --subnet-id {subnet_id}\n"
-            f"• Claim unbonded tokens: htcli stake claim-unbondings\n"
-            f"• Monitor balance: htcli chain balance --address <your-address>\n\n"
-            f"[yellow]Note:[/yellow] This is a mock implementation.\n"
-            f"Real stake removal will be implemented in the next phase.",
-            title="Stake Removal (Mock)",
-            border_style="yellow"
-        ))
+        console.print(
+            Panel(
+                f"[bold yellow]🔄 Stake Removal Process[/bold yellow]\n\n"
+                f"This would remove stake from node {node_id}:\n\n"
+                f"[bold]Current Implementation Status:[/bold]\n"
+                f"• [yellow]Mock Implementation[/yellow] - Not yet connected to blockchain\n"
+                f"• [yellow]Stake Removal Logic[/yellow] - Ready for implementation\n"
+                f"• [yellow]Unbonding Process[/yellow] - Will be implemented\n\n"
+                f"[bold]What Would Happen:[/bold]\n"
+                f"• Query current stake amount for node {node_id}\n"
+                f"• Remove {'all stake' if not amount else format_balance(amount)}\n"
+                f"• Initiate unbonding process\n"
+                f"• Update stake position\n"
+                f"• Process unbonding period\n\n"
+                f"[bold]Next Steps After Implementation:[/bold]\n"
+                f"• Check unbonding status: htcli stake info --subnet-id {subnet_id}\n"
+                f"• Claim unbonded tokens: htcli stake claim-unbondings\n"
+                f"• Monitor balance: htcli chain balance --address <your-address>\n\n"
+                f"[yellow]Note:[/yellow] This is a mock implementation.\n"
+                f"Real stake removal will be implemented in the next phase.",
+                title="Stake Removal (Mock)",
+                border_style="yellow",
+            )
+        )
 
         # Simulate successful response
-        print_success(f"✅ Stake removal initiated for node {node_id} in subnet {subnet_id}!")
+        print_success(
+            f"✅ Stake removal initiated for node {node_id} in subnet {subnet_id}!"
+        )
 
-        console.print(Panel(
-            f"[bold green]📤 Stake Removal Initiated![/bold green]\n\n"
-            f"Stake removal has been initiated for node {node_id}.\n\n"
-            f"[yellow]📊 What Happened:[/yellow]\n"
-            f"• Stake removal request submitted\n"
-            f"• Tokens entered unbonding period\n"
-            f"• Stake position updated\n"
-            f"• Rewards stopped on removed amount\n\n"
-            f"[yellow]⏳ Unbonding Process:[/yellow]\n"
-            f"• Tokens are locked during unbonding\n"
-            f"• No rewards earned during this period\n"
-            f"• Check status: htcli stake info --subnet-id {subnet_id}\n"
-            f"• Claim when ready: htcli stake claim-unbondings\n\n"
-            f"[yellow]📋 Monitor Progress:[/yellow]\n"
-            f"• Check unbonding status regularly\n"
-            f"• Monitor balance changes\n"
-            f"• Claim tokens when unbonding completes\n\n"
-            f"[yellow]💡 Tip:[/yellow]\n"
-            f"• Unbonding period varies by network\n"
-            f"• Consider partial removal to maintain some rewards\n"
-            f"• Keep some stake for continued participation",
-            title="Removal Success",
-            border_style="green"
-        ))
+        console.print(
+            Panel(
+                f"[bold green]📤 Stake Removal Initiated![/bold green]\n\n"
+                f"Stake removal has been initiated for node {node_id}.\n\n"
+                f"[yellow]📊 What Happened:[/yellow]\n"
+                f"• Stake removal request submitted\n"
+                f"• Tokens entered unbonding period\n"
+                f"• Stake position updated\n"
+                f"• Rewards stopped on removed amount\n\n"
+                f"[yellow]⏳ Unbonding Process:[/yellow]\n"
+                f"• Tokens are locked during unbonding\n"
+                f"• No rewards earned during this period\n"
+                f"• Check status: htcli stake info --subnet-id {subnet_id}\n"
+                f"• Claim when ready: htcli stake claim-unbondings\n\n"
+                f"[yellow]📋 Monitor Progress:[/yellow]\n"
+                f"• Check unbonding status regularly\n"
+                f"• Monitor balance changes\n"
+                f"• Claim tokens when unbonding completes\n\n"
+                f"[yellow]💡 Tip:[/yellow]\n"
+                f"• Unbonding period varies by network\n"
+                f"• Consider partial removal to maintain some rewards\n"
+                f"• Keep some stake for continued participation",
+                title="Removal Success",
+                border_style="green",
+            )
+        )
 
     except Exception as e:
         print_error(f"❌ Failed to remove stake: {str(e)}")
@@ -531,14 +539,15 @@ def claim(
         keypair = None
         if key_name:
             # Load keypair for signing
-        from ..utils.crypto import load_keypair
-        # Get secure password for keypair
-        password = get_secure_password(
-            key_name,
-            prompt_message="Enter password to unlock keypair",
-            allow_default=True
-        )
-        keypair = load_keypair(key_name, password)
+            from ..utils.crypto import load_keypair
+
+            # Get secure password for keypair
+            password = get_secure_password(
+                key_name,
+                prompt_message="Enter password to unlock keypair",
+                allow_default=True,
+            )
+            keypair = load_keypair(key_name, password)
             print_info(f"🔑 Using key: {key_name}")
 
         response = client.claim_unbondings(keypair)
@@ -595,6 +604,7 @@ def delegate_add(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]🤝 Delegate Staking Guide[/bold cyan]\n\n"
             f"This will add {format_balance(amount)} delegate stake to subnet {subnet_id}:\n\n"
@@ -614,7 +624,7 @@ def delegate_add(
             f"• Shares can be transferred or removed\n"
             f"• Monitor subnet performance regularly",
             title="[bold green]🤝 Add Delegate Stake[/bold green]",
-            border_style="green"
+            border_style="green",
         )
         console.print(guidance_panel)
         console.print()
@@ -642,13 +652,14 @@ def delegate_add(
         keypair = None
         if key_name:
             from ..utils.crypto import load_keypair
+
             # Get secure password for keypair
 
             password = get_secure_password(
-                    key_name,
-                    prompt_message="Enter password to unlock keypair for delegate stake addition",
-                    allow_default=True
-                )
+                key_name,
+                prompt_message="Enter password to unlock keypair for delegate stake addition",
+                allow_default=True,
+            )
             keypair = load_keypair(key_name, password)
             print_info(f"🔑 Using key: {key_name}")
 
@@ -709,6 +720,7 @@ def delegate_remove(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]📤 Remove Delegate Stake Guide[/bold cyan]\n\n"
             f"This will remove {shares} delegate stake shares from subnet {subnet_id}:\n\n"
@@ -728,7 +740,7 @@ def delegate_remove(
             f"• Consider transferring instead of removing\n"
             f"• Monitor your total portfolio balance",
             title="[bold yellow]📤 Remove Delegate Stake[/bold yellow]",
-            border_style="yellow"
+            border_style="yellow",
         )
         console.print(guidance_panel)
         console.print()
@@ -754,13 +766,14 @@ def delegate_remove(
         keypair = None
         if key_name:
             from ..utils.crypto import load_keypair
+
             # Get secure password for keypair
 
             password = get_secure_password(
-                    key_name,
-                    prompt_message="Enter password to unlock keypair for delegate stake removal",
-                    allow_default=True
-                )
+                key_name,
+                prompt_message="Enter password to unlock keypair for delegate stake removal",
+                allow_default=True,
+            )
             keypair = load_keypair(key_name, password)
             print_info(f"🔑 Using key: {key_name}")
 
@@ -802,7 +815,10 @@ def delegate_remove(
 def delegate_increase(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
     amount: int = typer.Option(
-        ..., "--amount", "-a", help="Amount to add to delegate stake pool (in smallest units)"
+        ...,
+        "--amount",
+        "-a",
+        help="Amount to add to delegate stake pool (in smallest units)",
     ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing"
@@ -817,6 +833,7 @@ def delegate_increase(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]💰 Increase Delegate Stake Pool Guide[/bold cyan]\n\n"
             f"This will increase the delegate stake pool for subnet {subnet_id} by {format_balance(amount)}:\n\n"
@@ -836,7 +853,7 @@ def delegate_increase(
             f"• Tokens are added to the pool permanently\n"
             f"• Consider this carefully before proceeding",
             title="[bold magenta]💰 Increase Delegate Pool[/bold magenta]",
-            border_style="magenta"
+            border_style="magenta",
         )
         console.print(guidance_panel)
         console.print()
@@ -866,20 +883,23 @@ def delegate_increase(
         keypair = None
         if key_name:
             from ..utils.crypto import load_keypair
+
             # Get secure password for keypair
 
             password = get_secure_password(
-                    key_name,
-                    prompt_message="Enter password to unlock keypair for delegate stake increase",
-                    allow_default=True
-                )
+                key_name,
+                prompt_message="Enter password to unlock keypair for delegate stake increase",
+                allow_default=True,
+            )
             keypair = load_keypair(key_name, password)
             print_info(f"🔑 Using key: {key_name}")
 
         response = client.increase_delegate_stake(subnet_id, amount, keypair)
 
         if response.success:
-            print_success(f"✅ Successfully increased delegate stake pool by {format_balance(amount)}!")
+            print_success(
+                f"✅ Successfully increased delegate stake pool by {format_balance(amount)}!"
+            )
             console.print(
                 f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
             )
@@ -906,7 +926,9 @@ def delegate_increase(
                 )
             )
         else:
-            print_error(f"❌ Failed to increase delegate stake pool: {response.message}")
+            print_error(
+                f"❌ Failed to increase delegate stake pool: {response.message}"
+            )
             raise typer.Exit(1)
 
     except Exception as e:
@@ -936,6 +958,7 @@ def delegate_transfer(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]🔄 Transfer Delegate Stake Guide[/bold cyan]\n\n"
             f"This will transfer {shares} delegate stake shares from subnet {subnet_id}:\n\n"
@@ -955,7 +978,7 @@ def delegate_transfer(
             f"• You lose stake and rewards\n"
             f"• Verify destination address carefully",
             title="[bold blue]🔄 Transfer Delegate Stake[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
@@ -989,13 +1012,14 @@ def delegate_transfer(
         keypair = None
         if key_name:
             from ..utils.crypto import load_keypair
+
             # Get secure password for keypair
 
             password = get_secure_password(
-                    key_name,
-                    prompt_message="Enter password to unlock keypair for delegate stake transfer",
-                    allow_default=True
-                )
+                key_name,
+                prompt_message="Enter password to unlock keypair for delegate stake transfer",
+                allow_default=True,
+            )
             keypair = load_keypair(key_name, password)
             print_info(f"🔑 Using key: {key_name}")
 
@@ -1043,7 +1067,9 @@ def delegate_transfer(
 def node_add(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
     node_id: int = typer.Option(..., "--node-id", "-n", help="Node ID to stake to"),
-    amount: int = typer.Option(..., "--amount", "-a", help="Amount to stake (in smallest units)"),
+    amount: int = typer.Option(
+        ..., "--amount", "-a", help="Amount to stake (in smallest units)"
+    ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing"
     ),
@@ -1057,6 +1083,7 @@ def node_add(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]💰 Node Delegate Staking Guide[/bold cyan]\n\n"
             f"This will add stake to node {node_id} in subnet {subnet_id}:\n\n"
@@ -1097,13 +1124,15 @@ def node_add(
             f"• Consider diversifying across multiple nodes\n"
             f"• Higher potential returns come with higher risk",
             title="[bold blue]💰 Node Delegate Staking[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
 
         # Ask for confirmation
-        if not typer.confirm(f"Add {amount} stake to node {node_id} in subnet {subnet_id}?"):
+        if not typer.confirm(
+            f"Add {amount} stake to node {node_id} in subnet {subnet_id}?"
+        ):
             print_info("Node staking cancelled.")
             return
 
@@ -1122,7 +1151,9 @@ def node_add(
 
     # Check if key_name is provided (required for staking)
     if not key_name:
-        print_error("❌ Key name is required for staking. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for staking. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
@@ -1130,64 +1161,68 @@ def node_add(
 
         # Load keypair for signing
         from ..utils.crypto import load_keypair
+
         # Get secure password for keypair
 
         password = get_secure_password(
-                    key_name,
-                    prompt_message="Enter password to unlock keypair for node delegate stake addition",
-                    allow_default=True
-                )
+            key_name,
+            prompt_message="Enter password to unlock keypair for node delegate stake addition",
+            allow_default=True,
+        )
         keypair = load_keypair(key_name, password)
 
         # Add stake to the specific node
         response = client.add_to_node_delegate_stake(
-            subnet_id=subnet_id,
-            node_id=node_id,
-            amount=amount,
-            keypair=keypair
+            subnet_id=subnet_id, node_id=node_id, amount=amount, keypair=keypair
         )
 
         if response.success:
             print_success(f"✅ Successfully added stake to node {node_id}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]💰 Node Staking Complete![/bold green]\n\n"
-                f"Successfully added stake to node {node_id} in subnet {subnet_id}.\n\n"
-                f"[yellow]📊 Staking Details:[/yellow]\n"
-                f"• Stake Amount: [bold cyan]{amount}[/bold cyan] (in smallest units)\n"
-                f"• Target Node: [bold cyan]Node {node_id}[/bold cyan]\n"
-                f"• Subnet: [bold cyan]Subnet {subnet_id}[/bold cyan]\n"
-                f"• Staking Type: [bold cyan]Node Delegate Staking[/bold cyan]\n"
-                f"• Reward Type: [bold cyan]Node-Specific Rewards[/bold cyan]\n\n"
-                f"[yellow]💰 Reward Information:[/yellow]\n"
-                f"• [green]Rewards based on[/green] node's delegate reward rate\n"
-                f"• [green]Node performance[/green] affects your returns\n"
-                f"• [green]Immediate earning[/green] starts now\n"
-                f"• [yellow]Monitor node performance[/yellow] for optimal returns\n"
-                f"• [yellow]Check reward rate changes[/yellow] over time\n\n"
-                f"[yellow]📈 Strategic Impact:[/yellow]\n"
-                f"• [green]Higher potential returns[/green] than subnet staking\n"
-                f"• [yellow]Node-specific risk[/yellow] affects your investment\n"
-                f"• [yellow]Performance monitoring[/yellow] is crucial\n"
-                f"• [yellow]Diversification[/yellow] across nodes recommended\n"
-                f"• [yellow]Active management[/yellow] may be needed\n\n"
-                f"[yellow]📋 Next Steps:[/yellow]\n"
-                f"• Monitor node performance: htcli node status --subnet-id {subnet_id} --node-id {node_id}\n"
-                f"• Check your stakes: htcli stake node-info --subnet-id {subnet_id} --node-id {node_id}\n"
-                f"• Track rewards over time\n"
-                f"• Consider diversifying to other nodes\n"
-                f"• Monitor node's reward rate changes\n\n"
-                f"[yellow]💡 Tip:[/yellow]\n"
-                f"• Research node performance before staking\n"
-                f"• Monitor node performance regularly\n"
-                f"• Consider staking to multiple nodes for diversification\n"
-                f"• Higher returns come with higher risk",
-                title="Node Staking Success",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]💰 Node Staking Complete![/bold green]\n\n"
+                    f"Successfully added stake to node {node_id} in subnet {subnet_id}.\n\n"
+                    f"[yellow]📊 Staking Details:[/yellow]\n"
+                    f"• Stake Amount: [bold cyan]{amount}[/bold cyan] (in smallest units)\n"
+                    f"• Target Node: [bold cyan]Node {node_id}[/bold cyan]\n"
+                    f"• Subnet: [bold cyan]Subnet {subnet_id}[/bold cyan]\n"
+                    f"• Staking Type: [bold cyan]Node Delegate Staking[/bold cyan]\n"
+                    f"• Reward Type: [bold cyan]Node-Specific Rewards[/bold cyan]\n\n"
+                    f"[yellow]💰 Reward Information:[/yellow]\n"
+                    f"• [green]Rewards based on[/green] node's delegate reward rate\n"
+                    f"• [green]Node performance[/green] affects your returns\n"
+                    f"• [green]Immediate earning[/green] starts now\n"
+                    f"• [yellow]Monitor node performance[/yellow] for optimal returns\n"
+                    f"• [yellow]Check reward rate changes[/yellow] over time\n\n"
+                    f"[yellow]📈 Strategic Impact:[/yellow]\n"
+                    f"• [green]Higher potential returns[/green] than subnet staking\n"
+                    f"• [yellow]Node-specific risk[/yellow] affects your investment\n"
+                    f"• [yellow]Performance monitoring[/yellow] is crucial\n"
+                    f"• [yellow]Diversification[/yellow] across nodes recommended\n"
+                    f"• [yellow]Active management[/yellow] may be needed\n\n"
+                    f"[yellow]📋 Next Steps:[/yellow]\n"
+                    f"• Monitor node performance: htcli node status --subnet-id {subnet_id} --node-id {node_id}\n"
+                    f"• Check your stakes: htcli stake node-info --subnet-id {subnet_id} --node-id {node_id}\n"
+                    f"• Track rewards over time\n"
+                    f"• Consider diversifying to other nodes\n"
+                    f"• Monitor node's reward rate changes\n\n"
+                    f"[yellow]💡 Tip:[/yellow]\n"
+                    f"• Research node performance before staking\n"
+                    f"• Monitor node performance regularly\n"
+                    f"• Consider staking to multiple nodes for diversification\n"
+                    f"• Higher returns come with higher risk",
+                    title="Node Staking Success",
+                    border_style="green",
+                )
+            )
         else:
             print_error(f"❌ Failed to add stake to node: {response.message}")
             raise typer.Exit(1)
@@ -1200,8 +1235,12 @@ def node_add(
 @app.command()
 def node_remove(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
-    node_id: int = typer.Option(..., "--node-id", "-n", help="Node ID to remove stake from"),
-    shares: int = typer.Option(..., "--shares", "-sh", help="Shares to remove (in smallest units)"),
+    node_id: int = typer.Option(
+        ..., "--node-id", "-n", help="Node ID to remove stake from"
+    ),
+    shares: int = typer.Option(
+        ..., "--shares", "-sh", help="Shares to remove (in smallest units)"
+    ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing"
     ),
@@ -1215,6 +1254,7 @@ def node_remove(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]💰 Remove Node Stake Guide[/bold cyan]\n\n"
             f"This will remove stake from node {node_id} in subnet {subnet_id}:\n\n"
@@ -1249,13 +1289,15 @@ def node_remove(
             f"• Partial removal is possible\n"
             f"• Plan your removal strategy carefully",
             title="[bold blue]💰 Remove Node Stake[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
 
         # Ask for confirmation
-        if not typer.confirm(f"Remove {shares} shares from node {node_id} in subnet {subnet_id}?"):
+        if not typer.confirm(
+            f"Remove {shares} shares from node {node_id} in subnet {subnet_id}?"
+        ):
             print_info("Node stake removal cancelled.")
             return
 
@@ -1274,7 +1316,9 @@ def node_remove(
 
     # Check if key_name is provided (required for removal)
     if not key_name:
-        print_error("❌ Key name is required for stake removal. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for stake removal. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
@@ -1282,64 +1326,68 @@ def node_remove(
 
         # Load keypair for signing
         from ..utils.crypto import load_keypair
+
         # Get secure password for keypair
 
         password = get_secure_password(
-                    key_name,
-                    prompt_message="Enter password to unlock keypair for node removal",
-                    allow_default=True
-                )
+            key_name,
+            prompt_message="Enter password to unlock keypair for node removal",
+            allow_default=True,
+        )
         keypair = load_keypair(key_name, password)
 
         # Remove stake from the specific node
         response = client.remove_node_delegate_stake(
-            subnet_id=subnet_id,
-            node_id=node_id,
-            shares=shares,
-            keypair=keypair
+            subnet_id=subnet_id, node_id=node_id, shares=shares, keypair=keypair
         )
 
         if response.success:
             print_success(f"✅ Successfully removed stake from node {node_id}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]💰 Node Stake Removal Complete![/bold green]\n\n"
-                f"Successfully removed stake from node {node_id} in subnet {subnet_id}.\n\n"
-                f"[yellow]📊 Removal Details:[/yellow]\n"
-                f"• Shares Removed: [bold cyan]{shares}[/bold cyan] (in smallest units)\n"
-                f"• Source Node: [bold cyan]Node {node_id}[/bold cyan]\n"
-                f"• Subnet: [bold cyan]Subnet {subnet_id}[/bold cyan]\n"
-                f"• Removal Type: [bold cyan]Node Delegate Stake Removal[/bold cyan]\n"
-                f"• Balance Returned: [bold cyan]Converted from shares[/bold cyan]\n\n"
-                f"[yellow]💰 Balance Information:[/yellow]\n"
-                f"• [green]Shares converted[/green] to balance automatically\n"
-                f"• [green]Balance returned[/green] to your account\n"
-                f"• [yellow]Conversion rate[/yellow] based on current node performance\n"
-                f"• [yellow]No more rewards[/yellow] on removed shares\n"
-                f"• [yellow]Remaining shares[/yellow] continue earning\n\n"
-                f"[yellow]📈 Strategic Impact:[/yellow]\n"
-                f"• [green]Reduced exposure[/green] to node-specific risk\n"
-                f"• [yellow]Lower potential returns[/yellow] from this node\n"
-                f"• [yellow]Freed capital[/yellow] for other opportunities\n"
-                f"• [yellow]Portfolio rebalancing[/yellow] opportunity\n"
-                f"• [yellow]Risk management[/yellow] improvement\n\n"
-                f"[yellow]📋 Next Steps:[/yellow]\n"
-                f"• Check your remaining stakes: htcli stake node-info --subnet-id {subnet_id} --node-id {node_id}\n"
-                f"• Consider other staking opportunities\n"
-                f"• Monitor remaining node performance\n"
-                f"• Plan your next staking strategy\n"
-                f"• Consider diversifying to other nodes\n\n"
-                f"[yellow]💡 Tip:[/yellow]\n"
-                f"• Monitor remaining node performance\n"
-                f"• Consider other staking opportunities\n"
-                f"• Plan your portfolio diversification\n"
-                f"• Balance risk and return in your strategy",
-                title="Node Stake Removal Success",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]💰 Node Stake Removal Complete![/bold green]\n\n"
+                    f"Successfully removed stake from node {node_id} in subnet {subnet_id}.\n\n"
+                    f"[yellow]📊 Removal Details:[/yellow]\n"
+                    f"• Shares Removed: [bold cyan]{shares}[/bold cyan] (in smallest units)\n"
+                    f"• Source Node: [bold cyan]Node {node_id}[/bold cyan]\n"
+                    f"• Subnet: [bold cyan]Subnet {subnet_id}[/bold cyan]\n"
+                    f"• Removal Type: [bold cyan]Node Delegate Stake Removal[/bold cyan]\n"
+                    f"• Balance Returned: [bold cyan]Converted from shares[/bold cyan]\n\n"
+                    f"[yellow]💰 Balance Information:[/yellow]\n"
+                    f"• [green]Shares converted[/green] to balance automatically\n"
+                    f"• [green]Balance returned[/green] to your account\n"
+                    f"• [yellow]Conversion rate[/yellow] based on current node performance\n"
+                    f"• [yellow]No more rewards[/yellow] on removed shares\n"
+                    f"• [yellow]Remaining shares[/yellow] continue earning\n\n"
+                    f"[yellow]📈 Strategic Impact:[/yellow]\n"
+                    f"• [green]Reduced exposure[/green] to node-specific risk\n"
+                    f"• [yellow]Lower potential returns[/yellow] from this node\n"
+                    f"• [yellow]Freed capital[/yellow] for other opportunities\n"
+                    f"• [yellow]Portfolio rebalancing[/yellow] opportunity\n"
+                    f"• [yellow]Risk management[/yellow] improvement\n\n"
+                    f"[yellow]📋 Next Steps:[/yellow]\n"
+                    f"• Check your remaining stakes: htcli stake node-info --subnet-id {subnet_id} --node-id {node_id}\n"
+                    f"• Consider other staking opportunities\n"
+                    f"• Monitor remaining node performance\n"
+                    f"• Plan your next staking strategy\n"
+                    f"• Consider diversifying to other nodes\n\n"
+                    f"[yellow]💡 Tip:[/yellow]\n"
+                    f"• Monitor remaining node performance\n"
+                    f"• Consider other staking opportunities\n"
+                    f"• Plan your portfolio diversification\n"
+                    f"• Balance risk and return in your strategy",
+                    title="Node Stake Removal Success",
+                    border_style="green",
+                )
+            )
         else:
             print_error(f"❌ Failed to remove stake from node: {response.message}")
             raise typer.Exit(1)
@@ -1353,8 +1401,12 @@ def node_remove(
 def node_transfer(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
     node_id: int = typer.Option(..., "--node-id", "-n", help="Node ID"),
-    to_account: str = typer.Option(..., "--to-account", "-t", help="Destination account address"),
-    shares: int = typer.Option(..., "--shares", "-sh", help="Shares to transfer (in smallest units)"),
+    to_account: str = typer.Option(
+        ..., "--to-account", "-t", help="Destination account address"
+    ),
+    shares: int = typer.Option(
+        ..., "--shares", "-sh", help="Shares to transfer (in smallest units)"
+    ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing"
     ),
@@ -1368,6 +1420,7 @@ def node_transfer(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]💰 Transfer Node Stake Guide[/bold cyan]\n\n"
             f"This will transfer stake shares from node {node_id} in subnet {subnet_id}:\n\n"
@@ -1402,13 +1455,15 @@ def node_transfer(
             f"• Transfer is irreversible\n"
             f"• Consider tax and legal implications",
             title="[bold blue]💰 Transfer Node Stake[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
 
         # Ask for confirmation
-        if not typer.confirm(f"Transfer {shares} shares to {to_account} from node {node_id} in subnet {subnet_id}?"):
+        if not typer.confirm(
+            f"Transfer {shares} shares to {to_account} from node {node_id} in subnet {subnet_id}?"
+        ):
             print_info("Node stake transfer cancelled.")
             return
 
@@ -1422,7 +1477,9 @@ def node_transfer(
         raise typer.Exit(1)
 
     if not validate_address(to_account):
-        print_error("❌ Invalid destination account address. Must be a valid SS58 address.")
+        print_error(
+            "❌ Invalid destination account address. Must be a valid SS58 address."
+        )
         raise typer.Exit(1)
 
     if not validate_amount(shares):
@@ -1431,21 +1488,26 @@ def node_transfer(
 
     # Check if key_name is provided (required for transfer)
     if not key_name:
-        print_error("❌ Key name is required for stake transfer. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for stake transfer. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
-        print_info(f"💰 Transferring stake shares from node {node_id} in subnet {subnet_id}...")
+        print_info(
+            f"💰 Transferring stake shares from node {node_id} in subnet {subnet_id}..."
+        )
 
         # Load keypair for signing
         from ..utils.crypto import load_keypair
+
         # Get secure password for keypair
 
         password = get_secure_password(
-                    key_name,
-                    prompt_message="Enter password to unlock keypair for node delegate stake transfer",
-                    allow_default=True
-                )
+            key_name,
+            prompt_message="Enter password to unlock keypair for node delegate stake transfer",
+            allow_default=True,
+        )
         keypair = load_keypair(key_name, password)
 
         # Transfer stake shares to another account
@@ -1454,50 +1516,58 @@ def node_transfer(
             node_id=node_id,
             to_account=to_account,
             shares=shares,
-            keypair=keypair
+            keypair=keypair,
         )
 
         if response.success:
-            print_success(f"✅ Successfully transferred stake shares from node {node_id}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            print_success(
+                f"✅ Successfully transferred stake shares from node {node_id}!"
+            )
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]💰 Node Stake Transfer Complete![/bold green]\n\n"
-                f"Successfully transferred stake shares from node {node_id} in subnet {subnet_id}.\n\n"
-                f"[yellow]📊 Transfer Details:[/yellow]\n"
-                f"• Shares Transferred: [bold cyan]{shares}[/bold cyan] (in smallest units)\n"
-                f"• Source Node: [bold cyan]Node {node_id}[/bold cyan]\n"
-                f"• Subnet: [bold cyan]Subnet {subnet_id}[/bold cyan]\n"
-                f"• Destination: [bold cyan]{to_account}[/bold cyan]\n"
-                f"• Transfer Type: [bold cyan]Node Delegate Stake Transfer[/bold cyan]\n\n"
-                f"[yellow]💰 Share Information:[/yellow]\n"
-                f"• [green]Shares transferred[/green] to destination account\n"
-                f"• [green]No conversion[/green] to balance (shares remain shares)\n"
-                f"• [green]Destination ownership[/green] of the shares\n"
-                f"• [yellow]Shares continue earning[/yellow] for destination\n"
-                f"• [yellow]Same node stake[/yellow] (ownership changed)\n\n"
-                f"[yellow]📈 Strategic Impact:[/yellow]\n"
-                f"• [green]Account management[/green] flexibility\n"
-                f"• [yellow]Reduced exposure[/yellow] to node-specific risk\n"
-                f"• [yellow]Gifting capability[/yellow] for stake shares\n"
-                f"• [yellow]Portfolio organization[/yellow] across accounts\n"
-                f"• [yellow]Tax planning[/yellow] opportunities\n\n"
-                f"[yellow]📋 Next Steps:[/yellow]\n"
-                f"• Verify transfer with destination account\n"
-                f"• Check your remaining stakes: htcli stake node-info --subnet-id {subnet_id} --node-id {node_id}\n"
-                f"• Consider other staking opportunities\n"
-                f"• Plan your portfolio strategy\n"
-                f"• Keep records of the transfer\n\n"
-                f"[yellow]💡 Tip:[/yellow]\n"
-                f"• Verify destination account address carefully\n"
-                f"• Keep records of all transfers\n"
-                f"• Consider tax implications of transfers\n"
-                f"• Plan your account organization strategy",
-                title="Node Stake Transfer Success",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]💰 Node Stake Transfer Complete![/bold green]\n\n"
+                    f"Successfully transferred stake shares from node {node_id} in subnet {subnet_id}.\n\n"
+                    f"[yellow]📊 Transfer Details:[/yellow]\n"
+                    f"• Shares Transferred: [bold cyan]{shares}[/bold cyan] (in smallest units)\n"
+                    f"• Source Node: [bold cyan]Node {node_id}[/bold cyan]\n"
+                    f"• Subnet: [bold cyan]Subnet {subnet_id}[/bold cyan]\n"
+                    f"• Destination: [bold cyan]{to_account}[/bold cyan]\n"
+                    f"• Transfer Type: [bold cyan]Node Delegate Stake Transfer[/bold cyan]\n\n"
+                    f"[yellow]💰 Share Information:[/yellow]\n"
+                    f"• [green]Shares transferred[/green] to destination account\n"
+                    f"• [green]No conversion[/green] to balance (shares remain shares)\n"
+                    f"• [green]Destination ownership[/green] of the shares\n"
+                    f"• [yellow]Shares continue earning[/yellow] for destination\n"
+                    f"• [yellow]Same node stake[/yellow] (ownership changed)\n\n"
+                    f"[yellow]📈 Strategic Impact:[/yellow]\n"
+                    f"• [green]Account management[/green] flexibility\n"
+                    f"• [yellow]Reduced exposure[/yellow] to node-specific risk\n"
+                    f"• [yellow]Gifting capability[/yellow] for stake shares\n"
+                    f"• [yellow]Portfolio organization[/yellow] across accounts\n"
+                    f"• [yellow]Tax planning[/yellow] opportunities\n\n"
+                    f"[yellow]📋 Next Steps:[/yellow]\n"
+                    f"• Verify transfer with destination account\n"
+                    f"• Check your remaining stakes: htcli stake node-info --subnet-id {subnet_id} --node-id {node_id}\n"
+                    f"• Consider other staking opportunities\n"
+                    f"• Plan your portfolio strategy\n"
+                    f"• Keep records of the transfer\n\n"
+                    f"[yellow]💡 Tip:[/yellow]\n"
+                    f"• Verify destination account address carefully\n"
+                    f"• Keep records of all transfers\n"
+                    f"• Consider tax implications of transfers\n"
+                    f"• Plan your account organization strategy",
+                    title="Node Stake Transfer Success",
+                    border_style="green",
+                )
+            )
         else:
             print_error(f"❌ Failed to transfer stake shares: {response.message}")
             raise typer.Exit(1)
@@ -1510,8 +1580,15 @@ def node_transfer(
 @app.command()
 def node_increase(
     subnet_id: int = typer.Option(..., "--subnet-id", "-s", help="Subnet ID"),
-    node_id: int = typer.Option(..., "--node-id", "-n", help="Node ID to increase stake for"),
-    amount: int = typer.Option(..., "--amount", "-a", help="Amount to add to node stake pool (in smallest units)"),
+    node_id: int = typer.Option(
+        ..., "--node-id", "-n", help="Node ID to increase stake for"
+    ),
+    amount: int = typer.Option(
+        ...,
+        "--amount",
+        "-a",
+        help="Amount to add to node stake pool (in smallest units)",
+    ),
     key_name: Optional[str] = typer.Option(
         None, "--key-name", "-k", help="Key name for signing"
     ),
@@ -1525,6 +1602,7 @@ def node_increase(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]💰 Increase Node Stake Pool Guide[/bold cyan]\n\n"
             f"This will increase the stake pool for node {node_id} in subnet {subnet_id}:\n\n"
@@ -1559,13 +1637,15 @@ def node_increase(
             f"• Can be used for marketing and incentives\n"
             f"• Plan the amount carefully",
             title="[bold blue]💰 Increase Node Stake Pool[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
 
         # Ask for confirmation
-        if not typer.confirm(f"Increase stake pool for node {node_id} in subnet {subnet_id} by {amount}?"):
+        if not typer.confirm(
+            f"Increase stake pool for node {node_id} in subnet {subnet_id} by {amount}?"
+        ):
             print_info("Node stake pool increase cancelled.")
             return
 
@@ -1584,72 +1664,80 @@ def node_increase(
 
     # Check if key_name is provided (required for increase)
     if not key_name:
-        print_error("❌ Key name is required for pool increase. Use --key-name to specify your signing key.")
+        print_error(
+            "❌ Key name is required for pool increase. Use --key-name to specify your signing key."
+        )
         raise typer.Exit(1)
 
     try:
-        print_info(f"💰 Increasing stake pool for node {node_id} in subnet {subnet_id}...")
+        print_info(
+            f"💰 Increasing stake pool for node {node_id} in subnet {subnet_id}..."
+        )
 
         # Load keypair for signing
         from ..utils.crypto import load_keypair
+
         # Get secure password for keypair
 
         password = get_secure_password(
-                    key_name,
-                    prompt_message="Enter password to unlock keypair for node delegate stake increase",
-                    allow_default=True
-                )
+            key_name,
+            prompt_message="Enter password to unlock keypair for node delegate stake increase",
+            allow_default=True,
+        )
         keypair = load_keypair(key_name, password)
 
         # Increase the node's delegate stake pool
         response = client.increase_node_delegate_stake(
-            subnet_id=subnet_id,
-            node_id=node_id,
-            amount=amount,
-            keypair=keypair
+            subnet_id=subnet_id, node_id=node_id, amount=amount, keypair=keypair
         )
 
         if response.success:
             print_success(f"✅ Successfully increased stake pool for node {node_id}!")
-            console.print(f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]")
+            console.print(
+                f"📄 Transaction Hash: [bold cyan]{response.transaction_hash}[/bold cyan]"
+            )
             if response.block_number:
-                console.print(f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]")
+                console.print(
+                    f"📦 Block Number: [bold cyan]#{response.block_number}[/bold cyan]"
+                )
 
-            console.print(Panel(
-                f"[bold green]💰 Node Stake Pool Increase Complete![/bold green]\n\n"
-                f"Successfully increased stake pool for node {node_id} in subnet {subnet_id}.\n\n"
-                f"[yellow]📊 Pool Increase Details:[/yellow]\n"
-                f"• Amount Added: [bold cyan]{amount}[/bold cyan] (in smallest units)\n"
-                f"• Target Node: [bold cyan]Node {node_id}[/bold cyan]\n"
-                f"• Subnet: [bold cyan]Subnet {subnet_id}[/bold cyan]\n"
-                f"• Increase Type: [bold cyan]Node Delegate Stake Pool Increase[/bold cyan]\n"
-                f"• Beneficiaries: [bold cyan]All Current Delegators[/bold cyan]\n\n"
-                f"[yellow]💰 Reward Distribution:[/yellow]\n"
-                f"• [green]All delegators[/green] benefit proportionally\n"
-                f"• [green]Immediate distribution[/green] of rewards\n"
-                f"• [green]Pool value increased[/green] for everyone\n"
-                f"• [yellow]No personal balance increase[/yellow] for you\n"
-                f"• [yellow]Community investment[/yellow] in node success\n\n"
-                f"[yellow]📈 Strategic Impact:[/yellow]\n"
-                f"• [green]Community building[/green] through rewards\n"
-                f"• [green]Delegator loyalty[/green] enhancement\n"
-                f"• [green]Competitive advantage[/green] over other nodes\n"
-                f"• [yellow]Marketing tool[/yellow] for attracting delegators\n"
-                f"• [yellow]Performance incentive[/yellow] for node operators\n\n"
-                f"[yellow]📋 Next Steps:[/yellow]\n"
-                f"• Monitor delegator response to rewards\n"
-                f"• Check node performance: htcli node status --subnet-id {subnet_id} --node-id {node_id}\n"
-                f"• Consider additional pool increases for marketing\n"
-                f"• Track delegator growth and loyalty\n"
-                f"• Plan future reward strategies\n\n"
-                f"[yellow]💡 Tip:[/yellow]\n"
-                f"• Use pool increases strategically for marketing\n"
-                f"• Monitor delegator response and loyalty\n"
-                f"• Consider regular reward programs\n"
-                f"• Balance rewards with node performance",
-                title="Node Stake Pool Increase Success",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]💰 Node Stake Pool Increase Complete![/bold green]\n\n"
+                    f"Successfully increased stake pool for node {node_id} in subnet {subnet_id}.\n\n"
+                    f"[yellow]📊 Pool Increase Details:[/yellow]\n"
+                    f"• Amount Added: [bold cyan]{amount}[/bold cyan] (in smallest units)\n"
+                    f"• Target Node: [bold cyan]Node {node_id}[/bold cyan]\n"
+                    f"• Subnet: [bold cyan]Subnet {subnet_id}[/bold cyan]\n"
+                    f"• Increase Type: [bold cyan]Node Delegate Stake Pool Increase[/bold cyan]\n"
+                    f"• Beneficiaries: [bold cyan]All Current Delegators[/bold cyan]\n\n"
+                    f"[yellow]💰 Reward Distribution:[/yellow]\n"
+                    f"• [green]All delegators[/green] benefit proportionally\n"
+                    f"• [green]Immediate distribution[/green] of rewards\n"
+                    f"• [green]Pool value increased[/green] for everyone\n"
+                    f"• [yellow]No personal balance increase[/yellow] for you\n"
+                    f"• [yellow]Community investment[/yellow] in node success\n\n"
+                    f"[yellow]📈 Strategic Impact:[/yellow]\n"
+                    f"• [green]Community building[/green] through rewards\n"
+                    f"• [green]Delegator loyalty[/green] enhancement\n"
+                    f"• [green]Competitive advantage[/green] over other nodes\n"
+                    f"• [yellow]Marketing tool[/yellow] for attracting delegators\n"
+                    f"• [yellow]Performance incentive[/yellow] for node operators\n\n"
+                    f"[yellow]📋 Next Steps:[/yellow]\n"
+                    f"• Monitor delegator response to rewards\n"
+                    f"• Check node performance: htcli node status --subnet-id {subnet_id} --node-id {node_id}\n"
+                    f"• Consider additional pool increases for marketing\n"
+                    f"• Track delegator growth and loyalty\n"
+                    f"• Plan future reward strategies\n\n"
+                    f"[yellow]💡 Tip:[/yellow]\n"
+                    f"• Use pool increases strategically for marketing\n"
+                    f"• Monitor delegator response and loyalty\n"
+                    f"• Consider regular reward programs\n"
+                    f"• Balance rewards with node performance",
+                    title="Node Stake Pool Increase Success",
+                    border_style="green",
+                )
+            )
         else:
             print_error(f"❌ Failed to increase node stake pool: {response.message}")
             raise typer.Exit(1)
@@ -1661,9 +1749,15 @@ def node_increase(
 
 @app.command()
 def info(
-    subnet_id: Optional[int] = typer.Option(None, "--subnet-id", "-s", help="Subnet ID to show info for"),
-    node_id: Optional[int] = typer.Option(None, "--node-id", "-n", help="Node ID to show info for"),
-    show_guidance: bool = typer.Option(True, "--guidance/--no-guidance", help="Show comprehensive guidance"),
+    subnet_id: Optional[int] = typer.Option(
+        None, "--subnet-id", "-s", help="Subnet ID to show info for"
+    ),
+    node_id: Optional[int] = typer.Option(
+        None, "--node-id", "-n", help="Node ID to show info for"
+    ),
+    show_guidance: bool = typer.Option(
+        True, "--guidance/--no-guidance", help="Show comprehensive guidance"
+    ),
 ):
     """Show comprehensive staking information with guidance."""
     client = get_client()
@@ -1671,6 +1765,7 @@ def info(
     # Show comprehensive guidance
     if show_guidance:
         from rich.panel import Panel
+
         guidance_panel = Panel(
             f"[bold cyan]💰 Staking Information Guide[/bold cyan]\n\n"
             f"This will show comprehensive staking information:\n\n"
@@ -1697,7 +1792,7 @@ def info(
             f"• Consider diversification strategies\n"
             f"• Plan your staking portfolio",
             title="[bold blue]💰 Staking Information[/bold blue]",
-            border_style="blue"
+            border_style="blue",
         )
         console.print(guidance_panel)
         console.print()
@@ -1715,35 +1810,39 @@ def info(
         # Get staking information
         if subnet_id and node_id:
             # Node-specific staking info
-            print_info(f"📊 Showing staking information for node {node_id} in subnet {subnet_id}")
+            print_info(
+                f"📊 Showing staking information for node {node_id} in subnet {subnet_id}"
+            )
 
             response = client.get_node_staking_info(subnet_id, node_id, user_address)
 
             if response.success:
                 data = response.data
-                console.print(Panel(
-                    f"[bold cyan]🔗 Node Staking Information[/bold cyan]\n\n"
-                    f"[bold]Node Details:[/bold]\n"
-                    f"• [green]Subnet ID[/green]: {data.get('subnet_id', 'N/A')}\n"
-                    f"• [green]Node ID[/green]: {data.get('node_id', 'N/A')}\n"
-                    f"• [green]Classification[/green]: {data.get('node_classification', {}).get('class', 'Unknown')}\n"
-                    f"• [green]Penalties[/green]: {data.get('node_penalties', 0)}\n\n"
-                    f"[bold]Staking Details:[/bold]\n"
-                    f"• [yellow]Total Node Stake[/yellow]: {data.get('node_delegate_stake', 0):,} TENSOR\n"
-                    f"• [yellow]Reward Rate[/yellow]: {data.get('node_reward_rate', 0)}%\n"
-                    f"• [yellow]Total Delegators[/yellow]: {data.get('total_delegators', 0)}\n"
-                    f"• [yellow]Estimated Rewards[/yellow]: {data.get('estimated_rewards', 0):.2f} TENSOR\n\n"
-                    f"[bold]Your Stake:[/bold]\n"
-                    f"• [green]Your Shares[/green]: {data.get('user_node_shares', 0):,}\n"
-                    f"• [green]Your Stake Value[/green]: {data.get('user_stake_value', 0):,} TENSOR\n"
-                    f"• [green]Your Percentage[/green]: {(data.get('user_stake_value', 0) / data.get('node_delegate_stake', 1) * 100):.2f}%\n\n"
-                    f"[yellow]💡 Tip:[/yellow]\n"
-                    f"• Monitor node performance regularly\n"
-                    f"• Check reward rates for optimization\n"
-                    f"• Consider diversifying across multiple nodes",
-                    title="Node Staking Information",
-                    border_style="blue"
-                ))
+                console.print(
+                    Panel(
+                        f"[bold cyan]🔗 Node Staking Information[/bold cyan]\n\n"
+                        f"[bold]Node Details:[/bold]\n"
+                        f"• [green]Subnet ID[/green]: {data.get('subnet_id', 'N/A')}\n"
+                        f"• [green]Node ID[/green]: {data.get('node_id', 'N/A')}\n"
+                        f"• [green]Classification[/green]: {data.get('node_classification', {}).get('class', 'Unknown')}\n"
+                        f"• [green]Penalties[/green]: {data.get('node_penalties', 0)}\n\n"
+                        f"[bold]Staking Details:[/bold]\n"
+                        f"• [yellow]Total Node Stake[/yellow]: {data.get('node_delegate_stake', 0):,} TENSOR\n"
+                        f"• [yellow]Reward Rate[/yellow]: {data.get('node_reward_rate', 0)}%\n"
+                        f"• [yellow]Total Delegators[/yellow]: {data.get('total_delegators', 0)}\n"
+                        f"• [yellow]Estimated Rewards[/yellow]: {data.get('estimated_rewards', 0):.2f} TENSOR\n\n"
+                        f"[bold]Your Stake:[/bold]\n"
+                        f"• [green]Your Shares[/green]: {data.get('user_node_shares', 0):,}\n"
+                        f"• [green]Your Stake Value[/green]: {data.get('user_stake_value', 0):,} TENSOR\n"
+                        f"• [green]Your Percentage[/green]: {(data.get('user_stake_value', 0) / data.get('node_delegate_stake', 1) * 100):.2f}%\n\n"
+                        f"[yellow]💡 Tip:[/yellow]\n"
+                        f"• Monitor node performance regularly\n"
+                        f"• Check reward rates for optimization\n"
+                        f"• Consider diversifying across multiple nodes",
+                        title="Node Staking Information",
+                        border_style="blue",
+                    )
+                )
             else:
                 print_error(f"❌ Failed to get node staking info: {response.message}")
                 raise typer.Exit(1)
@@ -1756,28 +1855,30 @@ def info(
 
             if response.success:
                 data = response.data
-                console.print(Panel(
-                    f"[bold cyan]🌐 Subnet Staking Information[/bold cyan]\n\n"
-                    f"[bold]Subnet Details:[/bold]\n"
-                    f"• [green]Subnet ID[/green]: {data.get('subnet_id', 'N/A')}\n"
-                    f"• [green]Total Nodes[/green]: {data.get('total_nodes', 0)}\n"
-                    f"• [green]Active Nodes[/green]: {data.get('active_nodes', 0)}\n\n"
-                    f"[bold]Staking Details:[/bold]\n"
-                    f"• [yellow]Total Subnet Stake[/yellow]: {data.get('subnet_delegate_stake', 0):,} TENSOR\n"
-                    f"• [yellow]Reward Rate[/yellow]: {data.get('subnet_reward_rate', 0)}%\n"
-                    f"• [yellow]Total Delegators[/yellow]: {data.get('total_delegators', 0)}\n"
-                    f"• [yellow]Estimated Rewards[/yellow]: {data.get('estimated_rewards', 0):.2f} TENSOR\n\n"
-                    f"[bold]Your Stake:[/bold]\n"
-                    f"• [green]Your Shares[/green]: {data.get('user_subnet_shares', 0):,}\n"
-                    f"• [green]Your Stake Value[/green]: {data.get('user_stake_value', 0):,} TENSOR\n"
-                    f"• [green]Your Percentage[/green]: {(data.get('user_stake_value', 0) / data.get('subnet_delegate_stake', 1) * 100):.2f}%\n\n"
-                    f"[yellow]💡 Tip:[/yellow]\n"
-                    f"• Subnet staking provides broader exposure\n"
-                    f"• Monitor subnet performance and node activity\n"
-                    f"• Consider both subnet and node staking for diversification",
-                    title="Subnet Staking Information",
-                    border_style="green"
-                ))
+                console.print(
+                    Panel(
+                        f"[bold cyan]🌐 Subnet Staking Information[/bold cyan]\n\n"
+                        f"[bold]Subnet Details:[/bold]\n"
+                        f"• [green]Subnet ID[/green]: {data.get('subnet_id', 'N/A')}\n"
+                        f"• [green]Total Nodes[/green]: {data.get('total_nodes', 0)}\n"
+                        f"• [green]Active Nodes[/green]: {data.get('active_nodes', 0)}\n\n"
+                        f"[bold]Staking Details:[/bold]\n"
+                        f"• [yellow]Total Subnet Stake[/yellow]: {data.get('subnet_delegate_stake', 0):,} TENSOR\n"
+                        f"• [yellow]Reward Rate[/yellow]: {data.get('subnet_reward_rate', 0)}%\n"
+                        f"• [yellow]Total Delegators[/yellow]: {data.get('total_delegators', 0)}\n"
+                        f"• [yellow]Estimated Rewards[/yellow]: {data.get('estimated_rewards', 0):.2f} TENSOR\n\n"
+                        f"[bold]Your Stake:[/bold]\n"
+                        f"• [green]Your Shares[/green]: {data.get('user_subnet_shares', 0):,}\n"
+                        f"• [green]Your Stake Value[/green]: {data.get('user_stake_value', 0):,} TENSOR\n"
+                        f"• [green]Your Percentage[/green]: {(data.get('user_stake_value', 0) / data.get('subnet_delegate_stake', 1) * 100):.2f}%\n\n"
+                        f"[yellow]💡 Tip:[/yellow]\n"
+                        f"• Subnet staking provides broader exposure\n"
+                        f"• Monitor subnet performance and node activity\n"
+                        f"• Consider both subnet and node staking for diversification",
+                        title="Subnet Staking Information",
+                        border_style="green",
+                    )
+                )
             else:
                 print_error(f"❌ Failed to get subnet staking info: {response.message}")
                 raise typer.Exit(1)
@@ -1790,31 +1891,37 @@ def info(
 
             if response.success:
                 data = response.data
-                network_stats = data.get('network_stats', {})
+                network_stats = data.get("network_stats", {})
 
-                console.print(Panel(
-                    f"[bold cyan]🌍 Network Staking Overview[/bold cyan]\n\n"
-                    f"[bold]Network Statistics:[/bold]\n"
-                    f"• [green]Total Subnets[/green]: {network_stats.get('total_subnets', 0)}\n"
-                    f"• [green]Total Network Stake[/green]: {network_stats.get('total_network_stake', 0):,} TENSOR\n"
-                    f"• [green]Average Reward Rate[/green]: {network_stats.get('average_reward_rate', 0):.2f}%\n\n"
-                    f"[bold]Your Portfolio:[/bold]\n"
-                    f"• [yellow]Total User Stake[/yellow]: {network_stats.get('total_user_stake', 0):,} TENSOR\n"
-                    f"• [yellow]Portfolio Percentage[/yellow]: {network_stats.get('user_stake_percentage', 0):.2f}%\n"
-                    f"• [yellow]Address[/yellow]: {data.get('user_address', 'Not specified')}\n\n"
-                    f"[bold]Top Performing Subnets:[/bold]\n"
-                    f"{chr(10).join([f'• Subnet {s.get(\"subnet_id\", \"N/A\")}: {s.get(\"subnet_reward_rate\", 0)}% rate' for s in network_stats.get('top_performing_subnets', [])[:3]])}\n\n"
-                    f"[bold]Recommendations:[/bold]\n"
-                    f"{chr(10).join([f'• {rec}' for rec in network_stats.get('recommendations', [])])}\n\n"
-                    f"[yellow]💡 Tip:[/yellow]\n"
-                    f"• Diversify across multiple subnets and nodes\n"
-                    f"• Monitor performance and adjust strategy\n"
-                    f"• Consider both high-reward and stable options",
-                    title="Network Staking Overview",
-                    border_style="cyan"
-                ))
+                console.print(
+                    Panel(
+                        f"[bold cyan]🌍 Network Staking Overview[/bold cyan]\n\n"
+                        f"[bold]Network Statistics:[/bold]\n"
+                        f"• [green]Total Subnets[/green]: {network_stats.get('total_subnets', 0)}\n"
+                        f"• [green]Total Network Stake[/green]: {network_stats.get('total_network_stake', 0):,} TENSOR\n"
+                        f"• [green]Average Reward Rate[/green]: {network_stats.get('average_reward_rate', 0):.2f}%\n\n"
+                        f"[bold]Your Portfolio:[/bold]\n"
+                        f"• [yellow]Total User Stake[/yellow]: {network_stats.get('total_user_stake', 0):,} TENSOR\n"
+                        f"• [yellow]Portfolio Percentage[/yellow]: {network_stats.get('user_stake_percentage', 0):.2f}%\n"
+                        f"• [yellow]Address[/yellow]: {data.get('user_address', 'Not specified')}\n\n"
+                        f"[bold]Top Performing Subnets:[/bold]\n"
+                        f"• Subnet {network_stats.get('top_performing_subnets', [{}])[0].get('subnet_id', 'N/A')}: {network_stats.get('top_performing_subnets', [{}])[0].get('subnet_reward_rate', 0)}% rate\n\n"
+                        f"[bold]Recommendations:[/bold]\n"
+                        f"• Diversify across multiple subnets\n"
+                        f"• Monitor performance regularly\n"
+                        f"• Consider both high-reward and stable options\n\n"
+                        f"[yellow]💡 Tip:[/yellow]\n"
+                        f"• Diversify across multiple subnets and nodes\n"
+                        f"• Monitor performance and adjust strategy\n"
+                        f"• Consider both high-reward and stable options",
+                        title="Network Staking Overview",
+                        border_style="cyan",
+                    )
+                )
             else:
-                print_error(f"❌ Failed to get general staking info: {response.message}")
+                print_error(
+                    f"❌ Failed to get general staking info: {response.message}"
+                )
                 raise typer.Exit(1)
 
         print_success("✅ Staking information retrieved successfully!")

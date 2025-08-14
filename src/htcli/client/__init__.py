@@ -177,6 +177,47 @@ class HypertensorClient:
         """Update subnet node hotkey."""
         return self.subnet.update_node_hotkey(subnet_id, old_hotkey, new_hotkey, keypair)
 
+    def add_to_node_delegate_stake(
+        self,
+        subnet_id: int,
+        node_id: int,
+        amount: int,
+        keypair=None
+    ):
+        """Add stake to a specific subnet node."""
+        return self.subnet.add_to_node_delegate_stake(subnet_id, node_id, amount, keypair)
+
+    def remove_node_delegate_stake(
+        self,
+        subnet_id: int,
+        node_id: int,
+        shares: int,
+        keypair=None
+    ):
+        """Remove stake from a specific subnet node."""
+        return self.subnet.remove_node_delegate_stake(subnet_id, node_id, shares, keypair)
+
+    def transfer_node_delegate_stake(
+        self,
+        subnet_id: int,
+        node_id: int,
+        to_account: str,
+        shares: int,
+        keypair=None
+    ):
+        """Transfer node delegate stake shares to another account."""
+        return self.subnet.transfer_node_delegate_stake(subnet_id, node_id, to_account, shares, keypair)
+
+    def increase_node_delegate_stake(
+        self,
+        subnet_id: int,
+        node_id: int,
+        amount: int,
+        keypair=None
+    ):
+        """Increase node delegate stake pool."""
+        return self.subnet.increase_node_delegate_stake(subnet_id, node_id, amount, keypair)
+
     def get_subnet_node_status(self, subnet_id: int, node_id: int):
         """Get detailed status of a specific subnet node."""
         return self.subnet.get_subnet_node_status(subnet_id, node_id)

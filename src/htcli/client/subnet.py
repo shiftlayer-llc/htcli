@@ -907,6 +907,244 @@ class SubnetClient:
             logger.error(f"Failed to update node hotkey: {str(e)}")
             raise
 
+    def add_to_node_delegate_stake(
+        self,
+        subnet_id: int,
+        node_id: int,
+        amount: int,
+        keypair=None
+    ):
+        """Add stake to a specific subnet node using Network.add_to_node_delegate_stake."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Prepare call parameters according to official specification
+            call_params = {
+                "subnet_id": subnet_id,
+                "subnet_node_id": node_id,
+                "node_delegate_stake_to_be_added": amount,
+            }
+
+            # Compose the call using Network pallet
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="add_to_node_delegate_stake",
+                call_params=call_params,
+            )
+
+            # If keypair provided, submit real transaction
+            if keypair:
+                # Create and submit transaction
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                # Submit and wait for confirmation
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                # Return real transaction details
+                return NodeAddResponse(
+                    success=True,
+                    message="Node delegate stake added successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                # Return composed call data for manual submission
+                return NodeAddResponse(
+                    success=True,
+                    message="Node delegate stake addition call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to add node delegate stake: {str(e)}")
+            raise
+
+    def remove_node_delegate_stake(
+        self,
+        subnet_id: int,
+        node_id: int,
+        shares: int,
+        keypair=None
+    ):
+        """Remove stake from a specific subnet node using Network.remove_node_delegate_stake."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Prepare call parameters according to official specification
+            call_params = {
+                "subnet_id": subnet_id,
+                "subnet_node_id": node_id,
+                "node_delegate_stake_shares_to_be_removed": shares,
+            }
+
+            # Compose the call using Network pallet
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="remove_node_delegate_stake",
+                call_params=call_params,
+            )
+
+            # If keypair provided, submit real transaction
+            if keypair:
+                # Create and submit transaction
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                # Submit and wait for confirmation
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                # Return real transaction details
+                return NodeAddResponse(
+                    success=True,
+                    message="Node delegate stake removed successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                # Return composed call data for manual submission
+                return NodeAddResponse(
+                    success=True,
+                    message="Node delegate stake removal call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to remove node delegate stake: {str(e)}")
+            raise
+
+    def transfer_node_delegate_stake(
+        self,
+        subnet_id: int,
+        node_id: int,
+        to_account: str,
+        shares: int,
+        keypair=None
+    ):
+        """Transfer node delegate stake shares to another account using Network.transfer_node_delegate_stake."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Prepare call parameters according to official specification
+            call_params = {
+                "subnet_id": subnet_id,
+                "subnet_node_id": node_id,
+                "to_account_id": to_account,
+                "node_delegate_stake_shares_to_transfer": shares,
+            }
+
+            # Compose the call using Network pallet
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="transfer_node_delegate_stake",
+                call_params=call_params,
+            )
+
+            # If keypair provided, submit real transaction
+            if keypair:
+                # Create and submit transaction
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                # Submit and wait for confirmation
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                # Return real transaction details
+                return NodeAddResponse(
+                    success=True,
+                    message="Node delegate stake transferred successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                # Return composed call data for manual submission
+                return NodeAddResponse(
+                    success=True,
+                    message="Node delegate stake transfer call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to transfer node delegate stake: {str(e)}")
+            raise
+
+    def increase_node_delegate_stake(
+        self,
+        subnet_id: int,
+        node_id: int,
+        amount: int,
+        keypair=None
+    ):
+        """Increase node delegate stake pool using Network.increase_node_delegate_stake."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Prepare call parameters according to official specification
+            call_params = {
+                "subnet_id": subnet_id,
+                "subnet_node_id": node_id,
+                "amount": amount,
+            }
+
+            # Compose the call using Network pallet
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="increase_node_delegate_stake",
+                call_params=call_params,
+            )
+
+            # If keypair provided, submit real transaction
+            if keypair:
+                # Create and submit transaction
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                # Submit and wait for confirmation
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                # Return real transaction details
+                return NodeAddResponse(
+                    success=True,
+                    message="Node delegate stake pool increased successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={"receipt": receipt},
+                )
+            else:
+                # Return composed call data for manual submission
+                return NodeAddResponse(
+                    success=True,
+                    message="Node delegate stake pool increase call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={"call_data": call_data},
+                )
+        except Exception as e:
+            logger.error(f"Failed to increase node delegate stake pool: {str(e)}")
+            raise
+
     def get_subnet_node_status(self, subnet_id: int, node_id: int):
         """Get detailed status of a specific subnet node."""
         try:

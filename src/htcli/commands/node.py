@@ -268,7 +268,8 @@ def register(
         # Load keypair for signing
         from ..utils.crypto import load_keypair
         # Get secure password for keypair
-                password = get_secure_password(
+
+        password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet node registration",
                     allow_default=True
@@ -400,7 +401,8 @@ def activate(
         # Load keypair for signing
         from ..utils.crypto import load_keypair
         # Get secure password for keypair
-                password = get_secure_password(
+
+        password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet activation",
                     allow_default=True
@@ -788,7 +790,8 @@ def remove(
         # Load keypair for signing
         from ..utils.crypto import load_keypair
         # Get secure password for keypair
-                password = get_secure_password(
+
+        password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet node removal",
                     allow_default=True
@@ -812,60 +815,99 @@ def remove(
             if remove_stake:
                 print_info("🔄 Automatically removing stake...")
 
-                # TODO: Implement actual automatic stake removal
-                # For now, provide comprehensive guidance
-                console.print(Panel(
-                    f"[bold green]🔄 Automatic Stake Removal Process[/bold green]\n\n"
-                    f"Node {node_id} has been removed and stake removal initiated.\n\n"
-                    f"[yellow]📊 What Happened:[/yellow]\n"
-                    f"• ✅ Node removed from subnet {subnet_id}\n"
-                    f"• 🔄 Stake removal process initiated\n"
-                    f"• 📦 Stake unbonding period started\n"
-                    f"• 💰 Tokens will be returned after unbonding\n\n"
-                    f"[yellow]⏳ Unbonding Process:[/yellow]\n"
-                    f"• [yellow]Unbonding Period[/yellow]: Tokens locked for unbonding duration\n"
-                    f"• [yellow]No Rewards[/yellow]: No more rewards earned during unbonding\n"
-                    f"• [yellow]Secure Process[/yellow]: Tokens are safe during unbonding\n"
-                    f"• [yellow]Automatic Return[/yellow]: Tokens return to wallet after period\n\n"
-                    f"[yellow]📋 Monitor Progress:[/yellow]\n"
-                    f"• Check unbonding status: htcli stake info --subnet-id {subnet_id}\n"
-                    f"• Monitor wallet balance: htcli chain balance --address <your-address>\n"
-                    f"• Track unbonding progress in your wallet\n\n"
-                    f"[yellow]💡 Tip:[/yellow]\n"
-                    f"• Unbonding period varies by network\n"
-                    f"• Tokens are safe during unbonding\n"
-                    f"• Consider staking to other nodes/subnets\n"
-                    f"• Plan your next staking strategy",
-                    title="Automatic Stake Removal Success",
-                    border_style="green"
-                ))
+                # Implement actual automatic stake removal
+                stake_removal_response = client.remove_node_stake_automatically(
+                    subnet_id=subnet_id,
+                    node_id=node_id,
+                    key_name=key_name
+                )
 
-                # Show final success message
-                console.print(Panel(
-                    f"[bold green]🎉 Complete Node Removal Success![/bold green]\n\n"
-                    f"Node {node_id} has been completely removed from subnet {subnet_id}.\n\n"
-                    f"[green]✅ What's Complete:[/green]\n"
-                    f"• Node removed from subnet participation\n"
-                    f"• All stake automatically removed\n"
-                    f"• Unbonding process initiated\n"
-                    f"• Complete cleanup finished\n\n"
-                    f"[yellow]📊 Final Status:[/yellow]\n"
-                    f"• Node: [red]Removed[/red] (must re-register to return)\n"
-                    f"• Stake: [green]Removed[/green] (unbonding in progress)\n"
-                    f"• Tokens: [yellow]Unbonding[/yellow] (will return after period)\n"
-                    f"• Network: [green]Clean[/green] (no locked resources)\n\n"
-                    f"[yellow]🚀 Next Steps:[/yellow]\n"
-                    f"• Wait for unbonding period to complete\n"
-                    f"• Plan your next staking strategy\n"
-                    f"• Consider staking to other nodes/subnets\n"
-                    f"• Monitor token return to wallet\n\n"
-                    f"[yellow]💡 Strategic Tip:[/yellow]\n"
-                    f"• Use returned tokens for new staking opportunities\n"
-                    f"• Consider diversifying across multiple nodes/subnets\n"
-                    f"• Research high-performing nodes for better returns",
-                    title="Complete Removal Success",
-                    border_style="green"
-                ))
+                if stake_removal_response.success:
+                    stake_data = stake_removal_response.data
+                    removed_amount = stake_data.get("removed_amount", 0)
+                    shares_removed = stake_data.get("shares_removed", 0)
+                    unbonding_started = stake_data.get("unbonding_started", False)
+
+                    # Show transaction details if available
+                    if stake_removal_response.transaction_hash:
+                        console.print(f"📄 Stake Removal Transaction Hash: [bold cyan]{stake_removal_response.transaction_hash}[/bold cyan]")
+                    if stake_removal_response.block_number:
+                        console.print(f"📦 Stake Removal Block Number: [bold cyan]#{stake_removal_response.block_number}[/bold cyan]")
+
+                    # Show comprehensive success message
+                    console.print(Panel(
+                        f"[bold green]🔄 Automatic Stake Removal Success![/bold green]\n\n"
+                        f"Node {node_id} has been removed and stake removal completed.\n\n"
+                        f"[yellow]📊 What Happened:[/yellow]\n"
+                        f"• ✅ Node removed from subnet {subnet_id}\n"
+                        f"• ✅ Stake removal transaction submitted\n"
+                        f"• 📦 Stake unbonding period started\n"
+                        f"• 💰 {format_balance(removed_amount)} TENSOR will be returned after unbonding\n\n"
+                        f"[yellow]📈 Stake Details:[/yellow]\n"
+                        f"• [green]Shares Removed[/green]: {shares_removed:,}\n"
+                        f"• [green]Estimated Value[/green]: {format_balance(removed_amount)} TENSOR\n"
+                        f"• [green]Unbonding Status[/green]: {'Started' if unbonding_started else 'Pending'}\n\n"
+                        f"[yellow]⏳ Unbonding Process:[/yellow]\n"
+                        f"• [yellow]Unbonding Period[/yellow]: Tokens locked for unbonding duration\n"
+                        f"• [yellow]No Rewards[/yellow]: No more rewards earned during unbonding\n"
+                        f"• [yellow]Secure Process[/yellow]: Tokens are safe during unbonding\n"
+                        f"• [yellow]Automatic Return[/yellow]: Tokens return to wallet after period\n\n"
+                        f"[yellow]📋 Monitor Progress:[/yellow]\n"
+                        f"• Check unbonding status: htcli stake info --subnet-id {subnet_id} --node-id {node_id}\n"
+                        f"• Monitor wallet balance: htcli chain balance --address <your-address>\n"
+                        f"• Track unbonding progress in your wallet\n\n"
+                        f"[yellow]💡 Tip:[/yellow]\n"
+                        f"• Unbonding period varies by network\n"
+                        f"• Tokens are safe during unbonding\n"
+                        f"• Consider staking to other nodes/subnets\n"
+                        f"• Plan your next staking strategy",
+                        title="Automatic Stake Removal Success",
+                        border_style="green"
+                    ))
+
+                    # Show final success message
+                    console.print(Panel(
+                        f"[bold green]🎉 Complete Node Removal Success![/bold green]\n\n"
+                        f"Node {node_id} has been completely removed from subnet {subnet_id}.\n\n"
+                        f"[green]✅ What's Complete:[/green]\n"
+                        f"• Node removed from subnet participation\n"
+                        f"• All stake automatically removed ({format_balance(removed_amount)} TENSOR)\n"
+                        f"• Unbonding process initiated\n"
+                        f"• Complete cleanup finished\n\n"
+                        f"[yellow]📊 Final Status:[/yellow]\n"
+                        f"• Node: [red]Removed[/red] (must re-register to return)\n"
+                        f"• Stake: [green]Removed[/green] (unbonding in progress)\n"
+                        f"• Tokens: [yellow]Unbonding[/yellow] (will return after period)\n"
+                        f"• Network: [green]Clean[/green] (no locked resources)\n\n"
+                        f"[yellow]🚀 Next Steps:[/yellow]\n"
+                        f"• Wait for unbonding period to complete\n"
+                        f"• Plan your next staking strategy\n"
+                        f"• Consider staking to other nodes/subnets\n"
+                        f"• Monitor token return to wallet\n\n"
+                        f"[yellow]💡 Strategic Tip:[/yellow]\n"
+                        f"• Use returned tokens for new staking opportunities\n"
+                        f"• Consider diversifying across multiple nodes/subnets\n"
+                        f"• Research high-performing nodes for better returns",
+                        title="Complete Removal Success",
+                        border_style="green"
+                    ))
+                else:
+                    # Handle stake removal failure
+                    print_error(f"❌ Automatic stake removal failed: {stake_removal_response.message}")
+                    console.print(Panel(
+                        f"[bold red]⚠️ Automatic Stake Removal Failed[/bold red]\n\n"
+                        f"Node {node_id} was removed, but automatic stake removal failed.\n\n"
+                        f"[red]Error:[/red] {stake_removal_response.message}\n\n"
+                        f"[bold yellow]Manual Action Required:[/bold yellow]\n"
+                        f"You must manually remove your stake using:\n"
+                        f"[bold cyan]htcli stake remove --subnet-id {subnet_id} --node-id {node_id} --key-name {key_name}[/bold cyan]\n\n"
+                        f"[yellow]💡 Tip:[/yellow]\n"
+                        f"• Your stake is still locked and not earning rewards\n"
+                        f"• Remove it manually to recover your tokens\n"
+                        f"• Consider the manual removal command above",
+                        title="Manual Action Required",
+                        border_style="red"
+                    ))
 
             else:
                 # Show manual stake removal instructions with beautiful formatting
@@ -1015,7 +1057,8 @@ def deactivate(
         # Load keypair for signing
         from ..utils.crypto import load_keypair
         # Get secure password for keypair
-                password = get_secure_password(
+
+        password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet activation",
                     allow_default=True
@@ -1159,7 +1202,8 @@ def reactivate(
         # Load keypair for signing
         from ..utils.crypto import load_keypair
         # Get secure password for keypair
-                password = get_secure_password(
+
+        password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for subnet activation",
                     allow_default=True
@@ -1300,7 +1344,8 @@ def cleanup_expired(
         if key_name:
             from ..utils.crypto import load_keypair
             # Get secure password for keypair
-                password = get_secure_password(
+
+            password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair for expired node cleanup",
                     allow_default=True
@@ -1446,7 +1491,8 @@ def update(
         # Load keypair for signing
         from ..utils.crypto import load_keypair
         # Get secure password for keypair
-                password = get_secure_password(
+
+        password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair",
                     allow_default=True
@@ -1600,7 +1646,8 @@ def update_coldkey(
         # Load keypair for signing (current hotkey)
         from ..utils.crypto import load_keypair
         # Get secure password for keypair
-                password = get_secure_password(
+
+        password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair",
                     allow_default=True
@@ -1764,7 +1811,8 @@ def update_hotkey(
         # Load keypair for signing (current coldkey)
         from ..utils.crypto import load_keypair
         # Get secure password for keypair
-                password = get_secure_password(
+
+        password = get_secure_password(
                     key_name,
                     prompt_message="Enter password to unlock keypair",
                     allow_default=True

@@ -1648,9 +1648,9 @@ def info(
         if subnet_id and node_id:
             # Node-specific staking info
             print_info(f"📊 Showing staking information for node {node_id} in subnet {subnet_id}")
-            
+
             response = client.get_node_staking_info(subnet_id, node_id, user_address)
-            
+
             if response.success:
                 data = response.data
                 console.print(Panel(
@@ -1679,13 +1679,13 @@ def info(
             else:
                 print_error(f"❌ Failed to get node staking info: {response.message}")
                 raise typer.Exit(1)
-                
+
         elif subnet_id:
             # Subnet-specific staking info
             print_info(f"📊 Showing staking information for subnet {subnet_id}")
-            
+
             response = client.get_subnet_staking_info(subnet_id, user_address)
-            
+
             if response.success:
                 data = response.data
                 console.print(Panel(
@@ -1713,17 +1713,17 @@ def info(
             else:
                 print_error(f"❌ Failed to get subnet staking info: {response.message}")
                 raise typer.Exit(1)
-                
+
         else:
             # General staking info
             print_info("📊 Showing general staking information")
-            
+
             response = client.get_general_staking_info(user_address)
-            
+
             if response.success:
                 data = response.data
                 network_stats = data.get('network_stats', {})
-                
+
                 console.print(Panel(
                     f"[bold cyan]🌍 Network Staking Overview[/bold cyan]\n\n"
                     f"[bold]Network Statistics:[/bold]\n"

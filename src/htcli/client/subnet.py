@@ -2629,3 +2629,212 @@ class SubnetClient:
 
         except Exception:
             return ["Unable to generate recommendations"]
+
+    # ============================================================================
+    # Automatic Stake Removal Methods
+    # ============================================================================
+
+    def remove_node_stake_automatically(self, subnet_id: int, node_id: int, key_name: str = None, keypair=None):
+        """Automatically remove all stake from a node after node removal."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for automatic stake removal",
+                    allow_default=True
+                )
+                keypair = load_keypair(key_name, password)
+
+            # First, get the current stake amount for this node
+            node_stake_info = self.get_node_staking_info(subnet_id, node_id)
+            if not node_stake_info.success:
+                return StakeRemoveResponse(
+                    success=False,
+                    message="Failed to get node stake information for automatic removal",
+                    data={}
+                )
+
+            stake_data = node_stake_info.data
+            user_node_shares = stake_data.get("user_node_shares", 0)
+
+            if user_node_shares <= 0:
+                return StakeRemoveResponse(
+                    success=True,
+                    message="No stake to remove from this node",
+                    data={"removed_amount": 0, "shares_removed": 0}
+                )
+
+            # Remove all stake shares from the node
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="remove_node_delegate_stake",
+                call_params={
+                    "subnet_id": subnet_id,
+                    "subnet_node_id": node_id,
+                    "node_delegate_stake_shares_to_be_removed": user_node_shares
+                }
+            )
+
+            if keypair:
+                # Create and submit transaction
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                # Submit and wait for confirmation
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                # Calculate the estimated stake value that was removed
+                node_delegate_stake = stake_data.get("node_delegate_stake", 0)
+                estimated_removed_value = 0
+                if node_delegate_stake > 0:
+                    estimated_removed_value = (user_node_shares / node_delegate_stake) * node_delegate_stake
+
+                return StakeRemoveResponse(
+                    success=True,
+                    message="Automatic stake removal completed successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={
+                        "receipt": receipt,
+                        "removed_amount": estimated_removed_value,
+                        "shares_removed": user_node_shares,
+                        "subnet_id": subnet_id,
+                        "node_id": node_id,
+                        "unbonding_started": True
+                    }
+                )
+            else:
+                # Return composed call data for manual submission
+                return StakeRemoveResponse(
+                    success=True,
+                    message="Automatic stake removal call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={
+                        "call_data": call_data,
+                        "removed_amount": 0,
+                        "shares_removed": user_node_shares,
+                        "subnet_id": subnet_id,
+                        "node_id": node_id,
+                        "unbonding_started": False
+                    }
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to remove node stake automatically: {str(e)}")
+            return StakeRemoveResponse(
+                success=False,
+                message=f"Failed to remove node stake automatically: {str(e)}",
+                data={}
+            )
+
+    def remove_subnet_stake_automatically(self, subnet_id: int, key_name: str = None, keypair=None):
+        """Automatically remove all stake from a subnet after subnet removal."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Load keypair if key_name provided
+            if key_name and not keypair:
+                from ..utils.crypto import load_keypair
+                # Get secure password for keypair
+                password = get_secure_password(
+                    key_name,
+                    prompt_message="Enter password to unlock keypair for automatic subnet stake removal",
+                    allow_default=True
+                )
+                keypair = load_keypair(key_name, password)
+
+            # First, get the current stake amount for this subnet
+            subnet_stake_info = self.get_subnet_staking_info(subnet_id)
+            if not subnet_stake_info.success:
+                return StakeRemoveResponse(
+                    success=False,
+                    message="Failed to get subnet stake information for automatic removal",
+                    data={}
+                )
+
+            stake_data = subnet_stake_info.data
+            user_subnet_shares = stake_data.get("user_subnet_shares", 0)
+
+            if user_subnet_shares <= 0:
+                return StakeRemoveResponse(
+                    success=True,
+                    message="No stake to remove from this subnet",
+                    data={"removed_amount": 0, "shares_removed": 0}
+                )
+
+            # Remove all stake shares from the subnet
+            call_data = self.substrate.compose_call(
+                call_module="Network",
+                call_function="remove_delegate_stake",
+                call_params={
+                    "subnet_id": subnet_id,
+                    "shares_to_be_removed": user_subnet_shares
+                }
+            )
+
+            if keypair:
+                # Create and submit transaction
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                # Submit and wait for confirmation
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                # Calculate the estimated stake value that was removed
+                subnet_delegate_stake = stake_data.get("subnet_delegate_stake", 0)
+                estimated_removed_value = 0
+                if subnet_delegate_stake > 0:
+                    estimated_removed_value = (user_subnet_shares / subnet_delegate_stake) * subnet_delegate_stake
+
+                return StakeRemoveResponse(
+                    success=True,
+                    message="Automatic subnet stake removal completed successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={
+                        "receipt": receipt,
+                        "removed_amount": estimated_removed_value,
+                        "shares_removed": user_subnet_shares,
+                        "subnet_id": subnet_id,
+                        "node_id": None,
+                        "unbonding_started": True
+                    }
+                )
+            else:
+                # Return composed call data for manual submission
+                return StakeRemoveResponse(
+                    success=True,
+                    message="Automatic subnet stake removal call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={
+                        "call_data": call_data,
+                        "removed_amount": 0,
+                        "shares_removed": user_subnet_shares,
+                        "subnet_id": subnet_id,
+                        "node_id": None,
+                        "unbonding_started": False
+                    }
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to remove subnet stake automatically: {str(e)}")
+            return StakeRemoveResponse(
+                success=False,
+                message=f"Failed to remove subnet stake automatically: {str(e)}",
+                data={}
+            )

@@ -100,7 +100,7 @@ class BaseFlow(ABC):
                 function=self._initialize_step,
                 required=True,
                 timeout=10,
-                retry_count=1
+                retry_count=1,
             ),
             FlowStep(
                 name="validate",
@@ -108,7 +108,7 @@ class BaseFlow(ABC):
                 function=self._validate_step,
                 required=True,
                 timeout=15,
-                retry_count=2
+                retry_count=2,
             ),
             FlowStep(
                 name="execute",
@@ -116,7 +116,7 @@ class BaseFlow(ABC):
                 function=self._execute_step,
                 required=True,
                 timeout=60,
-                retry_count=3
+                retry_count=3,
             ),
             FlowStep(
                 name="finalize",
@@ -124,16 +124,13 @@ class BaseFlow(ABC):
                 function=self._finalize_step,
                 required=False,
                 timeout=10,
-                retry_count=1
-            )
+                retry_count=1,
+            ),
         ]
 
     def collect_inputs(self) -> Dict[str, Any]:
         """Collect required inputs from user"""
-        return {
-            "flow_type": "base",
-            "timestamp": time.time()
-        }
+        return {"flow_type": "base", "timestamp": time.time()}
 
     def _initialize_step(self, context: Dict[str, Any]) -> bool:
         """Initialize step implementation"""

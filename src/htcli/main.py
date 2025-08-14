@@ -30,7 +30,6 @@ def get_ascii_art():
     ╚═╝  ╚═╝   ╚═╝    ╚═════╝╚══════╝╚═╝
     """
 
-
 app = typer.Typer(
     name="htcli",
     help="Hypertensor Blockchain CLI - Manage subnets, wallets, and chain operations.",

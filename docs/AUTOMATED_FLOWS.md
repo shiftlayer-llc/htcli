@@ -1,364 +1,455 @@
-# Automated Flows Documentation
+# Automated Flows Guide
 
-The Hypertensor CLI includes powerful automated workflows that combine multiple related operations into streamlined, user-friendly processes. These flows significantly improve developer experience by reducing manual steps and providing guided processes with comprehensive validation.
+Complete guide to using automated workflows in the Hypertensor CLI for streamlined multi-step operations and guided processes.
 
-## Overview
+## 🎯 Overview
 
-Automated flows address common sequences of operations that users typically perform when working with the Hypertensor network. Instead of running multiple commands manually, flows provide:
+The Hypertensor CLI provides automated flows that guide users through complex multi-step operations with interactive prompts, progress tracking, and comprehensive guidance.
 
-- **Guided Setup**: Interactive prompts collect necessary information
-- **Automated Execution**: Multiple operations run automatically with progress tracking
-- **Error Handling**: Robust error handling with retry logic and recovery
-- **Comprehensive Validation**: Built-in verification of results
-- **Clear Feedback**: Rich terminal output with progress indicators and summaries
+## 🔄 Available Flows
 
-## Available Flows
+### 1. Subnet Deployment Flow
+**Purpose**: Complete subnet deployment from registration to activation
+**Steps**: Registration → Configuration → Node Setup → Activation
 
-### 1. Complete Subnet Deployment Flow
+### 2. Node Onboarding Flow
+**Purpose**: Complete node onboarding from registration to validation
+**Steps**: Registration → Activation → Performance Optimization → Monitoring
 
-**Command**: `htcli flow run subnet-deployment`
+### 3. Staking Portfolio Flow
+**Purpose**: Comprehensive staking portfolio setup and management
+**Steps**: Research → Diversification → Optimization → Monitoring
 
-**Purpose**: Automates the entire process of creating and deploying a subnet with initial node.
+### 4. Development Setup Flow
+**Purpose**: Complete development environment setup
+**Steps**: Environment Setup → Key Generation → Network Connection → Testing
 
-**Target Users**: Subnet creators, infrastructure providers
+### 5. Migration Recovery Flow
+**Purpose**: Node migration and recovery procedures
+**Steps**: Backup → Migration → Verification → Recovery
 
-**Automated Steps**:
-1. Configuration initialization
-2. Wallet key generation/import
-3. Balance verification
-4. Subnet registration
-5. Subnet activation
-6. Initial node addition
-7. Initial stake addition
-8. Deployment verification
+## 🚀 Using Automated Flows
 
-**Example Usage**:
+### List Available Flows
 ```bash
-htcli flow run subnet-deployment
+htcli flow list --format table
 ```
 
-**What You'll Need**:
-- Sufficient TENSOR balance for registration and staking
-- Node hotkey address and peer ID
-- Subnet configuration parameters (memory, blocks, intervals)
-
-**Typical Completion Time**: 3-5 minutes
-
-### 2. Node Operator Onboarding Flow
-
-**Command**: `htcli flow run node-onboarding`
-
-**Purpose**: Automates joining an existing subnet as a node operator with initial stake.
-
-**Target Users**: Node operators, miners
-
-**Automated Steps**:
-1. Configuration initialization
-2. Wallet key generation/import
-3. Subnet discovery and selection
-4. Balance verification
-5. Node registration
-6. Initial stake addition
-7. Node status monitoring setup
-
-**Example Usage**:
+### Get Flow Information
 ```bash
-htcli flow run node-onboarding
+htcli flow info subnet-deployment --format table
 ```
 
-**What You'll Need**:
-- Node infrastructure (hotkey, peer ID)
-- Initial stake amount in TENSOR
-- Choice of subnet to join (or let the system recommend)
-
-**Features**:
-- **Smart Subnet Recommendation**: Analyzes available subnets and recommends optimal choices
-- **Automatic Scoring**: Evaluates subnets based on node count, activity, and available slots
-- **Manual Override**: Option to manually select specific subnet
-
-**Typical Completion Time**: 2-4 minutes
-
-### 3. Staking Portfolio Setup Flow
-
-**Command**: `htcli flow run staking-portfolio`
-
-**Purpose**: Sets up diversified staking portfolio across multiple subnets and nodes.
-
-**Target Users**: Investors, stakers
-
-**Automated Steps**:
-1. Configuration and wallet setup
-2. Portfolio strategy definition
-3. Subnet analysis and selection
-4. Balance verification and allocation
-5. Stake distribution execution
-6. Portfolio monitoring setup
-
-**Example Usage**:
+### Run Automated Flow
 ```bash
-htcli flow run staking-portfolio
+htcli flow run subnet-deployment --interactive
 ```
 
-**What You'll Need**:
-- Total amount to stake (minimum recommended: 50 TENSOR)
-- Portfolio strategy preference (conservative/balanced/aggressive)
-- Risk tolerance settings
+## 📋 Flow Details
 
-**Features**:
-- **Intelligent Allocation**: Analyzes opportunities and calculates optimal stake distribution
-- **Risk Management**: Strategy-based filtering and diversification
-- **Performance Scoring**: Evaluates nodes based on multiple performance metrics
-- **Subnet Diversification**: Ensures stakes are spread across different subnets
+### Subnet Deployment Flow
 
-**Portfolio Strategies**:
-- **Conservative**: Lower risk, established subnets and nodes
-- **Balanced**: Mix of established and emerging opportunities
-- **Aggressive**: Higher risk/reward, includes newer subnets
+#### Purpose
+Complete subnet deployment from initial registration to full activation with comprehensive setup and optimization.
 
-**Typical Completion Time**: 5-10 minutes
+#### Steps
+1. **Subnet Registration**
+   - Name and description setup
+   - Repository configuration
+   - Stake limits and parameters
+   - Initial coldkey configuration
 
-### 4. Development Environment Setup Flow
+2. **Subnet Configuration**
+   - Churn limit optimization
+   - Epoch configuration
+   - Penalty system setup
+   - Key type configuration
 
-**Command**: `htcli flow run development-setup`
+3. **Node Setup**
+   - Initial node registration
+   - Bootnode configuration
+   - Stake allocation
+   - Performance optimization
 
-**Purpose**: Creates development environment for testing applications on Hypertensor.
+4. **Subnet Activation**
+   - Activation requirements verification
+   - Stake validation
+   - Network integration
+   - Performance monitoring
 
-**Target Users**: Developers, testers
-
-**Automated Steps**:
-1. Configuration initialization
-2. Development wallet setup
-3. Test subnet registration and activation
-4. Development node setup
-5. Testing environment verification
-6. Development tools configuration
-
-**Example Usage**:
+#### Usage
 ```bash
-htcli flow run development-setup
+# Run subnet deployment flow
+htcli flow run subnet-deployment --interactive
+
+# Run with custom parameters
+htcli flow run subnet-deployment --name "My AI Subnet" --repo "https://github.com/my/ai-subnet"
 ```
 
-**What You'll Need**:
-- Project name for subnet naming
-- Environment type (local/testnet/staging)
-- Choice between mock or real node setup
+### Node Onboarding Flow
 
-**Features**:
-- **Minimal Resource Requirements**: Optimized for development with low memory and fast intervals
-- **Mock Node Support**: Option to use mock nodes for pure development testing
-- **Development Tools**: Automated creation of monitoring commands and test scripts
-- **Quick Activation**: Fast subnet activation for immediate development
+#### Purpose
+Complete node onboarding process from registration to active validation with performance optimization and monitoring.
 
-**Development Benefits**:
-- Isolated testing environment
-- Minimal resource consumption
-- Automated monitoring setup
-- Test script generation
+#### Steps
+1. **Node Registration**
+   - Hotkey and coldkey setup
+   - Peer ID configuration
+   - Stake allocation
+   - Bootnode setup
 
-**Typical Completion Time**: 2-3 minutes
+2. **Node Activation**
+   - Activation window monitoring
+   - Performance verification
+   - Network integration
+   - Status validation
 
-### 5. Migration and Recovery Flow
+3. **Performance Optimization**
+   - Reward rate optimization
+   - Performance monitoring
+   - Strategy adjustment
+   - Risk management
 
-**Command**: `htcli flow run migration-recovery`
+4. **Ongoing Monitoring**
+   - Status tracking
+   - Performance metrics
+   - Alert configuration
+   - Maintenance planning
 
-**Purpose**: Migrates existing assets or recovers from configuration issues.
-
-**Target Users**: Existing users, system administrators, users migrating from other tools
-
-**Automated Steps**:
-1. Configuration restoration
-2. Wallet key import/recovery
-3. Asset discovery and verification
-4. State reconstruction
-5. Portfolio migration
-6. Recovery verification
-
-**Example Usage**:
+#### Usage
 ```bash
-htcli flow run migration-recovery
+# Run node onboarding flow
+htcli flow run node-onboarding --interactive
+
+# Run with specific subnet
+htcli flow run node-onboarding --subnet-id 1 --hotkey <hotkey>
 ```
 
-**What You'll Need**:
-- Existing wallet keys (private keys, mnemonic phrases, or addresses)
-- Recovery method preference
-- Asset discovery preferences
+### Staking Portfolio Flow
 
-**Recovery Methods**:
-- **Private Key Import**: Import from 64-character hex private key
-- **Mnemonic Recovery**: Import from 12/24-word mnemonic phrase
-- **Address-Only**: Read-only monitoring by address
+#### Purpose
+Comprehensive staking portfolio setup with diversification, optimization, and ongoing management.
 
-**Features**:
-- **Comprehensive Asset Discovery**: Finds owned subnets, stake positions, and registered nodes
-- **State Reconstruction**: Rebuilds complete portfolio view
-- **Verification System**: Validates all discovered assets
-- **Backup Creation**: Creates backup of current state before migration
+#### Steps
+1. **Portfolio Research**
+   - Subnet analysis
+   - Node performance research
+   - Rate comparison
+   - Risk assessment
 
-**Typical Completion Time**: 3-8 minutes (depending on asset count)
+2. **Portfolio Diversification**
+   - Subnet allocation
+   - Node selection
+   - Amount distribution
+   - Risk balancing
 
-## General Usage
+3. **Portfolio Optimization**
+   - Performance monitoring
+   - Rate adjustment
+   - Rebalancing
+   - Strategy refinement
 
-### Listing Available Flows
+4. **Ongoing Management**
+   - Performance tracking
+   - Portfolio monitoring
+   - Strategy updates
+   - Risk management
 
+#### Usage
 ```bash
-htcli flow list
+# Run staking portfolio flow
+htcli flow run staking-portfolio --interactive
+
+# Run with specific budget
+htcli flow run staking-portfolio --budget 10000000000000000000
 ```
 
-Shows all available flows with descriptions and target user types.
+### Development Setup Flow
 
-### Getting Flow Information
+#### Purpose
+Complete development environment setup for Hypertensor network development and testing.
 
+#### Steps
+1. **Environment Setup**
+   - CLI installation
+   - Configuration setup
+   - Network connection
+   - Development tools
+
+2. **Key Generation**
+   - Development keys
+   - Test keys
+   - Key management
+   - Security setup
+
+3. **Network Connection**
+   - Testnet connection
+   - Mainnet connection
+   - Network validation
+   - Performance testing
+
+4. **Testing and Validation**
+   - Command testing
+   - API validation
+   - Performance testing
+   - Security validation
+
+#### Usage
 ```bash
-htcli flow info <flow-name>
+# Run development setup flow
+htcli flow run development-setup --interactive
+
+# Run with specific environment
+htcli flow run development-setup --environment testnet
 ```
 
-Displays detailed information about a specific flow, including steps and requirements.
+### Migration Recovery Flow
 
-### Running a Flow
+#### Purpose
+Node migration and recovery procedures for maintenance, upgrades, and disaster recovery.
 
+#### Steps
+1. **Backup and Preparation**
+   - Data backup
+   - Configuration backup
+   - Stake verification
+   - Migration planning
+
+2. **Migration Execution**
+   - Node deactivation
+   - Data migration
+   - Configuration transfer
+   - Network reconnection
+
+3. **Verification and Testing**
+   - Node verification
+   - Performance testing
+   - Stake validation
+   - Network integration
+
+4. **Recovery and Optimization**
+   - Node reactivation
+   - Performance optimization
+   - Monitoring setup
+   - Documentation update
+
+#### Usage
 ```bash
-htcli flow run <flow-name>
+# Run migration recovery flow
+htcli flow run migration-recovery --interactive
+
+# Run with specific node
+htcli flow run migration-recovery --subnet-id 1 --node-id 5
 ```
 
-Executes the specified flow with interactive prompts and progress tracking.
+## 🎯 Flow Features
 
-### Checking Flow System Status
+### Interactive Prompts
+- **User Input**: Collect required information
+- **Validation**: Validate user inputs
+- **Confirmation**: Confirm critical actions
+- **Guidance**: Provide helpful guidance
 
+### Progress Tracking
+- **Step Progress**: Show current step and total steps
+- **Status Updates**: Real-time status updates
+- **Error Handling**: Graceful error handling
+- **Recovery**: Automatic recovery from errors
+
+### Comprehensive Guidance
+- **Step Explanations**: Explain each step
+- **Best Practices**: Provide best practices
+- **Risk Warnings**: Warn about risks
+- **Success Criteria**: Define success criteria
+
+### Customization Options
+- **Parameter Override**: Override default parameters
+- **Skip Steps**: Skip optional steps
+- **Custom Configuration**: Use custom configurations
+- **Integration**: Integrate with existing workflows
+
+## 🔧 Flow Configuration
+
+### Flow Parameters
 ```bash
-htcli flow status
+# Subnet deployment parameters
+htcli flow run subnet-deployment \
+  --name "My Subnet" \
+  --repo "https://github.com/my/subnet" \
+  --description "A great subnet" \
+  --min-stake 1000000000000000000 \
+  --max-stake 10000000000000000000
+
+# Node onboarding parameters
+htcli flow run node-onboarding \
+  --subnet-id 1 \
+  --hotkey <hotkey> \
+  --peer-id <peer-id> \
+  --stake 1000000000000000000
+
+# Staking portfolio parameters
+htcli flow run staking-portfolio \
+  --budget 10000000000000000000 \
+  --risk-tolerance medium \
+  --diversification high
 ```
 
-Shows the status of the flow system and usage statistics.
-
-## Flow Execution Process
-
-### 1. Initialization Phase
-- Flow displays name, description, and overview
-- Collects required inputs through interactive prompts
-- Shows execution plan with all steps
-- Requests user confirmation to proceed
-
-### 2. Execution Phase
-- Progress tracking with real-time updates
-- Step-by-step execution with retry logic
-- Error handling with detailed error messages
-- Dependency checking between steps
-
-### 3. Completion Phase
-- Results summary with key information
-- Success/failure status with details
-- Execution time and performance metrics
-- Next steps and monitoring guidance
-
-## Best Practices
-
-### Before Running Flows
-
-1. **Ensure Sufficient Balance**: Check that your wallet has enough TENSOR for the intended operations
-2. **Prepare Required Information**: Gather node details, addresses, and configuration parameters
-3. **Choose Appropriate Environment**: Select the right network (mainnet/testnet) for your needs
-4. **Backup Important Data**: Create backups of existing configurations and keys
-
-### During Flow Execution
-
-1. **Read Prompts Carefully**: Pay attention to input validation and requirements
-2. **Don't Interrupt**: Allow flows to complete fully for best results
-3. **Monitor Progress**: Watch for any error messages or warnings
-4. **Keep Information Handy**: Have wallet addresses, node IDs, and other details ready
-
-### After Flow Completion
-
-1. **Verify Results**: Use the provided monitoring commands to check status
-2. **Save Important Information**: Record subnet IDs, node IDs, and addresses
-3. **Set Up Monitoring**: Use the suggested monitoring commands regularly
-4. **Plan Next Steps**: Consider additional operations based on flow results
-
-## Error Handling and Recovery
-
-### Common Issues and Solutions
-
-**Insufficient Balance**:
-- Solution: Add more TENSOR to your wallet before retrying
-- Prevention: Check balance requirements in flow information
-
-**Network Connectivity Issues**:
-- Solution: Check internet connection and endpoint configuration
-- Prevention: Verify network status with `htcli chain network`
-
-**Invalid Input Parameters**:
-- Solution: Ensure addresses, amounts, and IDs are in correct format
-- Prevention: Use the CLI's validation hints during input
-
-**Step Failures**:
-- Solution: Flows include retry logic for transient failures
-- Prevention: Ensure all prerequisites are met before starting
-
-### Recovery Options
-
-If a flow fails partway through:
-
-1. **Check Error Messages**: Review the specific error and failed step
-2. **Verify Prerequisites**: Ensure balance, connectivity, and inputs are correct
-3. **Retry Flow**: Most flows can be safely retried after addressing issues
-4. **Manual Completion**: Complete remaining steps manually if needed
-5. **Seek Support**: Contact support with error details if issues persist
-
-## Advanced Usage
-
-### Skipping Confirmations
-
-For automated environments, use the `--yes` flag to skip confirmation prompts:
-
+### Flow Customization
 ```bash
-htcli flow run subnet-deployment --yes
+# Custom flow configuration
+htcli flow run subnet-deployment \
+  --config /path/to/custom-config.yaml \
+  --skip-steps "node-setup" \
+  --custom-params "custom-params.json"
 ```
 
-### Custom Configuration
+## 📊 Flow Monitoring
 
-Flows respect your CLI configuration settings:
-
+### Progress Tracking
 ```bash
-# Use custom config file
-htcli --config /path/to/config.yaml flow run node-onboarding
+# Monitor flow progress
+htcli flow status <flow-id>
 
-# Use different endpoint
-htcli --endpoint wss://custom-endpoint.com flow run staking-portfolio
+# Get flow logs
+htcli flow logs <flow-id>
+
+# Cancel running flow
+htcli flow cancel <flow-id>
 ```
 
-### Integration with Other Tools
+### Flow History
+```bash
+# View flow history
+htcli flow history --format table
 
-Flows can be integrated into larger automation systems:
+# Get specific flow details
+htcli flow history --flow-id <flow-id> --format json
+```
 
+## 🛡️ Flow Security
+
+### Input Validation
+- **Parameter Validation**: Validate all input parameters
+- **Security Checks**: Perform security checks
+- **Confirmation Prompts**: Confirm critical actions
+- **Error Recovery**: Graceful error recovery
+
+### Access Control
+- **Key Management**: Secure key handling
+- **Permission Checks**: Check user permissions
+- **Audit Logging**: Log all actions
+- **Rollback Capability**: Ability to rollback changes
+
+## 🔄 Flow Integration
+
+### Script Integration
 ```bash
 #!/bin/bash
-# Automated deployment script
-htcli flow run subnet-deployment --yes
-if [ $? -eq 0 ]; then
-    echo "Subnet deployment successful"
-    # Continue with additional automation
-else
-    echo "Subnet deployment failed"
-    exit 1
-fi
+# Integrate flows into scripts
+
+# Run subnet deployment
+htcli flow run subnet-deployment --name "My Subnet" --non-interactive
+
+# Wait for completion
+while [ "$(htcli flow status <flow-id> | jq -r '.status')" != "completed" ]; do
+  sleep 30
+done
+
+# Run node onboarding
+htcli flow run node-onboarding --subnet-id 1 --non-interactive
 ```
 
-## Flow Development
+### API Integration
+```python
+from src.htcli.flows import FlowManager
 
-The flow system is extensible. Future versions will include:
+# Initialize flow manager
+flow_manager = FlowManager()
 
-- **Custom Flow Creation**: Ability to create user-defined flows
-- **Flow Templates**: Pre-built templates for common patterns
-- **Flow Sharing**: Share flows with the community
-- **Advanced Scheduling**: Time-based and event-driven flow execution
+# Run flow programmatically
+flow_id = flow_manager.run_flow(
+    "subnet-deployment",
+    parameters={
+        "name": "My Subnet",
+        "repo": "https://github.com/my/subnet"
+    }
+)
 
-## Support and Feedback
+# Monitor flow
+status = flow_manager.get_flow_status(flow_id)
+print(f"Flow status: {status}")
+```
 
-For flow-related issues or feature requests:
+## 📈 Flow Optimization
 
-1. **Check Documentation**: Review this guide and command help
-2. **Use Flow Info**: Get detailed information with `htcli flow info <name>`
-3. **Check Status**: Verify system status with `htcli flow status`
-4. **Report Issues**: Submit bug reports with flow name and error details
-5. **Request Features**: Suggest new flows or improvements
+### Performance Optimization
+- **Parallel Execution**: Execute steps in parallel where possible
+- **Resource Management**: Optimize resource usage
+- **Caching**: Cache frequently used data
+- **Batch Operations**: Use batch operations for efficiency
 
-The automated flow system significantly improves the Hypertensor CLI user experience by providing guided, error-resistant processes for common operations. Whether you're a subnet creator, node operator, investor, or developer, there's a flow designed to streamline your workflow and reduce the complexity of blockchain operations.
+### Error Handling
+- **Retry Logic**: Automatic retry for transient errors
+- **Fallback Strategies**: Fallback strategies for failures
+- **Rollback Capability**: Ability to rollback changes
+- **Error Reporting**: Comprehensive error reporting
+
+## 🎯 Best Practices
+
+### Flow Design
+- **Modular Steps**: Design flows with modular steps
+- **Clear Dependencies**: Define clear step dependencies
+- **Error Recovery**: Include error recovery mechanisms
+- **Documentation**: Document flow behavior and requirements
+
+### Flow Usage
+- **Testing**: Test flows in development environment
+- **Validation**: Validate flow parameters
+- **Monitoring**: Monitor flow execution
+- **Documentation**: Document flow usage and results
+
+### Flow Maintenance
+- **Regular Updates**: Update flows regularly
+- **Version Control**: Use version control for flows
+- **Testing**: Regular testing of flows
+- **Documentation**: Keep documentation updated
+
+## 🔧 Advanced Features
+
+### Custom Flows
+```python
+from src.htcli.flows import BaseFlow
+
+class CustomFlow(BaseFlow):
+    def __init__(self):
+        super().__init__("custom-flow", "Custom Flow Description")
+    
+    def execute(self, parameters):
+        # Custom flow logic
+        pass
+```
+
+### Flow Templates
+```bash
+# Create flow template
+htcli flow create-template --name "my-template" --flow-id <flow-id>
+
+# Use flow template
+htcli flow run --template "my-template" --parameters "params.json"
+```
+
+### Flow Scheduling
+```bash
+# Schedule flow execution
+htcli flow schedule --flow-id subnet-deployment --schedule "0 0 * * *"
+
+# List scheduled flows
+htcli flow schedule --list
+
+# Cancel scheduled flow
+htcli flow schedule --cancel <schedule-id>
+```
+
+---
+
+**Automated flows provide powerful workflow automation capabilities, enabling users to execute complex multi-step operations with guided assistance, progress tracking, and comprehensive error handling.** 🚀

@@ -1,252 +1,320 @@
-# Hypertensor CLI Command Tree - 3-Level Structure
+# Command Tree Structure
 
-## Overview
+Complete visual representation of the Hypertensor CLI command hierarchy and structure.
 
-The Hypertensor CLI has been restructured from a 4-level hierarchy to a clean **3-level hierarchy** for better usability and simplicity.
+## 🌳 Complete Command Tree
 
-## Command Tree Structure
-
-```text
+```
 htcli
-├── subnet                    # Subnet operations
-│   ├── register             # Register a new subnet
-│   ├── activate             # Activate a registered subnet
-│   ├── list                 # List all subnets
-│   ├── info                 # Get subnet information
-│   ├── add-node             # Add a node to subnet
-│   ├── list-nodes           # List subnet nodes
-│   └── remove               # Remove a subnet
+├── config
+│   ├── init                    # Initialize configuration
+│   ├── show                    # Show configuration
+│   ├── edit                    # Edit configuration
+│   ├── set                     # Set configuration value
+│   └── get                     # Get configuration value
 │
-├── wallet                    # Wallet operations
-│   ├── generate-key         # Generate a new keypair
-│   ├── import-key           # Import a keypair
-│   ├── list-keys            # List stored keys
-│   ├── delete-key           # Delete a stored key
-│   ├── add-stake            # Add stake to node
-│   ├── remove-stake         # Remove stake from node
-│   ├── stake-info           # Get stake information
-│   └── claim-unbondings     # Claim unbonded stake
+├── subnet
+│   ├── register                # Register new subnet
+│   ├── activate                # Activate subnet
+│   ├── pause                   # Pause subnet
+│   ├── unpause                 # Unpause subnet
+│   ├── list                    # List subnets
+│   ├── info                    # Get subnet info
+│   ├── owner-update-name       # Update subnet name
+│   ├── owner-update-repo       # Update subnet repository
+│   ├── owner-update-description # Update subnet description
+│   ├── owner-update-churn-limit # Update churn limit
+│   ├── owner-update-min-stake  # Update minimum stake
+│   ├── owner-update-max-stake  # Update maximum stake
+│   ├── owner-update-registration-epochs # Update registration epochs
+│   ├── owner-update-activation-grace-epochs # Update activation grace epochs
+│   ├── owner-update-idle-epochs # Update idle epochs
+│   ├── owner-update-included-epochs # Update included epochs
+│   ├── owner-update-max-penalties # Update max penalties
+│   ├── owner-add-initial-coldkeys # Add initial coldkeys
+│   ├── owner-remove-initial-coldkeys # Remove initial coldkeys
+│   ├── owner-transfer-ownership # Transfer ownership
+│   ├── owner-accept-ownership  # Accept ownership
+│   ├── owner-undo-transfer     # Undo ownership transfer
+│   └── owner-remove-node       # Remove subnet node
 │
-└── chain                     # Chain operations
-    ├── network               # Network statistics
-    ├── epoch                 # Epoch information
-    ├── account               # Account information
-    ├── balance               # Account balance
-    ├── peers                 # Network peers
-    ├── block                 # Block information
-    ├── head                  # Chain head
-    └── runtime-version       # Runtime version
+├── node
+│   ├── register                # Register new node
+│   ├── activate                # Activate node
+│   ├── update                  # Update delegate reward rate
+│   ├── update-coldkey          # Update node coldkey
+│   ├── update-hotkey           # Update node hotkey
+│   ├── deactivate              # Deactivate node
+│   ├── reactivate              # Reactivate node
+│   ├── remove                  # Remove node
+│   ├── cleanup-expired         # Cleanup expired nodes
+│   ├── status                  # Get node status
+│   └── list                    # List nodes
+│
+├── stake
+│   ├── delegate-add            # Add subnet delegate stake
+│   ├── delegate-remove         # Remove subnet delegate stake
+│   ├── delegate-transfer       # Transfer subnet delegate stake
+│   ├── delegate-increase       # Increase subnet delegate stake pool
+│   ├── node-add                # Add node delegate stake
+│   ├── node-remove             # Remove node delegate stake
+│   ├── node-transfer           # Transfer node delegate stake
+│   ├── node-increase           # Increase node delegate stake pool
+│   ├── add                     # Add stake (legacy)
+│   ├── remove                  # Remove stake (legacy)
+│   ├── info                    # Get staking info
+│   └── claim                   # Claim unbonded tokens
+│
+├── wallet
+│   ├── generate-key            # Generate new key
+│   ├── generate-hotkey         # Generate hotkey
+│   ├── import-key              # Import existing key
+│   ├── list-keys               # List stored keys
+│   ├── status                  # Get wallet status
+│   └── delete-key              # Delete stored key
+│
+├── chain
+│   ├── info                    # Get network info
+│   ├── balance                 # Get account balance
+│   ├── block                   # Get block info
+│   ├── transaction             # Get transaction info
+│   ├── network                 # Get network stats
+│   ├── subnet                  # Get subnet stats
+│   ├── node                    # Get node stats
+│   └── stake                   # Get staking stats
+│
+└── flow
+    ├── list                    # List available flows
+    ├── info                    # Get flow information
+    └── run                     # Run automated flow
 ```
 
-## Command Usage Examples
+## 📊 Command Categories
 
-### Subnet Commands
+### Configuration Management (5 commands)
+- **config init**: Interactive configuration wizard
+- **config show**: Display current configuration
+- **config edit**: Interactive configuration editor
+- **config set**: Set specific configuration values
+- **config get**: Retrieve specific configuration values
 
+### Subnet Operations (15 commands)
+- **subnet register**: Register new subnet with comprehensive parameters
+- **subnet activate**: Activate registered subnet
+- **subnet pause/unpause**: Pause and resume subnet operations
+- **subnet list/info**: List and get subnet information
+- **subnet owner-***: Complete owner management operations
+
+### Node Management (10 commands)
+- **node register**: Register new node with comprehensive parameters
+- **node activate**: Activate registered node
+- **node update**: Update node parameters (reward rate, keys)
+- **node deactivate/reactivate**: Node lifecycle management
+- **node remove**: Remove node with beautiful stake management
+- **node cleanup-expired**: Cleanup expired nodes
+- **node status/list**: Node monitoring and listing
+
+### Staking Operations (12 commands)
+- **stake delegate-***: Subnet delegate staking operations
+- **stake node-***: Node delegate staking operations
+- **stake add/remove**: Legacy staking operations
+- **stake info**: Comprehensive staking information
+- **stake claim**: Claim unbonded tokens
+
+### Wallet & Key Management (6 commands)
+- **wallet generate-key**: Generate new cryptographic keys
+- **wallet generate-hotkey**: Generate hotkeys for node operations
+- **wallet import-key**: Import existing keys
+- **wallet list-keys**: List stored keys
+- **wallet status**: Get detailed wallet status
+- **wallet delete-key**: Delete stored keys
+
+### Chain Queries (8 commands)
+- **chain info**: Network information
+- **chain balance**: Account balances
+- **chain block**: Block information
+- **chain transaction**: Transaction information
+- **chain network**: Network statistics
+- **chain subnet**: Subnet statistics
+- **chain node**: Node statistics
+- **chain stake**: Staking statistics
+
+### Automated Flows (3 commands)
+- **flow list**: List available automated workflows
+- **flow info**: Get detailed flow information
+- **flow run**: Execute automated workflows
+
+## 🎯 Universal Options
+
+### Common Flags
+All commands support these common options:
+- `--help`: Show command help
+- `--format <format>`: Output format (table, json, csv)
+- `--limit <number>`: Limit number of results
+- `--mine`: Filter to show only your assets
+- `--guidance/--no-guidance`: Show/hide comprehensive guidance
+
+### Personal Asset Filtering
+The `--mine` flag works across all commands:
 ```bash
-# Register a new subnet
-htcli subnet register my-subnet --memory 1024 --blocks 1000 --interval 100
+# Subnet operations
+htcli subnet list --mine
+htcli subnet info --subnet-id 1 --mine
 
-# Activate a subnet
-htcli subnet activate 1
+# Node operations
+htcli node list --mine
+htcli node status --subnet-id 1 --node-id 5 --mine
 
-# List all subnets
-htcli subnet list
+# Staking operations
+htcli stake info --mine
+htcli stake delegate-add --subnet-id 1 --amount 1000000000000000000 --key-name my-key --mine
+
+# Chain queries
+htcli chain balance --address <your-address> --mine
+```
+
+## 🔧 Command Patterns
+
+### Registration Commands
+```bash
+# Subnet registration
+htcli subnet register \
+  --name "My Subnet" \
+  --repo "https://github.com/my/subnet" \
+  --description "A great subnet" \
+  --min-stake 1000000000000000000 \
+  --max-stake 10000000000000000000 \
+  --key-name my-subnet-key
+
+# Node registration
+htcli node register \
+  --subnet-id 1 \
+  --hotkey <hotkey> \
+  --peer-id <peer-id> \
+  --stake 1000000000000000000 \
+  --key-name my-node-key
+```
+
+### Activation Commands
+```bash
+# Subnet activation
+htcli subnet activate --subnet-id 1 --key-name my-subnet-key
+
+# Node activation
+htcli node activate --subnet-id 1 --node-id 5 --key-name my-node-key
+```
+
+### Update Commands
+```bash
+# Update subnet parameters
+htcli subnet owner-update-name --subnet-id 1 --name "Updated Name" --key-name my-subnet-key
+
+# Update node parameters
+htcli node update --subnet-id 1 --node-id 5 --delegate-reward-rate 60000000000000000 --key-name my-node-key
+```
+
+### Staking Commands
+```bash
+# Subnet delegate staking
+htcli stake delegate-add --subnet-id 1 --amount 1000000000000000000 --key-name my-staking-key
+
+# Node delegate staking
+htcli stake node-add --subnet-id 1 --node-id 5 --amount 1000000000000000000 --key-name my-staking-key
+```
+
+## 📈 Command Usage Statistics
+
+### Most Used Commands
+1. **htcli subnet list** - List all subnets
+2. **htcli node list** - List nodes in subnet
+3. **htcli stake info** - Get staking information
+4. **htcli chain info** - Get network information
+5. **htcli wallet list-keys** - List stored keys
+
+### Advanced Commands
+1. **htcli subnet register** - Complete subnet registration
+2. **htcli node register** - Complete node registration
+3. **htcli stake delegate-add** - Subnet delegate staking
+4. **htcli node update** - Node parameter updates
+5. **htcli flow run** - Automated workflows
+
+## 🎯 Command Examples
+
+### Complete Workflows
+```bash
+# Complete subnet deployment
+htcli subnet register --name "My Subnet" --repo "https://github.com/my/subnet" --key-name my-key
+htcli subnet activate --subnet-id 1 --key-name my-key
+htcli node register --subnet-id 1 --hotkey <hotkey> --peer-id <peer-id> --stake 1000000000000000000 --key-name my-node-key
+htcli node activate --subnet-id 1 --node-id 5 --key-name my-node-key
+
+# Complete staking portfolio
+htcli stake delegate-add --subnet-id 1 --amount 1000000000000000000 --key-name my-staking-key
+htcli stake node-add --subnet-id 1 --node-id 5 --amount 500000000000000000 --key-name my-staking-key
+htcli stake info --mine
+```
+
+### Monitoring Commands
+```bash
+# Network monitoring
+htcli chain info
+htcli subnet list --mine
+htcli node list --mine
+htcli stake info --mine
+
+# Performance monitoring
+htcli node status --subnet-id 1 --node-id 5
+htcli chain subnet --subnet-id 1
+htcli chain node --subnet-id 1 --node-id 5
+```
+
+### Management Commands
+```bash
+# Subnet management
+htcli subnet owner-update-name --subnet-id 1 --name "Updated Name" --key-name my-key
+htcli subnet pause --subnet-id 1 --key-name my-key
+htcli subnet unpause --subnet-id 1 --key-name my-key
+
+# Node management
+htcli node update --subnet-id 1 --node-id 5 --delegate-reward-rate 60000000000000000 --key-name my-key
+htcli node deactivate --subnet-id 1 --node-id 5 --key-name my-key
+htcli node reactivate --subnet-id 1 --node-id 5 --key-name my-key
+```
+
+## 🔄 Command Integration
+
+### Script Integration
+```bash
+#!/bin/bash
+# Automated portfolio management
+
+# Check portfolio status
+htcli subnet list --mine --format json
+htcli node list --mine --format json
+htcli stake info --mine --format json
+
+# Perform operations based on status
+if [ "$(htcli node status --subnet-id 1 --node-id 5 --format json | jq -r '.status')" != "Active" ]; then
+    htcli node activate --subnet-id 1 --node-id 5 --key-name my-key
+fi
+```
+
+### API Integration
+```python
+from src.htcli.client import HypertensorClient
+
+client = HypertensorClient()
 
 # Get subnet information
-htcli subnet info 1
+subnets = client.list_subnets()
 
-# Add a node to subnet
-htcli subnet add-node 1 --hotkey 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY --peer-id QmTestPeerId123
+# Get node information
+nodes = client.list_subnet_nodes(subnet_id=1)
 
-# List subnet nodes
-htcli subnet list-nodes 1
-
-# Remove a subnet
-htcli subnet remove 1
+# Get staking information
+stakes = client.get_stake_info(subnet_id=1)
 ```
 
-### Wallet Commands
+---
 
-```bash
-# Generate a new key
-htcli wallet generate-key my-key --type sr25519
-
-# Import a key
-htcli wallet import-key my-key --private-key 1234567890abcdef...
-
-# List all keys
-htcli wallet list-keys
-
-# Delete a key
-htcli wallet delete-key my-key
-
-# Add stake to a node
-htcli wallet add-stake --subnet-id 1 --node-id 1 --hotkey 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY --amount 1000000000000000000
-
-# Remove stake from a node
-htcli wallet remove-stake --subnet-id 1 --hotkey 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY --amount 500000000000000000
-
-# Get stake information
-htcli wallet stake-info 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY --subnet-id 1
-
-# Claim unbonded stake
-htcli wallet claim-unbondings --hotkey 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
-```
-
-### Chain Commands
-
-```bash
-# Get network statistics
-htcli chain network
-
-# Get epoch information
-htcli chain epoch
-
-# Get account information
-htcli chain account 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
-
-# Get account balance
-htcli chain balance 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
-
-# Get network peers
-htcli chain peers --limit 10
-
-# Get block information
-htcli chain block --number 12345
-htcli chain block --hash 0x1234567890abcdef...
-
-# Get chain head
-htcli chain head
-
-# Get runtime version
-htcli chain runtime-version
-```
-
-## Benefits of 3-Level Structure
-
-### 1. **Simplified Navigation**
-
-- **Before**: `htcli subnet register create` (4 levels)
-- **After**: `htcli subnet register` (3 levels)
-
-### 2. **Intuitive Commands**
-
-- Commands are more descriptive and self-explanatory
-- Easier to remember and type
-- Better discoverability
-
-### 3. **Consistent Pattern**
-
-- All commands follow the same 3-level pattern
-- Predictable command structure
-- Reduced cognitive load
-
-### 4. **Better Help System**
-
-- Clearer help output
-- Easier to find available commands
-- Better command organization
-
-## Migration Guide
-
-### Old 4-Level Commands → New 3-Level Commands
-
-| Old Command | New Command | Description |
-|-------------|-------------|-------------|
-| `htcli subnet register create` | `htcli subnet register` | Register subnet |
-| `htcli subnet register activate` | `htcli subnet activate` | Activate subnet |
-| `htcli subnet manage list` | `htcli subnet list` | List subnets |
-| `htcli subnet manage info` | `htcli subnet info` | Subnet info |
-| `htcli subnet nodes add` | `htcli subnet add-node` | Add node |
-| `htcli subnet nodes list` | `htcli subnet list-nodes` | List nodes |
-| `htcli wallet keys generate` | `htcli wallet generate-key` | Generate key |
-| `htcli wallet keys import` | `htcli wallet import-key` | Import key |
-| `htcli wallet keys list` | `htcli wallet list-keys` | List keys |
-| `htcli wallet keys delete` | `htcli wallet delete-key` | Delete key |
-| `htcli wallet stake add` | `htcli wallet add-stake` | Add stake |
-| `htcli wallet stake remove` | `htcli wallet remove-stake` | Remove stake |
-| `htcli wallet stake info` | `htcli wallet stake-info` | Stake info |
-| `htcli chain info network` | `htcli chain network` | Network stats |
-| `htcli chain info epoch` | `htcli chain epoch` | Epoch info |
-| `htcli chain info account` | `htcli chain account` | Account info |
-| `htcli chain query balance` | `htcli chain balance` | Account balance |
-| `htcli chain query peers` | `htcli chain peers` | Network peers |
-| `htcli chain query block` | `htcli chain block` | Block info |
-
-## Command Categories
-
-### 🏗️ **Subnet Operations** (7 commands)
-
-- **Registration**: `register`, `activate`
-- **Management**: `list`, `info`, `remove`
-- **Node Operations**: `add-node`, `list-nodes`
-
-### 💰 **Wallet Operations** (8 commands)
-
-- **Key Management**: `generate-key`, `import-key`, `list-keys`, `delete-key`
-- **Staking Operations**: `add-stake`, `remove-stake`, `stake-info`, `claim-unbondings`
-
-### 🔍 **Chain Operations** (8 commands)
-
-- **Information**: `network`, `epoch`, `account`, `balance`
-- **Data Queries**: `peers`, `block`, `head`, `runtime-version`
-
-## Global Options
-
-All commands support these global options:
-
-```bash
-htcli [OPTIONS] COMMAND [ARGS]...
-
-Options:
-  --config PATH           Configuration file path
-  --endpoint TEXT         Blockchain endpoint URL
-  --verbose              Enable verbose output
-  --format TEXT          Output format (table/json/csv)
-  --help                 Show this message and exit
-```
-
-## Output Formats
-
-Most commands support multiple output formats:
-
-```bash
-# Table format (default)
-htcli subnet list
-
-# JSON format
-htcli subnet list --format json
-
-# CSV format
-htcli subnet list --format csv
-```
-
-## Error Handling
-
-The CLI provides comprehensive error handling:
-
-- **Invalid commands**: Clear error messages with suggestions
-- **Missing arguments**: Helpful prompts for required parameters
-- **Network errors**: Graceful handling of connection issues
-- **Validation errors**: Clear feedback for invalid inputs
-
-## Help System
-
-Get help at any level:
-
-```bash
-# Main help
-htcli --help
-
-# Category help
-htcli subnet --help
-htcli wallet --help
-htcli chain --help
-
-# Command help
-htcli subnet register --help
-htcli wallet generate-key --help
-htcli chain network --help
-```
-
-This 3-level structure provides a clean, intuitive, and powerful interface for managing the Hypertensor blockchain network.
+**This comprehensive command tree represents the complete Hypertensor CLI functionality, providing 50+ commands across 8 categories for complete blockchain management with professional-grade user experience and strategic guidance.** 🚀

@@ -1,758 +1,509 @@
-# Hypertensor CLI Configuration Guide
+# Configuration Guide
 
-This guide covers all aspects of configuring the Hypertensor CLI for optimal performance and usability.
+Complete guide to configuring the Hypertensor CLI, including setup, customization, and management of settings and preferences.
 
-## 📋 **Table of Contents**
+## 🎯 Overview
 
-1. [Configuration Overview](#configuration-overview)
-2. [Configuration File Structure](#configuration-file-structure)
-3. [Interactive Configuration](#interactive-configuration)
-4. [Environment Variables](#environment-variables)
-5. [Custom Configuration Files](#custom-configuration-files)
-6. [Network Configuration](#network-configuration)
-7. [Output Configuration](#output-configuration)
-8. [Wallet Configuration](#wallet-configuration)
-9. [Advanced Configuration](#advanced-configuration)
-10. [Troubleshooting](#troubleshooting)
+The Hypertensor CLI provides comprehensive configuration management for network connections, wallet settings, and user preferences with support for multiple environments and secure key management.
 
-## 🎯 **Configuration Overview**
+## 🚀 Quick Start
 
-The Hypertensor CLI uses a hierarchical configuration system that supports:
-
-- **YAML configuration files** with comments and structure
-- **Environment variables** for overrides
-- **Command-line options** for temporary changes
-- **Interactive configuration wizard** for easy setup
-- **🆕 Personal asset filtering** with universal --mine flag support
-
-### **Configuration Priority**
-
-1. Command-line options (highest priority)
-2. Environment variables
-3. Configuration file
-4. Default values (lowest priority)
-
-### **Default Configuration Location**
-
-```
-~/.htcli/config.yaml
-```
-
-## 📄 **Configuration File Structure**
-
-The configuration file is organized into three main sections:
-
-```yaml
-# Hypertensor CLI Configuration
-# This file contains the configuration settings for the Hypertensor CLI tool.
-# You can edit this file directly or use 'htcli config init' to regenerate it.
-
-# Network Configuration
-# Settings for connecting to the Hypertensor blockchain network
-network:
-  # RPC endpoint for blockchain communication
-  endpoint: "wss://hypertensor.duckdns.org"
-
-  # WebSocket endpoint for real-time communication
-  ws_endpoint: "wss://hypertensor.duckdns.org"
-
-  # Connection timeout in seconds
-  timeout: 30
-
-  # Number of retry attempts for failed connections
-  retry_attempts: 3
-
-# Output Configuration
-# Settings for CLI output formatting and display
-output:
-  # Default output format (table, json, csv)
-  format: "table"
-
-  # Enable verbose output with detailed information
-  verbose: false
-
-  # Enable colored output in terminal
-  color: true
-
-# Wallet Configuration
-# Settings for wallet and key management
-wallet:
-  # Path where wallets and keys are stored
-  path: "~/.htcli/wallets"
-
-  # Default wallet name to use
-  default_name: "default"
-
-  # Enable wallet encryption for security
-  encryption_enabled: true
-
-# Personal Asset Filtering Configuration
-# Settings for the universal --mine filtering system
-filter:
-  # Default behavior for --mine flag (can be overridden per command)
-  mine: false
-```
-
-## 🛠️ **Interactive Configuration**
-
-### **Initial Setup**
-
-The easiest way to configure the CLI is using the interactive wizard:
-
+### Initialize Configuration
 ```bash
-htcli config init
-```
-
-This will guide you through:
-
-1. **Network Settings**
-   - RPC endpoint selection
-   - Connection timeout preferences
-   - Retry attempt configuration
-
-2. **Output Preferences**
-   - Default output format
-   - Verbose mode settings
-   - Color output preferences
-
-3. **Wallet Configuration**
-   - Key storage location
-   - Default wallet name
-   - Encryption preferences
-
-### **Configuration Wizard Features**
-
-#### **Rich Interactive Interface**
-
-```
-╭───────────────────────── Welcome ──────────────────────────────╮
-│ 🚀 Hypertensor CLI Configuration Setup                        │
-│                                                               │
-│ This wizard will help you configure the Hypertensor CLI.      │
-│ Press Enter to use default values or type your preferences.   │
-╰───────────────────────────────────────────────────────────────╯
-```
-
-#### **Step-by-Step Guidance**
-
-- **Network Configuration**: Blockchain connection settings
-- **Output Configuration**: Display and formatting preferences
-- **Wallet Configuration**: Security and storage settings
-
-#### **Validation and Confirmation**
-
-- Real-time input validation
-- Configuration summary before saving
-- Confirmation prompts for safety
-
-### **Updating Existing Configuration**
-
-```bash
-# Update existing configuration
+# Interactive configuration wizard
 htcli config init
 
-# Force overwrite existing configuration
-htcli config init --force
-
-# Use custom configuration file
-htcli config init --config /path/to/custom-config.yaml
+# Or with custom parameters
+htcli config init --endpoint wss://testnet.hypertensor.ai --default-key my-key
 ```
 
-## 🌍 **Environment Variables**
-
-Override configuration settings using environment variables:
-
-### **Network Environment Variables**
-
+### View Configuration
 ```bash
-export HTCLI_NETWORK_ENDPOINT="wss://custom-endpoint.com"
-export HTCLI_NETWORK_WS_ENDPOINT="wss://custom-ws-endpoint.com"
-export HTCLI_NETWORK_TIMEOUT="60"
-export HTCLI_NETWORK_RETRY_ATTEMPTS="5"
-```
-
-### **Output Environment Variables**
-
-```bash
-export HTCLI_OUTPUT_FORMAT="json"
-export HTCLI_OUTPUT_VERBOSE="true"
-export HTCLI_OUTPUT_COLOR="false"
-```
-
-### **Wallet Environment Variables**
-
-```bash
-export HTCLI_WALLET_PATH="/custom/wallet/path"
-export HTCLI_WALLET_DEFAULT_NAME="production"
-export HTCLI_WALLET_ENCRYPTION_ENABLED="true"
-```
-
-### **Using Environment Variables**
-
-```bash
-# Set environment variables for session
-export HTCLI_OUTPUT_FORMAT="json"
-htcli chain network  # Will output JSON
-
-# Set for single command
-HTCLI_OUTPUT_FORMAT="json" htcli chain network
-
-# Use in scripts
-#!/bin/bash
-export HTCLI_NETWORK_ENDPOINT="wss://testnet.endpoint.com"
-export HTCLI_OUTPUT_FORMAT="json"
-htcli chain network | jq '.total_subnets'
-```
-
-## 📁 **Custom Configuration Files**
-
-### **Creating Custom Configurations**
-
-```bash
-# Create configuration for different environments
-htcli config init --config ~/.htcli/testnet-config.yaml
-htcli config init --config ~/.htcli/mainnet-config.yaml
-htcli config init --config ~/.htcli/development-config.yaml
-```
-
-### **Using Custom Configurations**
-
-```bash
-# Use specific configuration file
-htcli --config ~/.htcli/testnet-config.yaml chain network
-
-# Set as environment variable
-export HTCLI_CONFIG_FILE="~/.htcli/testnet-config.yaml"
-htcli chain network
-
-# Use in scripts
-CONFIG_FILE="~/.htcli/production-config.yaml"
-htcli --config $CONFIG_FILE subnet list
-```
-
-### **Configuration File Templates**
-
-#### **Development Configuration**
-
-```yaml
-network:
-  endpoint: "ws://localhost:9944"
-  ws_endpoint: "ws://localhost:9944"
-  timeout: 10
-  retry_attempts: 1
-
-output:
-  format: "json"
-  verbose: true
-  color: false
-
-wallet:
-  path: "~/.htcli/dev-wallets"
-  default_name: "dev"
-  encryption_enabled: false
-```
-
-#### **Production Configuration**
-
-```yaml
-network:
-  endpoint: "wss://hypertensor.duckdns.org"
-  ws_endpoint: "wss://hypertensor.duckdns.org"
-  timeout: 30
-  retry_attempts: 3
-
-output:
-  format: "table"
-  verbose: false
-  color: true
-
-wallet:
-  path: "~/.htcli/production-wallets"
-  default_name: "production"
-  encryption_enabled: true
-```
-
-## 🌐 **Network Configuration**
-
-### **Endpoint Configuration**
-
-```yaml
-network:
-  # Primary RPC endpoint
-  endpoint: "wss://hypertensor.duckdns.org"
-
-  # WebSocket endpoint (usually same as RPC)
-  ws_endpoint: "wss://hypertensor.duckdns.org"
-```
-
-### **Connection Settings**
-
-```yaml
-network:
-  # Connection timeout in seconds
-  timeout: 30
-
-  # Number of retry attempts for failed connections
-  retry_attempts: 3
-```
-
-### **Custom Endpoints**
-
-```yaml
-# Testnet configuration
-network:
-  endpoint: "wss://testnet.hypertensor.org"
-  ws_endpoint: "wss://testnet.hypertensor.org"
-
-# Local development node
-network:
-  endpoint: "ws://localhost:9944"
-  ws_endpoint: "ws://localhost:9944"
-  timeout: 10
-  retry_attempts: 1
-
-# Load balancer with multiple endpoints
-network:
-  endpoint: "wss://lb.hypertensor.org"
-  ws_endpoint: "wss://ws.hypertensor.org"
-  timeout: 45
-  retry_attempts: 5
-```
-
-### **Testing Network Configuration**
-
-```bash
-# Test connection with current config
-htcli chain network
-
-# Test with custom endpoint
-htcli --endpoint wss://custom.endpoint.com chain network
-
-# Validate network configuration
-htcli config validate
-```
-
-## 📊 **Output Configuration**
-
-### **Format Options**
-
-```yaml
-output:
-  # Default output format
-  format: "table"  # Options: table, json, csv
-
-  # Enable verbose output
-  verbose: false
-
-  # Enable colored output
-  color: true
-```
-
-### **Format Examples**
-
-#### **Table Format (Human-Readable)**
-
-```bash
-htcli chain network --format table
-```
-
-```
-Network Statistics
-┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┓
-┃ Metric             ┃ Value  ┃
-┡━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━┩
-│ Total Subnets      │ 15     │
-│ Active Subnets     │ 12     │
-│ Total Nodes        │ 1,247  │
-│ Total Stake        │ 15.2M  │
-└────────────────────┴────────┘
-```
-
-#### **JSON Format (Scripting)**
-
-```bash
-htcli chain network --format json
-```
-
-```json
-{
-  "total_subnets": 15,
-  "active_subnets": 12,
-  "total_nodes": 1247,
-  "total_stake": 15200000000000000000000000
-}
-```
-
-#### **CSV Format (Data Analysis)**
-
-```bash
-htcli chain network --format csv
-```
-
-```csv
-metric,value
-total_subnets,15
-active_subnets,12
-total_nodes,1247
-total_stake,15200000000000000000000000
-```
-
-### **Verbose Output**
-
-```yaml
-output:
-  verbose: true
-```
-
-Enables detailed output including:
-
-- Request/response timing
-- Connection details
-- Debug information
-- Error stack traces
-
-### **Color Configuration**
-
-```yaml
-output:
-  color: true  # Enable colors
-  color: false # Disable colors (for logs/scripts)
-```
-
-## 🔑 **Wallet Configuration**
-
-### **Storage Path Configuration**
-
-```yaml
-wallet:
-  # Path where wallets and keys are stored
-  path: "~/.htcli/wallets"
-```
-
-### **Custom Wallet Paths**
-
-```yaml
-# Development environment
-wallet:
-  path: "~/.htcli/dev-wallets"
-  default_name: "dev"
-
-# Production environment
-wallet:
-  path: "/secure/production/wallets"
-  default_name: "production"
-
-# Shared team environment
-wallet:
-  path: "/shared/team/wallets"
-  default_name: "team"
-```
-
-### **Security Configuration**
-
-```yaml
-wallet:
-  # Enable wallet encryption
-  encryption_enabled: true
-
-  # Default wallet name
-  default_name: "default"
-```
-
-### **Wallet Directory Structure**
-
-```
-~/.htcli/wallets/
-├── default/
-│   ├── keypair.json
-│   └── metadata.json
-├── production/
-│   ├── keypair.json
-│   └── metadata.json
-└── backup/
-    ├── keypair.json
-    └── metadata.json
-```
-
-## 🎯 **Personal Asset Filtering Configuration**
-
-The CLI includes a powerful universal --mine filtering system that allows you to view only your personal assets across all commands.
-
-### **Filter Configuration Section**
-
-```yaml
-# Personal Asset Filtering Configuration
-filter:
-  # Default behavior for --mine flag
-  mine: false  # Set to true to make --mine the default behavior
-```
-
-### **Environment Variable Override**
-
-```bash
-# Enable --mine filtering by default
-export HTCLI_FILTER_MINE=true
-
-# Disable --mine filtering (default)
-export HTCLI_FILTER_MINE=false
-```
-
-### **How It Works**
-
-The filtering system:
-
-1. **Reads wallet keys** from the configured wallet path (`~/.htcli/wallets/`)
-2. **Identifies ownership** by comparing blockchain data with your addresses
-3. **Filters results** to show only assets you own
-4. **Provides clear feedback** when no personal assets are found
-
-### **Supported Commands**
-
-The --mine flag works with:
-
-- `htcli --mine subnet list` - Shows only subnets you own
-- `htcli --mine stake info` - Shows stakes for ALL your addresses
-- `htcli --mine node list` - Shows only nodes you registered
-
-### **Configuration Examples**
-
-#### **Personal Development Setup**
-
-```yaml
-filter:
-  mine: true  # Default to personal view
-
-wallet:
-  path: "~/.htcli/dev-wallets"
-  default_name: "dev-key"
-```
-
-#### **Network Monitoring Setup**
-
-```yaml
-filter:
-  mine: false  # Default to network-wide view
-
-output:
-  format: "json"  # For automated processing
-  verbose: true
-```
-
-#### **Multi-Address Portfolio Management**
-
-```yaml
-filter:
-  mine: false  # Explicit --mine usage preferred
-
-wallet:
-  path: "~/.htcli/portfolio-wallets"
-  encryption_enabled: true
-```
-
-### **Best Practices**
-
-- **Keep `mine: false`** in config for explicit control
-- **Use `--mine` flag explicitly** when you want personal view
-- **Ensure wallet keys are properly stored** in the configured path
-- **Use environment variables** for temporary behavior changes
-
-## 🔧 **Advanced Configuration**
-
-### **Multiple Environment Setup**
-
-```bash
-# Create different configs for different purposes
-mkdir -p ~/.htcli/configs
-
-# Development config
-htcli config init --config ~/.htcli/configs/dev.yaml
-
-# Staging config
-htcli config init --config ~/.htcli/configs/staging.yaml
-
-# Production config
-htcli config init --config ~/.htcli/configs/prod.yaml
-```
-
-### **Environment-Specific Scripts**
-
-```bash
-#!/bin/bash
-# dev-htcli.sh
-export HTCLI_CONFIG_FILE="~/.htcli/configs/dev.yaml"
-htcli "$@"
-```
-
-```bash
-#!/bin/bash
-# prod-htcli.sh
-export HTCLI_CONFIG_FILE="~/.htcli/configs/prod.yaml"
-htcli "$@"
-```
-
-### **Configuration Validation**
-
-```bash
-# Validate default configuration
-htcli config validate
-
-# Validate specific configuration
-htcli config validate --config ~/.htcli/configs/prod.yaml
-
-# Validate all configurations
-for config in ~/.htcli/configs/*.yaml; do
-    echo "Validating $config"
-    htcli config validate --config "$config"
-done
-```
-
-### **Configuration Backup and Restore**
-
-```bash
-# Backup configuration
-cp ~/.htcli/config.yaml ~/.htcli/config-backup-$(date +%Y%m%d).yaml
-
-# Restore configuration
-cp ~/.htcli/config-backup-20240315.yaml ~/.htcli/config.yaml
-
-# Version control configurations
-git add ~/.htcli/configs/
-git commit -m "Update CLI configurations"
-```
-
-## 🔍 **Configuration Management Commands**
-
-### **View Configuration**
-
-```bash
-# Show current configuration in table format
+# Show current configuration
 htcli config show
 
-# Show configuration as YAML
-htcli config show --format yaml
-
-# Show configuration as JSON
-htcli config show --format json
-
-# Show specific configuration file
-htcli config show --config ~/.htcli/configs/prod.yaml
+# Show specific configuration section
+htcli config show --section network
+htcli config show --section wallet
 ```
 
-### **Edit Configuration**
+## 📁 Configuration Structure
 
+### Configuration File Location
+```
+~/.htcli/
+├── config.yaml          # Main configuration file
+├── wallets/             # Wallet key storage
+│   ├── my-key.json
+│   └── imported-key.json
+└── logs/                # Log files
+    └── htcli.log
+```
+
+### Configuration Sections
+```yaml
+# Network Configuration
+network:
+  endpoint: "wss://testnet.hypertensor.ai"
+  timeout: 30
+  retry_attempts: 3
+  websocket_options:
+    max_size: 1048576
+    compression: true
+
+# Wallet Configuration
+wallet:
+  default_key: "my-key"
+  key_dir: "~/.htcli/wallets"
+  encryption_enabled: true
+  backup_enabled: true
+
+# User Interface Configuration
+ui:
+  format: "table"
+  colors: true
+  guidance: true
+  confirmations: true
+
+# Filtering Configuration
+filtering:
+  mine: false
+  default_mine: false
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  file: "~/.htcli/logs/htcli.log"
+  max_size: 10485760
+  backup_count: 5
+```
+
+## 🔧 Configuration Commands
+
+### Initialize Configuration
 ```bash
-# Edit default configuration
+# Interactive initialization
+htcli config init
+
+# Non-interactive initialization
+htcli config init \
+  --endpoint wss://testnet.hypertensor.ai \
+  --default-key my-key \
+  --timeout 30 \
+  --format table
+```
+
+### View Configuration
+```bash
+# Show all configuration
+htcli config show
+
+# Show specific section
+htcli config show --section network
+htcli config show --section wallet
+htcli config show --section ui
+
+# Show in different formats
+htcli config show --format json
+htcli config show --format yaml
+```
+
+### Edit Configuration
+```bash
+# Interactive configuration editor
 htcli config edit
 
-# Edit specific configuration
-htcli config edit --config ~/.htcli/configs/dev.yaml
+# Edit specific section
+htcli config edit --section network
+htcli config edit --section wallet
 ```
 
-### **Configuration Path**
-
+### Set Configuration Values
 ```bash
-# Show default configuration path
-htcli config path
+# Set network endpoint
+htcli config set --key network.endpoint --value wss://mainnet.hypertensor.ai
 
-# Show specific configuration path
-htcli config path --config ~/.htcli/configs/prod.yaml
+# Set default key
+htcli config set --key wallet.default_key --value my-main-key
+
+# Set UI format
+htcli config set --key ui.format --value json
+
+# Set timeout
+htcli config set --key network.timeout --value 60
 ```
 
-## 🚨 **Troubleshooting**
-
-### **Common Configuration Issues**
-
-#### **Connection Problems**
-
+### Get Configuration Values
 ```bash
-# Test network connectivity
-htcli chain network
+# Get network endpoint
+htcli config get --key network.endpoint
 
-# Try different endpoint
-htcli --endpoint wss://backup.endpoint.com chain network
+# Get default key
+htcli config get --key wallet.default_key
 
-# Check configuration
-htcli config show --format yaml
+# Get UI format
+htcli config get --key ui.format
 ```
 
-#### **File Permission Issues**
+## 🌐 Network Configuration
 
+### Endpoint Configuration
 ```bash
-# Check configuration file permissions
-ls -la ~/.htcli/config.yaml
+# Set mainnet endpoint
+htcli config set --key network.endpoint --value wss://mainnet.hypertensor.ai
 
-# Fix permissions
-chmod 600 ~/.htcli/config.yaml
-chmod 700 ~/.htcli/
+# Set testnet endpoint
+htcli config set --key network.endpoint --value wss://testnet.hypertensor.ai
+
+# Set local endpoint
+htcli config set --key network.endpoint --value ws://localhost:9944
 ```
 
-#### **Invalid Configuration**
-
+### Connection Settings
 ```bash
-# Validate configuration
+# Set connection timeout
+htcli config set --key network.timeout --value 60
+
+# Set retry attempts
+htcli config set --key network.retry_attempts --value 5
+
+# Set WebSocket options
+htcli config set --key network.websocket_options.max_size --value 2097152
+htcli config set --key network.websocket_options.compression --value true
+```
+
+### Multiple Environments
+```bash
+# Create environment-specific configurations
+htcli config set --key environments.mainnet.endpoint --value wss://mainnet.hypertensor.ai
+htcli config set --key environments.testnet.endpoint --value wss://testnet.hypertensor.ai
+htcli config set --key environments.local.endpoint --value ws://localhost:9944
+
+# Switch environments
+htcli config set --key network.endpoint --value $(htcli config get --key environments.mainnet.endpoint)
+```
+
+## 🔐 Wallet Configuration
+
+### Key Management
+```bash
+# Set default key
+htcli config set --key wallet.default_key --value my-main-key
+
+# Set key directory
+htcli config set --key wallet.key_dir --value ~/.htcli/wallets
+
+# Enable encryption
+htcli config set --key wallet.encryption_enabled --value true
+
+# Enable backup
+htcli config set --key wallet.backup_enabled --value true
+```
+
+### Security Settings
+```bash
+# Set encryption algorithm
+htcli config set --key wallet.encryption_algorithm --value AES-256
+
+# Set backup frequency
+htcli config set --key wallet.backup_frequency --value daily
+
+# Set backup retention
+htcli config set --key wallet.backup_retention --value 30
+```
+
+## 🎨 User Interface Configuration
+
+### Display Settings
+```bash
+# Set default format
+htcli config set --key ui.format --value table
+htcli config set --key ui.format --value json
+htcli config set --key ui.format --value csv
+
+# Enable/disable colors
+htcli config set --key ui.colors --value true
+htcli config set --key ui.colors --value false
+
+# Enable/disable guidance
+htcli config set --key ui.guidance --value true
+htcli config set --key ui.guidance --value false
+
+# Enable/disable confirmations
+htcli config set --key ui.confirmations --value true
+htcli config set --key ui.confirmations --value false
+```
+
+### Interactive Settings
+```bash
+# Set confirmation threshold
+htcli config set --key ui.confirmation_threshold --value 1000000000000000000
+
+# Set guidance level
+htcli config set --key ui.guidance_level --value detailed
+htcli config set --key ui.guidance_level --value basic
+htcli config set --key ui.guidance_level --value minimal
+```
+
+## 🔍 Filtering Configuration
+
+### Personal Asset Filtering
+```bash
+# Enable default mine filtering
+htcli config set --key filtering.default_mine --value true
+
+# Set mine filter behavior
+htcli config set --key filtering.mine --value true
+htcli config set --key filtering.mine --value false
+```
+
+### Filter Preferences
+```bash
+# Set default filtering
+htcli config set --key filtering.default_filters --value "mine,active"
+
+# Set filter display
+htcli config set --key filtering.show_filter_info --value true
+htcli config set --key filtering.show_filter_info --value false
+```
+
+## 📝 Logging Configuration
+
+### Log Settings
+```bash
+# Set log level
+htcli config set --key logging.level --value DEBUG
+htcli config set --key logging.level --value INFO
+htcli config set --key logging.level --value WARNING
+htcli config set --key logging.level --value ERROR
+
+# Set log file
+htcli config set --key logging.file --value ~/.htcli/logs/htcli.log
+
+# Set log rotation
+htcli config set --key logging.max_size --value 10485760
+htcli config set --key logging.backup_count --value 5
+```
+
+### Log Format
+```bash
+# Set log format
+htcli config set --key logging.format --value "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Enable/disable timestamps
+htcli config set --key logging.timestamps --value true
+htcli config set --key logging.timestamps --value false
+```
+
+## 🔄 Environment Management
+
+### Multiple Environments
+```bash
+# Create environment configurations
+htcli config set --key environments.mainnet.endpoint --value wss://mainnet.hypertensor.ai
+htcli config set --key environments.mainnet.timeout --value 60
+htcli config set --key environments.mainnet.default_key --value mainnet-key
+
+htcli config set --key environments.testnet.endpoint --value wss://testnet.hypertensor.ai
+htcli config set --key environments.testnet.timeout --value 30
+htcli config set --key environments.testnet.default_key --value testnet-key
+
+htcli config set --key environments.local.endpoint --value ws://localhost:9944
+htcli config set --key environments.local.timeout --value 10
+htcli config set --key environments.local.default_key --value local-key
+```
+
+### Environment Switching
+```bash
+# Switch to mainnet
+htcli config switch-environment mainnet
+
+# Switch to testnet
+htcli config switch-environment testnet
+
+# Switch to local
+htcli config switch-environment local
+
+# List available environments
+htcli config list-environments
+```
+
+### Environment Templates
+```bash
+# Create environment template
+htcli config create-template --name production --environment mainnet
+
+# Apply environment template
+htcli config apply-template --name production
+
+# List templates
+htcli config list-templates
+```
+
+## 🔒 Security Configuration
+
+### Encryption Settings
+```bash
+# Enable key encryption
+htcli config set --key security.encrypt_keys --value true
+
+# Set encryption algorithm
+htcli config set --key security.encryption_algorithm --value AES-256
+
+# Set key derivation
+htcli config set --key security.key_derivation --value PBKDF2
+```
+
+### Access Control
+```bash
+# Set file permissions
+htcli config set --key security.file_permissions --value 600
+
+# Enable access logging
+htcli config set --key security.access_logging --value true
+
+# Set session timeout
+htcli config set --key security.session_timeout --value 3600
+```
+
+## 📊 Configuration Validation
+
+### Validate Configuration
+```bash
+# Validate entire configuration
 htcli config validate
 
-# Reset to defaults
-htcli config init --force
+# Validate specific section
+htcli config validate --section network
+htcli config validate --section wallet
 
-# Create new configuration
-mv ~/.htcli/config.yaml ~/.htcli/config.yaml.backup
-htcli config init
+# Validate with custom schema
+htcli config validate --schema /path/to/schema.yaml
 ```
 
-### **Configuration Debugging**
-
-#### **Verbose Mode**
-
+### Configuration Testing
 ```bash
-# Enable verbose output
-htcli --verbose chain network
+# Test network connection
+htcli config test-connection
 
-# Or set in configuration
-output:
-  verbose: true
+# Test wallet access
+htcli config test-wallet
+
+# Test all configurations
+htcli config test-all
 ```
 
-#### **Configuration Override Testing**
+## 🔄 Configuration Backup and Restore
 
+### Backup Configuration
 ```bash
-# Test with different settings
-HTCLI_OUTPUT_FORMAT="json" htcli chain network
-HTCLI_NETWORK_TIMEOUT="60" htcli chain network
+# Backup entire configuration
+htcli config backup --output config-backup.yaml
+
+# Backup specific sections
+htcli config backup --sections network,wallet --output network-wallet-backup.yaml
+
+# Backup with encryption
+htcli config backup --encrypt --password my-password --output encrypted-backup.yaml
 ```
 
-#### **Environment Variable Check**
-
+### Restore Configuration
 ```bash
-# Check current environment variables
-env | grep HTCLI
+# Restore from backup
+htcli config restore --input config-backup.yaml
 
-# Clear environment variables
-unset HTCLI_OUTPUT_FORMAT
-unset HTCLI_NETWORK_ENDPOINT
+# Restore specific sections
+htcli config restore --input config-backup.yaml --sections network,wallet
+
+# Restore with decryption
+htcli config restore --input encrypted-backup.yaml --password my-password
 ```
 
-### **Recovery Procedures**
+## 🎯 Configuration Best Practices
 
-#### **Reset Configuration**
+### Security Best Practices
+- **Encrypt Keys**: Always enable key encryption
+- **Secure Permissions**: Use appropriate file permissions
+- **Regular Backups**: Regular configuration backups
+- **Access Control**: Limit access to configuration files
 
+### Performance Best Practices
+- **Optimize Timeouts**: Set appropriate timeouts
+- **Connection Pooling**: Use connection pooling
+- **Caching**: Enable caching where appropriate
+- **Resource Limits**: Set appropriate resource limits
+
+### Usability Best Practices
+- **Default Values**: Set sensible default values
+- **Environment Separation**: Separate environments clearly
+- **Documentation**: Document custom configurations
+- **Validation**: Regular configuration validation
+
+## 🔧 Advanced Configuration
+
+### Custom Configuration Files
 ```bash
-# Backup current configuration
-cp ~/.htcli/config.yaml ~/.htcli/config.yaml.backup
+# Use custom configuration file
+htcli --config /path/to/custom-config.yaml subnet list
 
-# Reset to defaults
-rm ~/.htcli/config.yaml
-htcli config init
+# Merge configurations
+htcli --config /path/to/base-config.yaml --config /path/to/override-config.yaml subnet list
 ```
 
-#### **Restore from Backup**
-
+### Environment Variables
 ```bash
-# Restore configuration
-cp ~/.htcli/config.yaml.backup ~/.htcli/config.yaml
-
-# Validate restored configuration
-htcli config validate
+# Override with environment variables
+export HTCLI_NETWORK_ENDPOINT=wss://custom.hypertensor.ai
+export HTCLI_WALLET_DEFAULT_KEY=custom-key
+htcli subnet list
 ```
 
-This comprehensive configuration guide covers all aspects of setting up and managing the Hypertensor CLI configuration for optimal performance and usability across different environments and use cases.
+### Configuration Inheritance
+```yaml
+# Base configuration
+base:
+  network:
+    timeout: 30
+    retry_attempts: 3
+
+# Environment-specific overrides
+environments:
+  mainnet:
+    network:
+      endpoint: wss://mainnet.hypertensor.ai
+      timeout: 60
+  testnet:
+    network:
+      endpoint: wss://testnet.hypertensor.ai
+      timeout: 15
+```
+
+## 📈 Configuration Monitoring
+
+### Configuration Health
+```bash
+# Check configuration health
+htcli config health
+
+# Monitor configuration changes
+htcli config monitor --watch
+
+# Configuration statistics
+htcli config stats
+```
+
+### Configuration Analytics
+```bash
+# Configuration usage analytics
+htcli config analytics --period daily
+
+# Configuration performance metrics
+htcli config metrics --section network
+
+# Configuration optimization suggestions
+htcli config optimize
+```
+
+---
+
+**The Hypertensor CLI provides comprehensive configuration management with support for multiple environments, secure key management, and extensive customization options for optimal user experience and security.** 🚀

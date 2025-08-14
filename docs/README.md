@@ -1,279 +1,266 @@
 # Hypertensor CLI Documentation
 
-Welcome to the comprehensive documentation for the Hypertensor CLI (htcli). This documentation covers everything from basic usage to advanced integration and API development.
+Welcome to the comprehensive documentation for the Hypertensor CLI (htcli) - a powerful command-line interface for managing the Hypertensor blockchain network.
 
-## 📚 **Documentation Overview**
-
-The Hypertensor CLI documentation is organized into several comprehensive guides:
-
-### **🎯 Core Documentation**
-
-#### **[📋 Commands Reference](COMMANDS.md)**
-
-Complete reference for all 34 CLI commands across 6 categories:
-
-- **Configuration Management** (5 commands) - Setup and manage CLI configuration
-- **Subnet Operations** (5 commands) - Register and manage subnets
-- **Node Management** (5 commands) - Add, monitor, and manage nodes
-- **Staking Operations** (7 commands) - Stake tokens and earn rewards
-- **Wallet & Key Management** (4 commands) - Generate and manage cryptographic keys
-- **Chain Queries** (8 commands) - Query blockchain information
-
-#### **[⚙️ Configuration Guide](CONFIGURATION.md)**
-
-Comprehensive configuration management covering:
-
-- Interactive configuration wizard
-- YAML configuration files
-- Environment variable overrides
-- Multiple environment setups
-- Configuration validation and troubleshooting
-
-#### **[💰 Staking Guide](STAKING.md)**
-
-Complete staking operations manual including:
-
-- Direct node staking strategies
-- Delegate staking for diversification
-- Unbonding and claims management
-- Risk management and portfolio optimization
-- Performance monitoring and rebalancing
-
-#### **[🔗 Node Management Guide](NODE_MANAGEMENT.md)**
-
-Comprehensive node lifecycle management covering:
-
-- Node registration and activation
-- Performance monitoring and optimization
-- Maintenance and troubleshooting
-- Best practices for node operators
-
-#### **[🔧 API Reference](API.md)**
-
-Complete programmatic API documentation including:
-
-- Client architecture and initialization
-- All client APIs (Subnet, Node, Staking, Wallet, Chain)
-- Request/response models and data structures
-- Error handling and retry strategies
-- Integration examples and automation scripts
-
-### **📊 Technical References**
-
-#### **[🌳 Command Tree Structure](COMMAND_TREE.md)**
-
-Visual representation of the complete CLI command hierarchy
-
-#### **[📏 TENSOR Precision Guide](TENSOR_PRECISION_GUIDE.md)**
-
-Detailed guide on 18-digit TENSOR token precision handling
-
-#### **[✅ Command Testing Results](COMMAND_TESTING_RESULTS.md)**
-
-Comprehensive testing results showing 100% command success rate
-
-## 🚀 **Quick Start Guide**
-
-### **1. Installation**
+## 🚀 Quick Start
 
 ```bash
-# Clone and install
-git clone https://github.com/shiftlayer-llc/htcli.git
-cd htcli
-uv pip install -e .
-```
+# Install the CLI
+pip install htcli
 
-### **2. Initial Configuration**
-
-```bash
-# Interactive configuration setup
+# Initialize configuration
 htcli config init
 
-# Verify installation
-htcli --help
-```
-
-### **3. Basic Operations**
-
-```bash
-# Check network status
-htcli chain network
-
-# Generate a key
+# Generate your first keypair
 htcli wallet generate-key --name my-key
 
-# Check balance
-htcli chain balance --address <your-address>
+# View network information
+htcli chain info
 ```
 
-### **4. Advanced Operations**
+## 📚 Documentation Index
 
+### Core Features
+- **[Commands Overview](COMMANDS.md)** - Complete command reference and usage patterns
+- **[Command Tree](COMMAND_TREE.md)** - Visual command hierarchy and structure
+- **[API Reference](API.md)** - Programmatic interface and client methods
+- **[Configuration Guide](CONFIGURATION.md)** - Setup and configuration management
+
+### Blockchain Operations
+- **[Node Management](NODE_MANAGEMENT.md)** - Complete node lifecycle management
+- **[Staking Guide](STAKING.md)** - Comprehensive staking operations and strategies
+- **[Personal Asset Filtering](PERSONAL_ASSET_FILTERING.md)** - Universal --mine flag usage
+
+### Advanced Features
+- **[Automated Flows](AUTOMATED_FLOWS.md)** - Multi-step automated workflows
+- **[Tensor Precision Guide](TENSOR_PRECISION_GUIDE.md)** - Token precision and calculations
+
+### Development & Testing
+- **[Command Testing Results](COMMAND_TESTING_RESULTS.md)** - Testing status and results
+- **[Command Restructure Summary](COMMAND_RESTRUCTURE_SUMMARY.md)** - Recent improvements
+- **[Test Update Summary](TEST_UPDATE_SUMMARY.md)** - Testing framework updates
+
+## 🎯 Key Features
+
+### 🔗 Complete Node Lifecycle Management
 ```bash
-# Register a subnet
-htcli subnet register --path my-subnet --memory 2048 --blocks 1000 --interval 100
+# Register a new node
+htcli node register --subnet-id 1 --hotkey 5HpG9w8EBLe5XCrbczpwq5TSXvedjrBGCwqxK9iYqurHh9Qu --peer-id 12D3KooW... --stake 1000000000000000000 --key-name my-node-key
 
-# Add a node
-htcli node add --subnet-id 1 --hotkey <address> --peer-id <peer> --stake 1000000000000000000
+# Activate the node
+htcli node activate --subnet-id 1 --node-id 5 --key-name my-node-key
 
-# Stake tokens
-htcli stake add --subnet-id 1 --node-id 1 --hotkey <address> --amount 2000000000000000000
+# Update delegate reward rate
+htcli node update --subnet-id 1 --node-id 5 --delegate-reward-rate 50000000000000000 --key-name my-node-key
+
+# Update node keys
+htcli node update-coldkey --subnet-id 1 --node-id 5 --new-coldkey 5HpG9w8EBLe5XCrbczpwq5TSXvedjrBGCwqxK9iYqurHh9Qu --key-name my-node-key
+htcli node update-hotkey --subnet-id 1 --node-id 5 --new-hotkey 5HpG9w8EBLe5XCrbczpwq5TSXvedjrBGCwqxK9iYqurHh9Qu --key-name my-node-key
+
+# Deactivate temporarily
+htcli node deactivate --subnet-id 1 --node-id 5 --key-name my-node-key
+
+# Reactivate within time limits
+htcli node reactivate --subnet-id 1 --node-id 5 --key-name my-node-key
+
+# Remove with beautiful stake management
+htcli node remove --subnet-id 1 --node-id 5 --remove-stake --key-name my-node-key
 ```
 
-## 📖 **Documentation Structure**
-
-### **User Guides**
-
-- **Beginners**: Start with [Commands Reference](COMMANDS.md) and [Configuration Guide](CONFIGURATION.md)
-- **Node Operators**: Focus on [Node Management Guide](NODE_MANAGEMENT.md)
-- **Stakers**: Read the [Staking Guide](STAKING.md) thoroughly
-- **Developers**: Use the [API Reference](API.md) for integration
-
-### **Reference Materials**
-
-- **Command Syntax**: [Commands Reference](COMMANDS.md)
-- **Configuration Options**: [Configuration Guide](CONFIGURATION.md)
-- **API Methods**: [API Reference](API.md)
-- **Technical Details**: Technical reference documents
-
-## 🎯 **Key Features Covered**
-
-### **Professional CLI Experience**
-
-- **34 commands** across 6 logical categories
-- **Consistent switch-based format** for all commands
-- **Interactive guidance** with comprehensive help
-- **Multiple output formats** (table, JSON, CSV)
-- **Safety features** with confirmation prompts
-
-### **Real Blockchain Integration**
-
-- **Direct WebSocket connections** to Hypertensor network
-- **18-digit TENSOR precision** for accurate calculations
-- **Real transaction submission** and blockchain queries
-- **Comprehensive error handling** and recovery guidance
-
-### **Advanced Features**
-
-- **Modular client architecture** for programmatic access
-- **Configuration management** with multiple environments
-- **Performance monitoring** and optimization tools
-- **Risk management** strategies and best practices
-
-## 🔄 **Workflow Examples**
-
-### **Complete Subnet Setup**
-
+### 💰 Comprehensive Staking System
 ```bash
-htcli config init                    # Configure CLI
-htcli wallet generate-key --name owner  # Generate keys
-htcli subnet register --path ai-net --memory 4096 --blocks 1000 --interval 100
-htcli subnet activate --subnet-id 1
-htcli node add --subnet-id 1 --hotkey <addr> --peer-id <peer> --stake 5000000000000000000
+# Subnet delegate staking
+htcli stake delegate-add --subnet-id 1 --amount 1000000000000000000 --key-name my-staking-key
+htcli stake delegate-remove --subnet-id 1 --shares 500000000000000000 --key-name my-staking-key
+htcli stake delegate-transfer --subnet-id 1 --to-account 5HpG9w8EBLe5XCrbczpwq5TSXvedjrBGCwqxK9iYqurHh9Qu --shares 100000000000000000 --key-name my-staking-key
+htcli stake delegate-increase --subnet-id 1 --amount 500000000000000000 --key-name my-staking-key
+
+# Node delegate staking
+htcli stake node-add --subnet-id 1 --node-id 5 --amount 1000000000000000000 --key-name my-staking-key
+htcli stake node-remove --subnet-id 1 --node-id 5 --shares 500000000000000000 --key-name my-staking-key
+htcli stake node-transfer --subnet-id 1 --node-id 5 --to-account 5HpG9w8EBLe5XCrbczpwq5TSXvedjrBGCwqxK9iYqurHh9Qu --shares 100000000000000000 --key-name my-staking-key
+htcli stake node-increase --subnet-id 1 --node-id 5 --amount 500000000000000000 --key-name my-staking-key
 ```
 
-### **Staking Management**
-
+### 🔑 Complete Subnet Management
 ```bash
-htcli stake info --address <addr>    # Check current positions
-htcli stake add --subnet-id 1 --node-id 2 --hotkey <addr> --amount 2000000000000000000
-htcli stake remove --subnet-id 1 --hotkey <addr> --amount 1000000000000000000
-htcli stake claim --hotkey <addr>    # Claim unbonded tokens
+# Register a new subnet
+htcli subnet register --name "My Subnet" --repo "https://github.com/my/subnet" --description "A great subnet" --min-stake 1000000000000000000 --max-stake 10000000000000000000 --key-name my-subnet-key
+
+# Activate the subnet
+htcli subnet activate --subnet-id 1 --key-name my-subnet-key
+
+# Pause/unpause subnet
+htcli subnet pause --subnet-id 1 --key-name my-subnet-key
+htcli subnet unpause --subnet-id 1 --key-name my-subnet-key
+
+# Update subnet parameters
+htcli subnet owner-update-name --subnet-id 1 --name "Updated Subnet Name" --key-name my-subnet-key
+htcli subnet owner-update-repo --subnet-id 1 --repo "https://github.com/my/updated-subnet" --key-name my-subnet-key
+htcli subnet owner-update-description --subnet-id 1 --description "Updated description" --key-name my-subnet-key
+
+# Transfer ownership
+htcli subnet owner-transfer-ownership --subnet-id 1 --new-owner 5HpG9w8EBLe5XCrbczpwq5TSXvedjrBGCwqxK9iYqurHh9Qu --key-name my-subnet-key
 ```
 
-### **Network Monitoring**
-
+### 🎯 Personal Asset Filtering
 ```bash
-htcli chain network                  # Network overview
-htcli subnet list                    # All subnets
-htcli node list --subnet-id 1        # Nodes in subnet
-htcli stake info --address <addr>    # Stake positions
+# View only your assets
+htcli subnet list --mine
+htcli stake info --mine
+htcli node list --mine
+
+# Universal --mine flag works across all commands
+htcli subnet info --subnet-id 1 --mine
+htcli node status --subnet-id 1 --node-id 5 --mine
 ```
 
-## 🛠️ **Development Resources**
-
-### **API Integration**
-
-```python
-from src.htcli.client import HypertensorClient
-
-client = HypertensorClient()
-response = client.chain.get_network_stats()
-print(f"Total subnets: {response.data['total_subnets']}")
-```
-
-### **Configuration Management**
-
-```python
-from src.htcli.config import load_config
-
-config = load_config()
-endpoint = config.network.endpoint
-```
-
-### **Automation Scripts**
-
-The documentation includes complete examples for:
-
-- Network monitoring bots
-- Automated staking strategies
-- Performance optimization scripts
-- Batch operations and management
-
-## 📞 **Support and Resources**
-
-### **Getting Help**
-
+### 🔄 Automated Workflows
 ```bash
-# General help
-htcli --help
+# List available automated flows
+htcli flow list
 
-# Category help
-htcli stake --help
+# Get detailed information about a flow
+htcli flow info subnet-deployment
 
-# Command-specific help
-htcli stake add --help
+# Run an automated workflow
+htcli flow run subnet-deployment
 ```
 
-### **Troubleshooting**
+## 🏗️ Architecture Overview
 
-Each guide includes comprehensive troubleshooting sections:
+### Core Components
+- **Client Layer**: Direct blockchain interaction via SubstrateInterface
+- **Command Layer**: Typer-based CLI with rich formatting
+- **Validation Layer**: Comprehensive input validation and error handling
+- **Guidance Layer**: Rich panels and strategic advice
+- **Configuration Layer**: Secure key management and settings
 
-- Common issues and solutions
-- Error message explanations
-- Recovery procedures
-- Performance optimization tips
+### Key Design Principles
+- **Lazy Initialization**: Blockchain connection only when needed
+- **Comprehensive Validation**: Input validation and error handling
+- **Rich User Experience**: Beautiful panels and clear guidance
+- **Strategic Planning**: Guidance for optimal operations
+- **Security First**: Proper key management and validation
 
-### **Community Resources**
+## 🔧 Technical Specifications
 
-- **GitHub Issues**: Report bugs and request features
-- **Documentation**: This comprehensive guide collection
-- **API Reference**: Complete programmatic interface documentation
+### Blockchain Integration
+- **SubstrateInterface**: Direct blockchain interaction
+- **Real Transactions**: Actual transaction submission and confirmation
+- **Storage Queries**: Direct blockchain state queries
+- **Extrinsic Composition**: Proper call composition and signing
 
-## 🎉 **Documentation Features**
+### Security Features
+- **Key Management**: Secure key generation, storage, and loading
+- **Validation**: Comprehensive input and state validation
+- **Error Handling**: Graceful error handling and user feedback
+- **Confirmation**: Proper confirmations for critical operations
 
-### **Comprehensive Coverage**
+### User Experience
+- **Rich Formatting**: Beautiful panels, tables, and status indicators
+- **Comprehensive Guidance**: Strategic advice and best practices
+- **Progress Tracking**: Clear status updates and progress indication
+- **Command Examples**: Exact commands and usage patterns
 
-- **Every command documented** with examples and use cases
-- **Complete workflow guides** from setup to advanced operations
-- **Real-world examples** and practical scenarios
-- **Best practices** and optimization strategies
+## 🚀 Getting Started
 
-### **User-Friendly Format**
+### Installation
+```bash
+# Install from source
+git clone https://github.com/your-repo/htcli.git
+cd htcli
+pip install -e .
 
-- **Clear structure** with logical organization
-- **Rich examples** with actual command syntax
-- **Visual aids** including command trees and workflows
-- **Progressive complexity** from basic to advanced topics
+# Or install via pip
+pip install htcli
+```
 
-### **Practical Focus**
+### Initial Setup
+```bash
+# Initialize configuration
+htcli config init
 
-- **Real blockchain integration** examples
-- **Production-ready scripts** and automation
-- **Security best practices** and risk management
-- **Performance optimization** and monitoring
+# Generate your first keypair
+htcli wallet generate-key --name my-key
+
+# Test connection
+htcli chain info
+```
+
+### First Operations
+```bash
+# View network status
+htcli chain info
+
+# List subnets
+htcli subnet list
+
+# Generate a key for staking
+htcli wallet generate-key --name my-staking-key
+
+# Start staking
+htcli stake delegate-add --subnet-id 1 --amount 1000000000000000000 --key-name my-staking-key
+```
+
+## 📈 Advanced Usage
+
+### Node Management Strategy
+```bash
+# Complete node lifecycle
+htcli node register --subnet-id 1 --hotkey <hotkey> --peer-id <peer-id> --stake 1000000000000000000 --key-name my-node-key
+htcli node activate --subnet-id 1 --node-id <node-id> --key-name my-node-key
+htcli node update --subnet-id 1 --node-id <node-id> --delegate-reward-rate 50000000000000000 --key-name my-node-key
+htcli node status --subnet-id 1 --node-id <node-id>
+```
+
+### Staking Portfolio Management
+```bash
+# Diversify across subnets and nodes
+htcli stake delegate-add --subnet-id 1 --amount 1000000000000000000 --key-name my-staking-key
+htcli stake node-add --subnet-id 1 --node-id 5 --amount 500000000000000000 --key-name my-staking-key
+htcli stake delegate-add --subnet-id 2 --amount 500000000000000000 --key-name my-staking-key
+
+# Monitor your portfolio
+htcli stake info --mine
+```
+
+### Subnet Ownership Management
+```bash
+# Complete subnet lifecycle
+htcli subnet register --name "My Subnet" --repo "https://github.com/my/subnet" --description "A great subnet" --key-name my-subnet-key
+htcli subnet activate --subnet-id <subnet-id> --key-name my-subnet-key
+htcli subnet owner-update-name --subnet-id <subnet-id> --name "Updated Name" --key-name my-subnet-key
+```
+
+## 🎯 Best Practices
+
+### Security
+- Use hardware wallets for coldkeys
+- Keep hotkeys and coldkeys separate
+- Regularly backup your keys
+- Use strong passwords for key encryption
+
+### Performance
+- Monitor node performance regularly
+- Update delegate reward rates strategically
+- Diversify staking across multiple subnets/nodes
+- Plan node lifecycle operations carefully
+
+### Strategy
+- Research nodes before staking
+- Monitor reward rates and performance
+- Consider both subnet and node staking
+- Plan for long-term network participation
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our contributing guidelines and development documentation for more information.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
 
-**This documentation covers everything you need to effectively use the Hypertensor CLI, from basic operations to advanced automation and integration.** Each guide is designed to be comprehensive yet practical, with real examples and best practices for successful Hypertensor network participation.
-
-**Start with the [Commands Reference](COMMANDS.md) for a complete overview, then dive into specific guides based on your use case and experience level.**
+**The Hypertensor CLI provides a comprehensive, professional-grade interface for managing the Hypertensor blockchain network with beautiful user experience and strategic guidance.** 🚀

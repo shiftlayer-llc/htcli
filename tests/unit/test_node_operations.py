@@ -1,18 +1,17 @@
 """
-Unit tests for subnet operations.
+Unit tests for node operations.
 """
 
 import pytest
 from unittest.mock import Mock, patch
 from src.htcli.client import HypertensorClient
-from src.htcli.models.requests import SubnetRegisterRequest
 
 
-class TestSubnetRegistration:
-    """Test subnet registration functionality."""
+class TestNodeRegistration:
+    """Test node registration functionality."""
 
-    def test_register_subnet_success(self):
-        """Test successful subnet registration."""
+    def test_register_subnet_node_success(self):
+        """Test successful node registration."""
         with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
             mock_substrate_instance = Mock()
             mock_substrate.return_value = mock_substrate_instance
@@ -22,33 +21,20 @@ class TestSubnetRegistration:
             config = load_config()
             client = HypertensorClient(config)
 
-            request = SubnetRegisterRequest(
-                name='Test Subnet',
-                repo='https://github.com/test/subnet',
-                description='A test subnet',
-                misc={'version': '1.0.0'},
-                min_stake=1000000000000000000,
-                max_stake=10000000000000000000,
-                delegate_stake_percentage=10,
-                churn_limit=5,
-                registration_queue_epochs=10,
-                activation_grace_epochs=5,
-                queue_classification_epochs=3,
-                included_classification_epochs=2,
-                max_registered_nodes=100,
-                initial_coldkeys=['5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY'],
-                key_types=['sr25519'],
-                node_removal_system='manual'
+            response = client.register_subnet_node(
+                subnet_id=1,
+                hotkey='5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
+                peer_id='QmTestPeerId1234567890abcdef',
+                delegate_reward_rate=1000,
+                stake_to_be_added=1000000000000000000
             )
-
-            response = client.register_subnet(request)
 
             assert response.success is True
             assert 'call composed successfully' in response.message
             assert response.data['call_data'] == '0x1234567890abcdef'
 
-    def test_register_subnet_with_keypair(self):
-        """Test subnet registration with keypair submission."""
+    def test_register_subnet_node_with_keypair(self):
+        """Test node registration with keypair submission."""
         with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
             mock_substrate_instance = Mock()
             mock_substrate.return_value = mock_substrate_instance
@@ -65,37 +51,25 @@ class TestSubnetRegistration:
             mock_keypair = Mock()
             mock_keypair.ss58_address = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY'
 
-            request = SubnetRegisterRequest(
-                name='Test Subnet',
-                repo='https://github.com/test/subnet',
-                description='A test subnet',
-                misc={'version': '1.0.0'},
-                min_stake=1000000000000000000,
-                max_stake=10000000000000000000,
-                delegate_stake_percentage=10,
-                churn_limit=5,
-                registration_queue_epochs=10,
-                activation_grace_epochs=5,
-                queue_classification_epochs=3,
-                included_classification_epochs=2,
-                max_registered_nodes=100,
-                initial_coldkeys=['5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY'],
-                key_types=['sr25519'],
-                node_removal_system='manual'
+            response = client.register_subnet_node(
+                subnet_id=1,
+                hotkey='5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
+                peer_id='QmTestPeerId1234567890abcdef',
+                delegate_reward_rate=1000,
+                stake_to_be_added=1000000000000000000,
+                keypair=mock_keypair
             )
-
-            response = client.register_subnet(request, keypair=mock_keypair)
 
             assert response.success is True
             assert response.transaction_hash == '0x1234567890abcdef'
             assert response.block_number == 12345
 
 
-class TestSubnetActivation:
-    """Test subnet activation functionality."""
+class TestNodeActivation:
+    """Test node activation functionality."""
 
-    def test_activate_subnet_success(self):
-        """Test successful subnet activation."""
+    def test_activate_subnet_node_success(self):
+        """Test successful node activation."""
         with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
             mock_substrate_instance = Mock()
             mock_substrate.return_value = mock_substrate_instance
@@ -105,14 +79,17 @@ class TestSubnetActivation:
             config = load_config()
             client = HypertensorClient(config)
 
-            response = client.activate_subnet(subnet_id=1)
+            response = client.activate_subnet_node(
+                subnet_id=1,
+                node_id=1
+            )
 
             assert response.success is True
             assert 'call composed successfully' in response.message
             assert response.data['call_data'] == '0xabcdef1234567890'
 
-    def test_activate_subnet_with_keypair(self):
-        """Test subnet activation with keypair submission."""
+    def test_activate_subnet_node_with_keypair(self):
+        """Test node activation with keypair submission."""
         with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
             mock_substrate_instance = Mock()
             mock_substrate.return_value = mock_substrate_instance
@@ -129,18 +106,22 @@ class TestSubnetActivation:
             mock_keypair = Mock()
             mock_keypair.ss58_address = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY'
 
-            response = client.activate_subnet(subnet_id=1, keypair=mock_keypair)
+            response = client.activate_subnet_node(
+                subnet_id=1,
+                node_id=1,
+                keypair=mock_keypair
+            )
 
             assert response.success is True
             assert response.transaction_hash == '0xabcdef1234567890'
             assert response.block_number == 12346
 
 
-class TestSubnetOwnerOperations:
-    """Test subnet owner operations."""
+class TestNodeDeactivation:
+    """Test node deactivation functionality."""
 
-    def test_owner_update_name(self):
-        """Test subnet owner name update."""
+    def test_deactivate_subnet_node_success(self):
+        """Test successful node deactivation."""
         with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
             mock_substrate_instance = Mock()
             mock_substrate.return_value = mock_substrate_instance
@@ -150,16 +131,16 @@ class TestSubnetOwnerOperations:
             config = load_config()
             client = HypertensorClient(config)
 
-            response = client.owner_update_name(
+            response = client.deactivate_subnet_node(
                 subnet_id=1,
-                new_name='Updated Subnet Name'
+                node_id=1
             )
 
             assert response.success is True
             assert 'call composed successfully' in response.message
 
-    def test_owner_update_repo(self):
-        """Test subnet owner repo update."""
+    def test_reactivate_subnet_node_success(self):
+        """Test successful node reactivation."""
         with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
             mock_substrate_instance = Mock()
             mock_substrate.return_value = mock_substrate_instance
@@ -169,16 +150,20 @@ class TestSubnetOwnerOperations:
             config = load_config()
             client = HypertensorClient(config)
 
-            response = client.owner_update_repo(
+            response = client.reactivate_subnet_node(
                 subnet_id=1,
-                new_repo='https://github.com/updated/repo'
+                node_id=1
             )
 
             assert response.success is True
             assert 'call composed successfully' in response.message
 
-    def test_owner_update_description(self):
-        """Test subnet owner description update."""
+
+class TestNodeRemoval:
+    """Test node removal functionality."""
+
+    def test_remove_subnet_node_success(self):
+        """Test successful node removal."""
         with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
             mock_substrate_instance = Mock()
             mock_substrate.return_value = mock_substrate_instance
@@ -188,16 +173,16 @@ class TestSubnetOwnerOperations:
             config = load_config()
             client = HypertensorClient(config)
 
-            response = client.owner_update_description(
+            response = client.remove_subnet_node(
                 subnet_id=1,
-                new_description='Updated description'
+                node_id=1
             )
 
             assert response.success is True
             assert 'call composed successfully' in response.message
 
-    def test_transfer_subnet_ownership(self):
-        """Test subnet ownership transfer."""
+    def test_remove_subnet_node_with_stake_removal(self):
+        """Test node removal with automatic stake removal."""
         with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
             mock_substrate_instance = Mock()
             mock_substrate.return_value = mock_substrate_instance
@@ -207,16 +192,21 @@ class TestSubnetOwnerOperations:
             config = load_config()
             client = HypertensorClient(config)
 
-            response = client.transfer_subnet_ownership(
+            response = client.remove_subnet_node(
                 subnet_id=1,
-                new_owner='5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty'
+                node_id=1,
+                remove_stake_automatically=True
             )
 
             assert response.success is True
             assert 'call composed successfully' in response.message
 
-    def test_accept_subnet_ownership(self):
-        """Test accepting subnet ownership."""
+
+class TestNodeUpdates:
+    """Test node update functionality."""
+
+    def test_update_node_delegate_reward_rate(self):
+        """Test updating node delegate reward rate."""
         with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
             mock_substrate_instance = Mock()
             mock_substrate.return_value = mock_substrate_instance
@@ -226,13 +216,17 @@ class TestSubnetOwnerOperations:
             config = load_config()
             client = HypertensorClient(config)
 
-            response = client.accept_subnet_ownership(subnet_id=1)
+            response = client.update_node_delegate_reward_rate(
+                subnet_id=1,
+                node_id=1,
+                new_delegate_reward_rate=2000
+            )
 
             assert response.success is True
             assert 'call composed successfully' in response.message
 
-    def test_undo_subnet_ownership_transfer(self):
-        """Test undoing subnet ownership transfer."""
+    def test_update_node_coldkey(self):
+        """Test updating node coldkey."""
         with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
             mock_substrate_instance = Mock()
             mock_substrate.return_value = mock_substrate_instance
@@ -242,75 +236,41 @@ class TestSubnetOwnerOperations:
             config = load_config()
             client = HypertensorClient(config)
 
-            response = client.undo_subnet_ownership_transfer(subnet_id=1)
+            response = client.update_node_coldkey(
+                subnet_id=1,
+                node_id=1,
+                new_coldkey='5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty'
+            )
+
+            assert response.success is True
+            assert 'call composed successfully' in response.message
+
+    def test_update_node_hotkey(self):
+        """Test updating node hotkey."""
+        with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
+            mock_substrate_instance = Mock()
+            mock_substrate.return_value = mock_substrate_instance
+            mock_substrate_instance.compose_call.return_value = '0x1234567890abcdef'
+
+            from src.htcli.config import load_config
+            config = load_config()
+            client = HypertensorClient(config)
+
+            response = client.update_node_hotkey(
+                subnet_id=1,
+                node_id=1,
+                new_hotkey='5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty'
+            )
 
             assert response.success is True
             assert 'call composed successfully' in response.message
 
 
-class TestSubnetActivationRequirements:
-    """Test subnet activation requirements checking."""
+class TestNodeCleanup:
+    """Test node cleanup functionality."""
 
-    def test_check_subnet_activation_requirements_success(self):
-        """Test successful activation requirements check."""
-        with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
-            mock_substrate_instance = Mock()
-            mock_substrate.return_value = mock_substrate_instance
-
-            # Mock storage queries
-            mock_substrate_instance.query.side_effect = [
-                Mock(value=3),  # minimum nodes
-                Mock(value=5),  # current nodes
-                Mock(value=1000000000000000000),  # minimum stake
-                Mock(value=2000000000000000000),  # current stake
-                Mock(value=['5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY']),  # initial coldkeys
-                Mock(value=True),  # network consensus
-            ]
-
-            from src.htcli.config import load_config
-            config = load_config()
-            client = HypertensorClient(config)
-
-            response = client.check_subnet_activation_requirements(subnet_id=1)
-
-            assert response.success is True
-            assert response.data['all_requirements_met'] is True
-            assert len(response.data['missing_requirements']) == 0
-
-    def test_check_subnet_activation_requirements_failure(self):
-        """Test failed activation requirements check."""
-        with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
-            mock_substrate_instance = Mock()
-            mock_substrate.return_value = mock_substrate_instance
-
-            # Mock storage queries - insufficient nodes and stake
-            mock_substrate_instance.query.side_effect = [
-                Mock(value=3),  # minimum nodes
-                Mock(value=1),  # current nodes (insufficient)
-                Mock(value=1000000000000000000),  # minimum stake
-                Mock(value=500000000000000000),  # current stake (insufficient)
-                Mock(value=['5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY']),  # initial coldkeys
-                Mock(value=True),  # network consensus
-            ]
-
-            from src.htcli.config import load_config
-            config = load_config()
-            client = HypertensorClient(config)
-
-            response = client.check_subnet_activation_requirements(subnet_id=1)
-
-            assert response.success is True
-            assert response.data['all_requirements_met'] is False
-            assert len(response.data['missing_requirements']) > 0
-            assert 'Insufficient nodes' in str(response.data['missing_requirements'])
-            assert 'Insufficient delegate stake' in str(response.data['missing_requirements'])
-
-
-class TestSubnetPauseUnpause:
-    """Test subnet pause and unpause functionality."""
-
-    def test_pause_subnet_success(self):
-        """Test successful subnet pause."""
+    def test_cleanup_expired_node_success(self):
+        """Test successful expired node cleanup."""
         with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
             mock_substrate_instance = Mock()
             mock_substrate.return_value = mock_substrate_instance
@@ -320,23 +280,10 @@ class TestSubnetPauseUnpause:
             config = load_config()
             client = HypertensorClient(config)
 
-            response = client.pause_subnet(subnet_id=1)
-
-            assert response.success is True
-            assert 'call composed successfully' in response.message
-
-    def test_unpause_subnet_success(self):
-        """Test successful subnet unpause."""
-        with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
-            mock_substrate_instance = Mock()
-            mock_substrate.return_value = mock_substrate_instance
-            mock_substrate_instance.compose_call.return_value = '0x1234567890abcdef'
-
-            from src.htcli.config import load_config
-            config = load_config()
-            client = HypertensorClient(config)
-
-            response = client.unpause_subnet(subnet_id=1)
+            response = client.cleanup_expired_node(
+                subnet_id=1,
+                node_id=1
+            )
 
             assert response.success is True
             assert 'call composed successfully' in response.message

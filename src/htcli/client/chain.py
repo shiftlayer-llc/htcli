@@ -45,14 +45,22 @@ class ChainClient:
                 success=True,
                 message="Network statistics retrieved successfully",
                 data={
-                    "total_subnets": total_subnets.value if total_subnets else 0,
+                    # "total_subnets": total_subnets.value if total_subnets else 0,
+                    # "total_active_subnets": (
+                    #     total_active_subnets.value if total_active_subnets else 0
+                    # ),
+                    # "total_active_nodes": (
+                    #     total_active_nodes.value if total_active_nodes else 0
+                    # ),
+                    # "total_stake": total_stake.value if total_stake else 0,
+                    "total_subnets": total_subnets.value,
                     "total_active_subnets": (
-                        total_active_subnets.value if total_active_subnets else 0
+                        total_active_subnets.value
                     ),
                     "total_active_nodes": (
-                        total_active_nodes.value if total_active_nodes else 0
+                        total_active_nodes.value
                     ),
-                    "total_stake": total_stake.value if total_stake else 0,
+                    "total_stake": total_stake.value,
                 },
             )
         except Exception as e:

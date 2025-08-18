@@ -377,6 +377,7 @@ Network Uptime: {stats.get('network_uptime', 0)}%
 Average Block Time: {stats.get('average_block_time', 0)}s
     """
 
+
     panel = Panel(info_text, title="Network Statistics")
     console.print(panel)
 

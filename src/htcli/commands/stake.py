@@ -23,7 +23,7 @@ from ..utils.formatting import (
     format_balance,
 )
 from ..utils.ownership import get_user_addresses
-from ..dependencies import get_client
+from ..dependencies import get_client, get_config
 
 app = typer.Typer(name="stake", help="Staking operations and management")
 console = Console()
@@ -321,8 +321,6 @@ def remove(
 
     # Show comprehensive guidance
     if show_guidance:
-        from rich.panel import Panel
-
         guidance_panel = Panel(
             f"[bold cyan]📤 Remove Stake from Node Guide[/bold cyan]\n\n"
             f"This will remove stake from node {node_id} in subnet {subnet_id}:\n\n"
@@ -602,8 +600,6 @@ def delegate_add(
 
     # Show comprehensive guidance
     if show_guidance:
-        from rich.panel import Panel
-
         guidance_panel = Panel(
             f"[bold cyan]🤝 Delegate Staking Guide[/bold cyan]\n\n"
             f"This will add {format_balance(amount)} delegate stake to subnet {subnet_id}:\n\n"
@@ -718,8 +714,6 @@ def delegate_remove(
 
     # Show comprehensive guidance
     if show_guidance:
-        from rich.panel import Panel
-
         guidance_panel = Panel(
             f"[bold cyan]📤 Remove Delegate Stake Guide[/bold cyan]\n\n"
             f"This will remove {shares} delegate stake shares from subnet {subnet_id}:\n\n"
@@ -831,8 +825,6 @@ def delegate_increase(
 
     # Show comprehensive guidance
     if show_guidance:
-        from rich.panel import Panel
-
         guidance_panel = Panel(
             f"[bold cyan]💰 Increase Delegate Stake Pool Guide[/bold cyan]\n\n"
             f"This will increase the delegate stake pool for subnet {subnet_id} by {format_balance(amount)}:\n\n"
@@ -956,8 +948,6 @@ def delegate_transfer(
 
     # Show comprehensive guidance
     if show_guidance:
-        from rich.panel import Panel
-
         guidance_panel = Panel(
             f"[bold cyan]🔄 Transfer Delegate Stake Guide[/bold cyan]\n\n"
             f"This will transfer {shares} delegate stake shares from subnet {subnet_id}:\n\n"
@@ -1081,8 +1071,6 @@ def node_add(
 
     # Show comprehensive guidance
     if show_guidance:
-        from rich.panel import Panel
-
         guidance_panel = Panel(
             f"[bold cyan]💰 Node Delegate Staking Guide[/bold cyan]\n\n"
             f"This will add stake to node {node_id} in subnet {subnet_id}:\n\n"
@@ -1252,8 +1240,6 @@ def node_remove(
 
     # Show comprehensive guidance
     if show_guidance:
-        from rich.panel import Panel
-
         guidance_panel = Panel(
             f"[bold cyan]💰 Remove Node Stake Guide[/bold cyan]\n\n"
             f"This will remove stake from node {node_id} in subnet {subnet_id}:\n\n"
@@ -1418,8 +1404,6 @@ def node_transfer(
 
     # Show comprehensive guidance
     if show_guidance:
-        from rich.panel import Panel
-
         guidance_panel = Panel(
             f"[bold cyan]💰 Transfer Node Stake Guide[/bold cyan]\n\n"
             f"This will transfer stake shares from node {node_id} in subnet {subnet_id}:\n\n"
@@ -1600,8 +1584,6 @@ def node_increase(
 
     # Show comprehensive guidance
     if show_guidance:
-        from rich.panel import Panel
-
         guidance_panel = Panel(
             f"[bold cyan]💰 Increase Node Stake Pool Guide[/bold cyan]\n\n"
             f"This will increase the stake pool for node {node_id} in subnet {subnet_id}:\n\n"
@@ -1754,6 +1736,9 @@ def info(
     node_id: Optional[int] = typer.Option(
         None, "--node-id", "-n", help="Node ID to show info for"
     ),
+    address: Optional[str] = typer.Option(
+        None, "--address", "-a", help="Specific address to check (SS58 format)"
+    ),
     show_guidance: bool = typer.Option(
         True, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
@@ -1763,8 +1748,6 @@ def info(
 
     # Show comprehensive guidance
     if show_guidance:
-        from rich.panel import Panel
-
         guidance_panel = Panel(
             "[bold cyan]💰 Staking Information Guide[/bold cyan]\n\n"
             "This will show comprehensive staking information:\n\n"
@@ -1800,11 +1783,70 @@ def info(
         print_info("💰 Fetching comprehensive staking information...")
 
         # Get user address for personalized information
+        config = get_config()
         user_address = None
-        if config.filter.mine:
+
+        # Check if address was provided as parameter
+        if address:
+            # Validate the provided address
+            if not validate_address(address):
+                print_error("❌ Invalid address format. Please provide a valid SS58 address.")
+                raise typer.Exit(1)
+            user_address = address
+            print_info(f"🔑 Using provided address: {user_address}")
+        else:
+            # Interactive address selection - always show if no address provided
             user_addresses = get_user_addresses()
             if user_addresses:
-                user_address = user_addresses[0]  # Use first address for now
+                if len(user_addresses) == 1:
+                    # Only one address available
+                    user_address = user_addresses[0][1]  # Get address from tuple
+                    print_info(f"🔑 Using address: {user_address}")
+                else:
+                    # Multiple addresses - let user choose
+                    console.print(
+                        Panel(
+                            f"[bold cyan]🔑 Select Address for Stake Information[/bold cyan]\n\n"
+                            f"Multiple addresses found in your wallet. Choose which one to check:\n\n"
+                            f"[yellow]Available Addresses:[/yellow]",
+                            title="Address Selection",
+                            border_style="cyan",
+                        )
+                    )
+
+                    # Extract just the addresses for display
+                    addresses_only = [addr for _, addr in user_addresses]
+
+                    for i, addr in enumerate(addresses_only, 1):
+                        console.print(f"  {i}. {addr}")
+
+                    console.print()
+
+                    while True:
+                        try:
+                            choice = typer.prompt(
+                                f"Enter number (1-{len(addresses_only)}) or 'q' to quit",
+                                type=str
+                            )
+
+                            if choice.lower() == 'q':
+                                print_info("Address selection cancelled.")
+                                return
+
+                            choice_num = int(choice)
+                            if 1 <= choice_num <= len(user_addresses):
+                                user_address = addresses_only[choice_num - 1]
+                                print_info(f"🔑 Selected address: {user_address}")
+                                break
+                            else:
+                                print_error(f"❌ Please enter a number between 1 and {len(addresses_only)}")
+                        except ValueError:
+                            print_error("❌ Please enter a valid number")
+                        except KeyboardInterrupt:
+                            print_info("\nAddress selection cancelled.")
+                            return
+            else:
+                print_info("ℹ️ No addresses found in your wallet. Showing general network information.")
 
         # Get staking information
         if subnet_id and node_id:
@@ -1892,6 +1934,15 @@ def info(
                 data = response.data
                 network_stats = data.get("network_stats", {})
 
+                # Safely get top performing subnet info
+                top_subnets = network_stats.get('top_performing_subnets', [])
+                top_subnet_info = ""
+                if top_subnets and len(top_subnets) > 0:
+                    top_subnet = top_subnets[0]
+                    top_subnet_info = f"• Subnet {top_subnet.get('subnet_id', 'N/A')}: {top_subnet.get('subnet_reward_rate', 0)}% rate"
+                else:
+                    top_subnet_info = "• No subnets available"
+
                 console.print(
                     Panel(
                         f"[bold cyan]🌍 Network Staking Overview[/bold cyan]\n\n"
@@ -1904,7 +1955,7 @@ def info(
                         f"• [yellow]Portfolio Percentage[/yellow]: {network_stats.get('user_stake_percentage', 0):.2f}%\n"
                         f"• [yellow]Address[/yellow]: {data.get('user_address', 'Not specified')}\n\n"
                         f"[bold]Top Performing Subnets:[/bold]\n"
-                        f"• Subnet {network_stats.get('top_performing_subnets', [{}])[0].get('subnet_id', 'N/A')}: {network_stats.get('top_performing_subnets', [{}])[0].get('subnet_reward_rate', 0)}% rate\n\n"
+                        f"{top_subnet_info}\n\n"
                         f"[bold]Recommendations:[/bold]\n"
                         f"• Diversify across multiple subnets\n"
                         f"• Monitor performance regularly\n"
@@ -1927,4 +1978,99 @@ def info(
 
     except Exception as e:
         print_error(f"❌ Failed to get staking information: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def list_addresses(
+    show_guidance: bool = typer.Option(
+        True, "--guidance/--no-guidance", help="Show comprehensive guidance"
+    ),
+):
+    """List available addresses for stake information."""
+    client = get_client()
+
+    # Show comprehensive guidance
+    if show_guidance:
+        guidance_panel = Panel(
+            "[bold cyan]🔑 Address Listing Guide[/bold cyan]\n\n"
+            "This will show all available addresses in your wallet:\n\n"
+            "[bold]What You'll See:[/bold]\n"
+            "• [green]All Addresses[/green]: Every address in your wallet\n"
+            "• [green]Address Format[/green]: SS58 format addresses\n"
+            "• [green]Selection Numbers[/green]: Easy-to-use selection numbers\n\n"
+            "[bold]How to Use:[/bold]\n"
+            "• Copy any address to use with --address flag\n"
+            "• Use selection numbers in interactive mode\n"
+            "• Each address can have different stake positions\n\n"
+            "[yellow]💡 Tip:[/yellow]\n"
+            "• Use --address flag to specify an address directly\n"
+            "• Run stake info without --address for interactive selection\n"
+            "• Check each address for different stake positions",
+            title="[bold blue]🔑 List Addresses[/bold blue]",
+            border_style="blue",
+        )
+        console.print(guidance_panel)
+        console.print()
+
+    try:
+        print_info("🔑 Fetching available addresses...")
+
+        # Get user addresses
+        user_addresses = get_user_addresses()
+
+        if user_addresses:
+            console.print(
+                Panel(
+                    f"[bold cyan]🔑 Available Addresses[/bold cyan]\n\n"
+                    f"Found {len(user_addresses)} address(es) in your wallet:\n\n"
+                    f"[yellow]Addresses:[/yellow]",
+                    title="Address List",
+                    border_style="cyan",
+                )
+            )
+
+            # Extract just the addresses for display
+            addresses_only = [addr for _, addr in user_addresses]
+
+            for i, addr in enumerate(addresses_only, 1):
+                console.print(f"  {i}. {addr}")
+
+            console.print()
+            console.print(
+                Panel(
+                    f"[bold green]💡 Usage Examples:[/bold green]\n\n"
+                    f"• Check stake info for specific address:\n"
+                    f"  [bold]htcli stake info --address {addresses_only[0] if addresses_only else 'YOUR_ADDRESS'}[/bold]\n\n"
+                    f"• Interactive stake info (choose from list):\n"
+                    f"  [bold]htcli stake info[/bold]\n\n"
+                    f"• Check subnet-specific stake:\n"
+                    f"  [bold]htcli stake info --subnet-id 1 --address {addresses_only[0] if addresses_only else 'YOUR_ADDRESS'}[/bold]",
+                    title="Usage Guide",
+                    border_style="green",
+                )
+            )
+
+            print_success(f"✅ Found {len(user_addresses)} address(es)")
+        else:
+            console.print(
+                Panel(
+                    "[bold yellow]⚠️ No Addresses Found[/bold yellow]\n\n"
+                    "No addresses found in your wallet.\n\n"
+                    "[yellow]Possible reasons:[/yellow]\n"
+                    "• No keys have been generated yet\n"
+                    "• Keys are stored in a different location\n"
+                    "• Wallet directory is not configured correctly\n\n"
+                    "[yellow]Next steps:[/yellow]\n"
+                    "• Generate a key: [bold]htcli wallet generate-key[/bold]\n"
+                    "• Import a key: [bold]htcli wallet import-key[/bold]\n"
+                    "• Check wallet status: [bold]htcli wallet status[/bold]",
+                    title="No Addresses",
+                    border_style="yellow",
+                )
+            )
+            print_info("ℹ️ No addresses found in your wallet")
+
+    except Exception as e:
+        print_error(f"❌ Failed to list addresses: {str(e)}")
         raise typer.Exit(1)

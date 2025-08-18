@@ -290,13 +290,13 @@ class HypertensorClient:
         """Get node staking information."""
         return self.subnet.get_node_staking_info(subnet_id, node_id)
 
-    def get_subnet_staking_info(self, subnet_id: int):
+    def get_subnet_staking_info(self, subnet_id: int, user_address: str = None):
         """Get subnet staking information."""
-        return self.subnet.get_subnet_staking_info(subnet_id)
+        return self.subnet.get_subnet_staking_info(subnet_id, user_address)
 
-    def get_general_staking_info(self):
+    def get_general_staking_info(self, user_address: str = None):
         """Get general staking information."""
-        return self.subnet.get_general_staking_info()
+        return self.subnet.get_general_staking_info(user_address)
 
     # Wallet operations
     def add_to_stake(self, request: StakeAddRequest, keypair=None):

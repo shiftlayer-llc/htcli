@@ -63,7 +63,7 @@ Interactive configuration editor within terminal.
 ### Set Configuration Value
 
 ```bash
-htcli config set --key network.endpoint --value wss://testnet.hypertensor.ai
+htcli config set network.endpoint wss://testnet.hypertensor.ai
 ```
 
 Set specific configuration values.
@@ -71,7 +71,7 @@ Set specific configuration values.
 ### Get Configuration Value
 
 ```bash
-htcli config get --key network.endpoint
+htcli config get network.endpoint
 ```
 
 Retrieve specific configuration values.

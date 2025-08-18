@@ -621,3 +621,134 @@ def validate(
     except Exception as e:
         print_error(f"Configuration validation failed: {str(e)}")
         raise typer.Exit(1)
+
+
+@app.command()
+def set(
+    key: str = typer.Argument(..., help="Configuration key (e.g., 'network.endpoint')"),
+    value: str = typer.Argument(..., help="Value to set"),
+    config_file: Optional[str] = typer.Option(
+        None, "--config-file", "-c", help="Custom configuration file path"
+    ),
+):
+    """Set a specific configuration value."""
+    config_path = get_config_path(config_file)
+
+    if not config_path.exists():
+        print_error(f"Configuration file not found: {config_path}")
+        raise typer.Exit(1)
+
+    try:
+        # Load existing config
+        config = load_existing_config(config_path)
+        if not config:
+            print_error("Failed to load existing configuration")
+            raise typer.Exit(1)
+
+        # Parse the key path (e.g., "network.endpoint" -> ["network", "endpoint"])
+        key_parts = key.split(".")
+
+        # Navigate to the nested location
+        current = config
+        for part in key_parts[:-1]:
+            if not hasattr(current, part):
+                print_error(f"Invalid configuration key: {key}")
+                raise typer.Exit(1)
+            current = getattr(current, part)
+
+        # Set the value
+        final_key = key_parts[-1]
+        if not hasattr(current, final_key):
+            print_error(f"Invalid configuration key: {key}")
+            raise typer.Exit(1)
+
+        # Validate the value based on the key
+        old_value = getattr(current, final_key)
+
+        # Type conversion and validation
+        if isinstance(old_value, bool):
+            if value.lower() in ('true', '1', 'yes', 'on'):
+                new_value = True
+            elif value.lower() in ('false', '0', 'no', 'off'):
+                new_value = False
+            else:
+                print_error(f"Invalid boolean value: {value}. Use 'true'/'false' or '1'/'0'")
+                raise typer.Exit(1)
+        elif isinstance(old_value, int):
+            try:
+                new_value = int(value)
+            except ValueError:
+                print_error(f"Invalid integer value: {value}")
+                raise typer.Exit(1)
+        elif isinstance(old_value, float):
+            try:
+                new_value = float(value)
+            except ValueError:
+                print_error(f"Invalid float value: {value}")
+                raise typer.Exit(1)
+        else:
+            new_value = value
+
+        # Set the new value
+        setattr(current, final_key, new_value)
+
+        # Save the configuration
+        save_config(config, config_path)
+
+        print_success(f"✅ Configuration updated: {key} = {new_value}")
+        console.print(f"📄 Configuration saved to: [bold]{config_path}[/bold]")
+
+    except Exception as e:
+        print_error(f"Failed to set configuration: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def get(
+    key: str = typer.Argument(..., help="Configuration key (e.g., 'network.endpoint')"),
+    config_file: Optional[str] = typer.Option(
+        None, "--config-file", "-c", help="Custom configuration file path"
+    ),
+):
+    """Get a specific configuration value."""
+    config_path = get_config_path(config_file)
+
+    if not config_path.exists():
+        print_error(f"Configuration file not found: {config_path}")
+        raise typer.Exit(1)
+
+    try:
+        # Load existing config
+        config = load_existing_config(config_path)
+        if not config:
+            print_error("Failed to load existing configuration")
+            raise typer.Exit(1)
+
+        # Parse the key path (e.g., "network.endpoint" -> ["network", "endpoint"])
+        key_parts = key.split(".")
+
+        # Navigate to the nested location
+        current = config
+        for part in key_parts:
+            if not hasattr(current, part):
+                print_error(f"Invalid configuration key: {key}")
+                raise typer.Exit(1)
+            current = getattr(current, part)
+
+        # Display the value
+        value_type = type(current).__name__
+        console.print(
+            Panel(
+                f"[bold cyan]Configuration Value[/bold cyan]\n\n"
+                f"[bold]Key:[/bold] {key}\n"
+                f"[bold]Type:[/bold] {value_type}\n"
+                f"[bold]Value:[/bold] {current}\n\n"
+                f"[yellow]💡 Tip:[/yellow] Use 'htcli config set {key} <new_value>' to change this value",
+                title="Configuration Get",
+                border_style="cyan",
+            )
+        )
+
+    except Exception as e:
+        print_error(f"Failed to get configuration: {str(e)}")
+        raise typer.Exit(1)

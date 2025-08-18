@@ -430,6 +430,16 @@ def validate_coldkey_addresses(addresses: List[str]) -> bool:
     return True
 
 
+def validate_ss58_address(address: str) -> bool:
+    """Validate SS58 address format."""
+    if not address or len(address) < 10 or len(address) > 100:
+        return False
+    # Basic SS58 format validation (starts with number and contains alphanumeric)
+    import re
+
+    return bool(re.match(r"^[1-9][a-zA-Z0-9]+$", address))
+
+
 def validate_delegate_reward_rate(rate: int) -> bool:
     """Validate delegate reward rate."""
     if not isinstance(rate, int):

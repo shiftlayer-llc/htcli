@@ -13,7 +13,9 @@ class SubnetRegisterRequest(BaseModel):
     name: str = Field(..., description="Unique name of the subnet")
     repo: str = Field(..., description="GitHub or similar link to source code")
     description: str = Field(..., description="Description of the subnet")
-    misc: Dict[str, Any] = Field(default_factory=dict, description="Miscellaneous information")
+    misc: Dict[str, Any] = Field(
+        default_factory=dict, description="Miscellaneous information"
+    )
 
     # Stake configuration
     min_stake: int = Field(

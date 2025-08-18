@@ -164,14 +164,22 @@ class TestCLIIntegration:
             result = cli_runner.invoke(
                 app, ["wallet", "generate-key", "test-key", "--type", "sr25519"]
             )
-            assert result.exit_code in [0, 1, 2]  # 0 for success, 1 for argument error, 2 for command not found
+            assert result.exit_code in [
+                0,
+                1,
+                2,
+            ]  # 0 for success, 1 for argument error, 2 for command not found
             if result.exit_code == 0:
                 # Update expected message to match actual output
                 assert "generated successfully" in result.stdout.lower()
 
             # Test key listing with new structure
             result = cli_runner.invoke(app, ["wallet", "list-keys"])
-            assert result.exit_code in [0, 1, 2]  # 0 for success, 1 for argument error, 2 for command not found
+            assert result.exit_code in [
+                0,
+                1,
+                2,
+            ]  # 0 for success, 1 for argument error, 2 for command not found
             if result.exit_code == 0:
                 # Accept either the key name or "No keys found" (which is valid for a fresh test)
                 assert "test-key" in result.stdout or "No keys found" in result.stdout
@@ -179,13 +187,21 @@ class TestCLIIntegration:
             # Test key deletion with new structure
             if result.exit_code == 0 and "test-key" in result.stdout:
                 result = cli_runner.invoke(app, ["wallet", "delete-key", "test-key"])
-                assert result.exit_code in [0, 1, 2]  # 0 for success, 1 for argument error, 2 for command not found
+                assert result.exit_code in [
+                    0,
+                    1,
+                    2,
+                ]  # 0 for success, 1 for argument error, 2 for command not found
                 if result.exit_code == 0:
                     assert "deleted successfully" in result.stdout.lower()
             else:
                 # If no key was found, deletion should still work (no-op)
                 result = cli_runner.invoke(app, ["wallet", "delete-key", "test-key"])
-                assert result.exit_code in [0, 1, 2]  # 0 for success, 1 for argument error, 2 for command not found
+                assert result.exit_code in [
+                    0,
+                    1,
+                    2,
+                ]  # 0 for success, 1 for argument error, 2 for command not found
 
     @pytest.mark.integration
     def test_end_to_end_chain_workflow(self, cli_runner):
@@ -334,7 +350,11 @@ class TestCLIIntegration:
                     "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
                 ],
             )
-            assert result.exit_code in [0, 1, 2]  # 0 for success, 1 for argument error, 2 for command not found
+            assert result.exit_code in [
+                0,
+                1,
+                2,
+            ]  # 0 for success, 1 for argument error, 2 for command not found
             if result.exit_code == 0:
                 assert (
                     "Account Information" in result.stdout

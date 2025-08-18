@@ -18,6 +18,7 @@ from ..utils.validation import (
     validate_wallet_name,
 )
 from ..utils.formatting import print_success, print_error, format_table
+from ..utils.ownership import get_user_addresses, get_ownership_summary
 
 app = typer.Typer(name="wallet", help="Wallet operations")
 console = Console()
@@ -167,7 +168,6 @@ def status(
     """Show your blockchain identity and key status."""
     from rich.panel import Panel
     from rich.table import Table
-    from ..utils.ownership import get_user_addresses, get_ownership_summary
 
     if show_guidance:
         guidance_panel = Panel(

@@ -15,7 +15,6 @@ from .commands.node import app as node_app
 from .commands.stake import app as stake_app
 from .commands.flow import app as flow_app
 from .config import load_config
-from .client import HypertensorClient
 from .dependencies import set_config
 
 
@@ -70,7 +69,6 @@ def main(
     if len(sys.argv) == 1:
         from rich.panel import Panel
         from rich.table import Table
-        from rich.columns import Columns
         from rich.text import Text
 
         # Display ASCII art first

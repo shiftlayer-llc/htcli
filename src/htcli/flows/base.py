@@ -5,7 +5,7 @@ Provides the foundation for all automated flows with common functionality,
 error handling, and user interaction patterns.
 """
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass
 from enum import Enum

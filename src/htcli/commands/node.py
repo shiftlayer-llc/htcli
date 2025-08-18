@@ -7,7 +7,6 @@ import typer
 from rich.console import Console
 from rich.panel import Panel
 from typing import Optional
-from ..models.requests import SubnetNodeAddRequest
 from ..utils.validation import (
     validate_subnet_id,
     validate_node_id,
@@ -23,6 +22,7 @@ from ..utils.formatting import (
     format_node_list,
     format_balance,
 )
+from ..utils.password import get_secure_password
 from ..dependencies import get_client
 
 app = typer.Typer(name="node", help="Node management operations")
@@ -672,16 +672,16 @@ def status(
                     )
                 elif classification == "Included":
                     action_panel = Panel(
-                        f"[bold green]✅ Node is Included:[/bold green]\n\n"
-                        f"Your node is successfully included in consensus!\n\n"
-                        f"[bold]Current Status:[/bold]\n"
-                        f"• Participating in consensus\n"
-                        f"• Earning rewards\n"
-                        f"• Contributing to network security\n\n"
-                        f"[yellow]🎉 Congratulations![/yellow]\n"
-                        f"• Your node is fully operational\n"
-                        f"• Continue monitoring performance\n"
-                        f"• Maintain good attestation ratio",
+                        "[bold green]✅ Node is Included:[/bold green]\n\n"
+                        "Your node is successfully included in consensus!\n\n"
+                        "[bold]Current Status:[/bold]\n"
+                        "• Participating in consensus\n"
+                        "• Earning rewards\n"
+                        "• Contributing to network security\n\n"
+                        "[yellow]🎉 Congratulations![/yellow]\n"
+                        "• Your node is fully operational\n"
+                        "• Continue monitoring performance\n"
+                        "• Maintain good attestation ratio",
                         title="[bold green]🎉 Fully Operational[/bold green]",
                         border_style="green",
                     )
@@ -776,22 +776,22 @@ def remove(
         # Show stake removal choice guidance
         if remove_stake:
             stake_choice_panel = Panel(
-                f"[bold green]🔄 Automatic Stake Removal Selected[/bold green]\n\n"
-                f"You have chosen to automatically remove stake after node removal.\n\n"
-                f"[bold]What Will Happen:[/bold]\n"
-                f"• Node will be removed from subnet\n"
-                f"• Stake will be automatically removed\n"
-                f"• Tokens will begin unbonding process\n"
-                f"• Complete cleanup in one operation\n\n"
-                f"[bold]Benefits:[/bold]\n"
-                f"• [green]One-step process[/green] - no manual follow-up needed\n"
-                f"• [green]Immediate stake removal[/green] - no locked tokens\n"
-                f"• [green]Complete cleanup[/green] - node and stake both removed\n"
-                f"• [green]Convenient[/green] - single command execution\n\n"
-                f"[yellow]⚠️ Note:[/yellow]\n"
-                f"• Unbonding period still applies\n"
-                f"• Tokens won't be immediately available\n"
-                f"• Process is irreversible",
+                "[bold green]🔄 Automatic Stake Removal Selected[/bold green]\n\n"
+                "You have chosen to automatically remove stake after node removal.\n\n"
+                "[bold]What Will Happen:[/bold]\n"
+                "• Node will be removed from subnet\n"
+                "• Stake will be automatically removed\n"
+                "• Tokens will begin unbonding process\n"
+                "• Complete cleanup in one operation\n\n"
+                "[bold]Benefits:[/bold]\n"
+                "• [green]One-step process[/green] - no manual follow-up needed\n"
+                "• [green]Immediate stake removal[/green] - no locked tokens\n"
+                "• [green]Complete cleanup[/green] - node and stake both removed\n"
+                "• [green]Convenient[/green] - single command execution\n\n"
+                "[yellow]⚠️ Note:[/yellow]\n"
+                "• Unbonding period still applies\n"
+                "• Tokens won't be immediately available\n"
+                "• Process is irreversible",
                 title="Automatic Stake Removal",
                 border_style="green",
             )

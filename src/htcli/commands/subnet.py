@@ -355,7 +355,7 @@ def activate(
             raise typer.Exit(1)
 
         print_info(f"🔄 Activating subnet {subnet_id}...")
-        print_info(f"📋 Checking activation requirements...")
+        print_info("📋 Checking activation requirements...")
 
         # Check activation requirements
         requirements = client.check_subnet_activation_requirements(subnet_id)

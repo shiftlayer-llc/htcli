@@ -9,7 +9,7 @@ from rich.panel import Panel
 from typing import Optional
 
 from ..utils.password import get_secure_password
-from ..models.requests import StakeAddRequest, StakeRemoveRequest
+from ..models.requests import StakeAddRequest
 from ..utils.validation import (
     validate_subnet_id,
     validate_node_id,
@@ -21,9 +21,8 @@ from ..utils.formatting import (
     print_error,
     print_info,
     format_balance,
-    format_stake_info,
 )
-from ..utils.ownership import require_user_keys, show_mine_filter_info
+from ..utils.ownership import get_user_addresses
 from ..dependencies import get_client
 
 app = typer.Typer(name="stake", help="Staking operations and management")
@@ -411,7 +410,7 @@ def remove(
             removed_amount = stake_data.get("removed_amount", 0)
             shares_removed = stake_data.get("shares_removed", 0)
 
-            print_success(f"✅ Stake removal completed successfully!")
+            print_success("✅ Stake removal completed successfully!")
             console.print(
                 f"📄 Transaction Hash: [bold cyan]{stake_removal_response.transaction_hash}[/bold cyan]"
             )
@@ -1767,30 +1766,30 @@ def info(
         from rich.panel import Panel
 
         guidance_panel = Panel(
-            f"[bold cyan]💰 Staking Information Guide[/bold cyan]\n\n"
-            f"This will show comprehensive staking information:\n\n"
-            f"[bold]What You'll See:[/bold]\n"
-            f"• [green]Subnet Delegate Staking[/green]: Stake to subnet pools\n"
-            f"• [green]Node Delegate Staking[/green]: Stake to specific nodes\n"
-            f"• [yellow]Reward Rates[/yellow]: Current delegate reward rates\n"
-            f"• [yellow]Stake Balances[/yellow]: Your current stake amounts\n"
-            f"• [yellow]Performance Metrics[/yellow]: Staking performance data\n\n"
-            f"[bold]Staking Types:[/bold]\n"
-            f"• [green]Subnet Staking[/green]: Stake to entire subnet, subnet-wide rewards\n"
-            f"• [green]Node Staking[/green]: Stake to specific node, node-specific rewards\n"
-            f"• [yellow]Risk vs Reward[/yellow]: Node staking has higher risk/reward\n"
-            f"• [yellow]Diversification[/yellow]: Consider both types for portfolio\n\n"
-            f"[bold]Information Displayed:[/bold]\n"
-            f"• [green]Current Stakes[/green]: Your active stake positions\n"
-            f"• [green]Reward Rates[/green]: Current delegate reward rates\n"
-            f"• [green]Performance[/green]: Historical performance data\n"
-            f"• [green]Balances[/green]: Current stake balances and values\n"
-            f"• [green]Recommendations[/green]: Strategic staking advice\n\n"
-            f"[yellow]💡 Tip:[/yellow]\n"
-            f"• Monitor your stakes regularly\n"
-            f"• Compare reward rates across options\n"
-            f"• Consider diversification strategies\n"
-            f"• Plan your staking portfolio",
+            "[bold cyan]💰 Staking Information Guide[/bold cyan]\n\n"
+            "This will show comprehensive staking information:\n\n"
+            "[bold]What You'll See:[/bold]\n"
+            "• [green]Subnet Delegate Staking[/green]: Stake to subnet pools\n"
+            "• [green]Node Delegate Staking[/green]: Stake to specific nodes\n"
+            "• [yellow]Reward Rates[/yellow]: Current delegate reward rates\n"
+            "• [yellow]Stake Balances[/yellow]: Your current stake amounts\n"
+            "• [yellow]Performance Metrics[/yellow]: Staking performance data\n\n"
+            "[bold]Staking Types:[/bold]\n"
+            "• [green]Subnet Staking[/green]: Stake to entire subnet, subnet-wide rewards\n"
+            "• [green]Node Staking[/green]: Stake to specific node, node-specific rewards\n"
+            "• [yellow]Risk vs Reward[/yellow]: Node staking has higher risk/reward\n"
+            "• [yellow]Diversification[/yellow]: Consider both types for portfolio\n\n"
+            "[bold]Information Displayed:[/bold]\n"
+            "• [green]Current Stakes[/green]: Your active stake positions\n"
+            "• [green]Reward Rates[/green]: Current delegate reward rates\n"
+            "• [green]Performance[/green]: Historical performance data\n"
+            "• [green]Balances[/green]: Current stake balances and values\n"
+            "• [green]Recommendations[/green]: Strategic staking advice\n\n"
+            "[yellow]💡 Tip:[/yellow]\n"
+            "• Monitor your stakes regularly\n"
+            "• Compare reward rates across options\n"
+            "• Consider diversification strategies\n"
+            "• Plan your staking portfolio",
             title="[bold blue]💰 Staking Information[/bold blue]",
             border_style="blue",
         )

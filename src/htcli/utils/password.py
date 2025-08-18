@@ -6,8 +6,7 @@ Provides secure password handling, caching, and configuration integration.
 """
 
 import os
-import getpass
-from typing import Optional, Dict, Any
+from typing import Optional, Dict
 from pathlib import Path
 import json
 from cryptography.fernet import Fernet

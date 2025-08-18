@@ -111,7 +111,11 @@ class TestNetworkConnectivity:
         result = cli_runner.invoke(app, ["chain", "balance", test_address])
 
         # Should not crash, even if network is unavailable
-        assert result.exit_code in [0, 1, 2]  # 0 for success, 1 for network error, 2 for command not found
+        assert result.exit_code in [
+            0,
+            1,
+            2,
+        ]  # 0 for success, 1 for network error, 2 for command not found
 
         if result.exit_code == 0:
             assert "balance" in result.stdout.lower() or "TENSOR" in result.stdout
@@ -127,7 +131,11 @@ class TestNetworkConnectivity:
         result = cli_runner.invoke(app, ["chain", "account", test_address])
 
         # Should not crash, even if network is unavailable
-        assert result.exit_code in [0, 1, 2]  # 0 for success, 1 for network error, 2 for command not found
+        assert result.exit_code in [
+            0,
+            1,
+            2,
+        ]  # 0 for success, 1 for network error, 2 for command not found
 
         if result.exit_code == 0:
             assert (

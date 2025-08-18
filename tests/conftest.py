@@ -53,21 +53,60 @@ def mock_client(mock_config):
     # Subnet owner operations
     client.owner_update_name.return_value = {"success": True, "message": "Success"}
     client.owner_update_repo.return_value = {"success": True, "message": "Success"}
-    client.owner_update_description.return_value = {"success": True, "message": "Success"}
-    client.transfer_subnet_ownership.return_value = {"success": True, "message": "Success"}
-    client.accept_subnet_ownership.return_value = {"success": True, "message": "Success"}
-    client.undo_subnet_ownership_transfer.return_value = {"success": True, "message": "Success"}
-    client.owner_remove_subnet_node.return_value = {"success": True, "message": "Success"}
-    client.owner_update_churn_limit.return_value = {"success": True, "message": "Success"}
+    client.owner_update_description.return_value = {
+        "success": True,
+        "message": "Success",
+    }
+    client.transfer_subnet_ownership.return_value = {
+        "success": True,
+        "message": "Success",
+    }
+    client.accept_subnet_ownership.return_value = {
+        "success": True,
+        "message": "Success",
+    }
+    client.undo_subnet_ownership_transfer.return_value = {
+        "success": True,
+        "message": "Success",
+    }
+    client.owner_remove_subnet_node.return_value = {
+        "success": True,
+        "message": "Success",
+    }
+    client.owner_update_churn_limit.return_value = {
+        "success": True,
+        "message": "Success",
+    }
     client.owner_update_min_stake.return_value = {"success": True, "message": "Success"}
     client.owner_update_max_stake.return_value = {"success": True, "message": "Success"}
-    client.owner_update_registration_epochs.return_value = {"success": True, "message": "Success"}
-    client.owner_update_activation_grace_epochs.return_value = {"success": True, "message": "Success"}
-    client.owner_update_idle_epochs.return_value = {"success": True, "message": "Success"}
-    client.owner_update_included_epochs.return_value = {"success": True, "message": "Success"}
-    client.owner_update_max_penalties.return_value = {"success": True, "message": "Success"}
-    client.owner_add_initial_coldkeys.return_value = {"success": True, "message": "Success"}
-    client.owner_remove_initial_coldkeys.return_value = {"success": True, "message": "Success"}
+    client.owner_update_registration_epochs.return_value = {
+        "success": True,
+        "message": "Success",
+    }
+    client.owner_update_activation_grace_epochs.return_value = {
+        "success": True,
+        "message": "Success",
+    }
+    client.owner_update_idle_epochs.return_value = {
+        "success": True,
+        "message": "Success",
+    }
+    client.owner_update_included_epochs.return_value = {
+        "success": True,
+        "message": "Success",
+    }
+    client.owner_update_max_penalties.return_value = {
+        "success": True,
+        "message": "Success",
+    }
+    client.owner_add_initial_coldkeys.return_value = {
+        "success": True,
+        "message": "Success",
+    }
+    client.owner_remove_initial_coldkeys.return_value = {
+        "success": True,
+        "message": "Success",
+    }
 
     # Node operations
     client.register_subnet_node.return_value = {"success": True, "message": "Success"}
@@ -76,7 +115,10 @@ def mock_client(mock_config):
     client.reactivate_subnet_node.return_value = {"success": True, "message": "Success"}
     client.remove_subnet_node.return_value = {"success": True, "message": "Success"}
     client.cleanup_expired_node.return_value = {"success": True, "message": "Success"}
-    client.update_node_delegate_reward_rate.return_value = {"success": True, "message": "Success"}
+    client.update_node_delegate_reward_rate.return_value = {
+        "success": True,
+        "message": "Success",
+    }
     client.update_node_coldkey.return_value = {"success": True, "message": "Success"}
     client.update_node_hotkey.return_value = {"success": True, "message": "Success"}
     client.add_node.return_value = {"success": True, "message": "Success"}
@@ -88,12 +130,30 @@ def mock_client(mock_config):
     client.claim_unbondings.return_value = {"success": True, "message": "Success"}
     client.add_to_delegate_stake.return_value = {"success": True, "message": "Success"}
     client.remove_delegate_stake.return_value = {"success": True, "message": "Success"}
-    client.transfer_delegate_stake.return_value = {"success": True, "message": "Success"}
-    client.increase_delegate_stake.return_value = {"success": True, "message": "Success"}
-    client.add_to_node_delegate_stake.return_value = {"success": True, "message": "Success"}
-    client.remove_node_delegate_stake.return_value = {"success": True, "message": "Success"}
-    client.transfer_node_delegate_stake.return_value = {"success": True, "message": "Success"}
-    client.increase_node_delegate_stake.return_value = {"success": True, "message": "Success"}
+    client.transfer_delegate_stake.return_value = {
+        "success": True,
+        "message": "Success",
+    }
+    client.increase_delegate_stake.return_value = {
+        "success": True,
+        "message": "Success",
+    }
+    client.add_to_node_delegate_stake.return_value = {
+        "success": True,
+        "message": "Success",
+    }
+    client.remove_node_delegate_stake.return_value = {
+        "success": True,
+        "message": "Success",
+    }
+    client.transfer_node_delegate_stake.return_value = {
+        "success": True,
+        "message": "Success",
+    }
+    client.increase_node_delegate_stake.return_value = {
+        "success": True,
+        "message": "Success",
+    }
     client.get_stake_info.return_value = {"success": True, "data": {}}
     client.get_node_staking_info.return_value = {"success": True, "data": {}}
     client.get_subnet_staking_info.return_value = {"success": True, "data": {}}
@@ -108,7 +168,10 @@ def mock_client(mock_config):
     client.get_block_info.return_value = {"success": True, "data": {}}
 
     # Subnet activation requirements
-    client.check_subnet_activation_requirements.return_value = {"success": True, "data": {}}
+    client.check_subnet_activation_requirements.return_value = {
+        "success": True,
+        "data": {},
+    }
 
     return client
 
@@ -172,7 +235,7 @@ def sample_subnet_register_request():
         "max_registered_nodes": 100,
         "initial_coldkeys": ["5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"],
         "key_types": ["sr25519"],
-        "node_removal_system": "manual"
+        "node_removal_system": "manual",
     }
 
 
@@ -263,7 +326,7 @@ def sample_flow_data():
             "subnet_name": "Test Subnet",
             "subnet_id": None,
             "nodes": [],
-        }
+        },
     }
 
 
@@ -285,7 +348,7 @@ def sample_activation_requirements():
         "missing_requirements": [
             "Insufficient nodes (2/3 required)",
             "Insufficient delegate stake (0.8/1.0 TENSOR required)",
-        ]
+        ],
     }
 
 
@@ -328,8 +391,12 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "unit: marks tests as unit tests")
     config.addinivalue_line("markers", "slow: marks tests as slow running")
     config.addinivalue_line("markers", "network: marks tests as network tests")
-    config.addinivalue_line("markers", "password: marks tests as password management tests")
-    config.addinivalue_line("markers", "staking: marks tests as staking operation tests")
+    config.addinivalue_line(
+        "markers", "password: marks tests as password management tests"
+    )
+    config.addinivalue_line(
+        "markers", "staking: marks tests as staking operation tests"
+    )
     config.addinivalue_line("markers", "subnet: marks tests as subnet operation tests")
     config.addinivalue_line("markers", "node: marks tests as node operation tests")
     config.addinivalue_line("markers", "flow: marks tests as flow operation tests")

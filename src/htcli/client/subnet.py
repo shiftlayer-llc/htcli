@@ -396,7 +396,9 @@ class SubnetClient:
             logger.error(f"Failed to get subnet data: {str(e)}")
             raise
 
-    def _safe_query_value(self, storage_function: str, subnet_id, *args, default_value=None):
+    def _safe_query_value(
+        self, storage_function: str, subnet_id, *args, default_value=None
+    ):
         """Safely query a storage value with fallback to default."""
         try:
             if subnet_id is None:
@@ -2319,7 +2321,11 @@ class SubnetClient:
             user_node_shares = 0
             if user_address:
                 user_node_shares = self._safe_query_value(
-                    "NodeDelegateStakeShares", subnet_id, node_id, user_address, default_value=0
+                    "NodeDelegateStakeShares",
+                    subnet_id,
+                    node_id,
+                    user_address,
+                    default_value=0,
                 )
 
             # Get node performance data
@@ -2395,7 +2401,10 @@ class SubnetClient:
             user_subnet_shares = 0
             if user_address:
                 user_subnet_shares = self._safe_query_value(
-                    "SubnetDelegateStakeShares", subnet_id, user_address, default_value=0
+                    "SubnetDelegateStakeShares",
+                    subnet_id,
+                    user_address,
+                    default_value=0,
                 )
 
             # Get subnet performance data

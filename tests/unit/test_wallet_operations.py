@@ -87,6 +87,8 @@ class TestWalletKeys:
             mock_keypair_instance = Mock()
             mock_keypair_instance.public_key.hex.return_value = '0x1234567890abcdef'
             mock_keypair_instance.ss58_address = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY'
+            mock_keypair_instance.private_key = b'1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
+            mock_keypair_instance.crypto_type = 1
             mock_keypair.create_from_uri.return_value = mock_keypair_instance
 
             from src.htcli.utils.crypto import generate_keypair
@@ -103,6 +105,7 @@ class TestWalletKeys:
             mock_keypair_instance = Mock()
             mock_keypair_instance.public_key.hex.return_value = '0xabcdef1234567890'
             mock_keypair_instance.ss58_address = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY'
+            mock_keypair_instance.private_key = b'1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
             mock_keypair.create_from_private_key.return_value = mock_keypair_instance
 
             from src.htcli.utils.crypto import import_keypair

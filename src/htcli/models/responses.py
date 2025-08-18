@@ -73,7 +73,7 @@ class SubnetPauseResponse(BaseModel):
 
     success: bool = Field(..., description="Whether the operation was successful")
     message: str = Field(..., description="Response message")
-    transaction_hash: str = Field(..., description="Transaction hash")
+    transaction_hash: Optional[str] = Field(None, description="Transaction hash")
     block_number: Optional[int] = Field(None, description="Block number")
     data: Dict[str, Any] = Field(default_factory=dict, description="Additional data")
 
@@ -83,7 +83,7 @@ class SubnetUnpauseResponse(BaseModel):
 
     success: bool = Field(..., description="Whether the operation was successful")
     message: str = Field(..., description="Response message")
-    transaction_hash: str = Field(..., description="Transaction hash")
+    transaction_hash: Optional[str] = Field(None, description="Transaction hash")
     block_number: Optional[int] = Field(None, description="Block number")
     data: Dict[str, Any] = Field(default_factory=dict, description="Additional data")
 
@@ -93,7 +93,7 @@ class SubnetOwnershipTransferResponse(BaseModel):
 
     success: bool = Field(..., description="Whether the operation was successful")
     message: str = Field(..., description="Response message")
-    transaction_hash: str = Field(..., description="Transaction hash")
+    transaction_hash: Optional[str] = Field(None, description="Transaction hash")
     block_number: Optional[int] = Field(None, description="Block number")
     data: Dict[str, Any] = Field(default_factory=dict, description="Additional data")
 
@@ -103,7 +103,7 @@ class SubnetOwnerUpdateResponse(BaseModel):
 
     success: bool = Field(..., description="Whether the operation was successful")
     message: str = Field(..., description="Response message")
-    transaction_hash: str = Field(..., description="Transaction hash")
+    transaction_hash: Optional[str] = Field(None, description="Transaction hash")
     block_number: Optional[int] = Field(None, description="Block number")
     data: Dict[str, Any] = Field(default_factory=dict, description="Additional data")
 
@@ -250,7 +250,7 @@ class DelegateStakeIncreaseResponse(BaseModel):
 
     success: bool = Field(..., description="Whether the operation was successful")
     message: str = Field(..., description="Response message")
-    transaction_hash: str = Field(..., description="Transaction hash")
+    transaction_hash: Optional[str] = Field(None, description="Transaction hash")
     block_number: Optional[int] = Field(None, description="Block number")
     data: Dict[str, Any] = Field(default_factory=dict, description="Additional data")
 

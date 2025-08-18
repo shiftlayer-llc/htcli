@@ -396,7 +396,7 @@ class SubnetClient:
             logger.error(f"Failed to get subnet data: {str(e)}")
             raise
 
-    def _safe_query_value(self, storage_function: str, subnet_id, default_value):
+    def _safe_query_value(self, storage_function: str, subnet_id, *args, default_value=None):
         """Safely query a storage value with fallback to default."""
         try:
             if subnet_id is None:
@@ -405,11 +405,12 @@ class SubnetClient:
                     module="Network", storage_function=storage_function, params=[]
                 )
             else:
-                # Subnet-specific storage query
+                # Subnet-specific storage query with additional parameters
+                params = [subnet_id] + list(args)
                 result = self.substrate.query(
                     module="Network",
                     storage_function=storage_function,
-                    params=[subnet_id],
+                    params=params,
                 )
             return (
                 result.value if result and result.value is not None else default_value
@@ -2306,34 +2307,34 @@ class SubnetClient:
 
             # Get node delegate stake balance
             node_delegate_stake = self._safe_query_value(
-                "NodeDelegateStakeBalance", subnet_id, node_id, 0
+                "NodeDelegateStakeBalance", subnet_id, node_id, default_value=0
             )
 
             # Get node delegate reward rate
             node_reward_rate = self._safe_query_value(
-                "NodeDelegateRewardRate", subnet_id, node_id, 0
+                "NodeDelegateRewardRate", subnet_id, node_id, default_value=0
             )
 
             # Get user's node delegate stake shares (if address provided)
             user_node_shares = 0
             if user_address:
                 user_node_shares = self._safe_query_value(
-                    "NodeDelegateStakeShares", subnet_id, node_id, user_address, 0
+                    "NodeDelegateStakeShares", subnet_id, node_id, user_address, default_value=0
                 )
 
             # Get node performance data
             node_performance = self._safe_query_value(
-                "SubnetNodePerformance", subnet_id, node_id, {}
+                "SubnetNodePerformance", subnet_id, node_id, default_value={}
             )
 
             # Get node classification
             node_classification = self._safe_query_value(
-                "SubnetNodeClassification", subnet_id, node_id, {}
+                "SubnetNodeClassification", subnet_id, node_id, default_value={}
             )
 
             # Get node penalties
             node_penalties = self._safe_query_value(
-                "SubnetNodePenalties", subnet_id, node_id, 0
+                "SubnetNodePenalties", subnet_id, node_id, default_value=0
             )
 
             # Calculate user's stake value (if shares available)
@@ -2382,24 +2383,24 @@ class SubnetClient:
 
             # Get subnet delegate stake balance
             subnet_delegate_stake = self._safe_query_value(
-                "TotalSubnetDelegateStakeBalance", subnet_id, 0
+                "TotalSubnetDelegateStakeBalance", subnet_id, default_value=0
             )
 
             # Get subnet delegate reward rate
             subnet_reward_rate = self._safe_query_value(
-                "SubnetDelegateRewardRate", subnet_id, 0
+                "SubnetDelegateRewardRate", subnet_id, default_value=0
             )
 
             # Get user's subnet delegate stake shares (if address provided)
             user_subnet_shares = 0
             if user_address:
                 user_subnet_shares = self._safe_query_value(
-                    "SubnetDelegateStakeShares", subnet_id, user_address, 0
+                    "SubnetDelegateStakeShares", subnet_id, user_address, default_value=0
                 )
 
             # Get subnet performance data
             subnet_performance = self._safe_query_value(
-                "SubnetPerformance", subnet_id, {}
+                "SubnetPerformance", subnet_id, default_value={}
             )
 
             # Get subnet statistics

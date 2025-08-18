@@ -76,9 +76,9 @@ class HypertensorClient:
         """Register a new subnet."""
         return self.subnet.register_subnet(request, keypair)
 
-    def activate_subnet(self, subnet_id: int, keypair=None):
+    def activate_subnet(self, subnet_id: int, key_name: str = None, keypair=None):
         """Activate a subnet."""
-        return self.subnet.activate_subnet(subnet_id, keypair)
+        return self.subnet.activate_subnet(subnet_id, key_name, keypair)
 
     def get_subnet_data(self, subnet_id: int):
         """Get subnet data."""
@@ -92,30 +92,7 @@ class HypertensorClient:
         """Add a node to a subnet."""
         return self.subnet.add_subnet_node(request, keypair)
 
-    def register_subnet_node(
-        self,
-        subnet_id: int,
-        hotkey: str,
-        peer_id: str,
-        bootnode_peer_id: str,
-        client_peer_id: str,
-        stake_amount: int,
-        delegate_reward_rate: int,
-        bootnode: str = None,
-        keypair=None,
-    ):
-        """Register a subnet node with all required parameters."""
-        return self.subnet.register_subnet_node(
-            subnet_id,
-            hotkey,
-            peer_id,
-            bootnode_peer_id,
-            client_peer_id,
-            stake_amount,
-            delegate_reward_rate,
-            bootnode,
-            keypair,
-        )
+
 
     def activate_subnet_node(self, subnet_id: int, node_id: int, keypair=None):
         """Activate a subnet node."""
@@ -207,6 +184,102 @@ class HypertensorClient:
         """Remove a subnet node."""
         return self.subnet.remove_subnet_node(subnet_id, subnet_node_id, keypair)
 
+    # Subnet owner operations
+    def owner_update_name(self, subnet_id: int, new_name: str, keypair=None):
+        """Update subnet name."""
+        return self.subnet.owner_update_name(subnet_id, new_name, keypair)
+
+    def owner_update_repo(self, subnet_id: int, new_repo: str, keypair=None):
+        """Update subnet repository."""
+        return self.subnet.owner_update_repo(subnet_id, new_repo, keypair)
+
+    def owner_update_description(self, subnet_id: int, new_description: str, keypair=None):
+        """Update subnet description."""
+        return self.subnet.owner_update_description(subnet_id, new_description, keypair)
+
+    def transfer_subnet_ownership(self, subnet_id: int, new_owner: str, keypair=None):
+        """Transfer subnet ownership."""
+        return self.subnet.transfer_subnet_ownership(subnet_id, new_owner, keypair)
+
+    def accept_subnet_ownership(self, subnet_id: int, keypair=None):
+        """Accept subnet ownership transfer."""
+        return self.subnet.accept_subnet_ownership(subnet_id, keypair)
+
+    def undo_subnet_ownership_transfer(self, subnet_id: int, keypair=None):
+        """Undo subnet ownership transfer."""
+        return self.subnet.undo_subnet_ownership_transfer(subnet_id, keypair)
+
+    def owner_remove_subnet_node(self, subnet_id: int, node_id: int, keypair=None):
+        """Remove a node from subnet (owner operation)."""
+        return self.subnet.owner_remove_subnet_node(subnet_id, node_id, keypair)
+
+    def owner_update_churn_limit(self, subnet_id: int, new_churn_limit: int, keypair=None):
+        """Update subnet churn limit."""
+        return self.subnet.owner_update_churn_limit(subnet_id, new_churn_limit, keypair)
+
+    def owner_update_min_stake(self, subnet_id: int, new_min_stake: int, keypair=None):
+        """Update subnet minimum stake."""
+        return self.subnet.owner_update_min_stake(subnet_id, new_min_stake, keypair)
+
+    def owner_update_max_stake(self, subnet_id: int, new_max_stake: int, keypair=None):
+        """Update subnet maximum stake."""
+        return self.subnet.owner_update_max_stake(subnet_id, new_max_stake, keypair)
+
+    def owner_update_registration_epochs(self, subnet_id: int, new_epochs: int, keypair=None):
+        """Update subnet registration epochs."""
+        return self.subnet.owner_update_registration_epochs(subnet_id, new_epochs, keypair)
+
+    def owner_update_activation_grace_epochs(self, subnet_id: int, new_epochs: int, keypair=None):
+        """Update subnet activation grace epochs."""
+        return self.subnet.owner_update_activation_grace_epochs(subnet_id, new_epochs, keypair)
+
+    def owner_update_idle_epochs(self, subnet_id: int, new_epochs: int, keypair=None):
+        """Update subnet idle epochs."""
+        return self.subnet.owner_update_idle_epochs(subnet_id, new_epochs, keypair)
+
+    def owner_update_included_epochs(self, subnet_id: int, new_epochs: int, keypair=None):
+        """Update subnet included epochs."""
+        return self.subnet.owner_update_included_epochs(subnet_id, new_epochs, keypair)
+
+    def owner_update_max_penalties(self, subnet_id: int, new_max_penalties: int, keypair=None):
+        """Update subnet max penalties."""
+        return self.subnet.owner_update_max_penalties(subnet_id, new_max_penalties, keypair)
+
+    def owner_add_initial_coldkeys(self, subnet_id: int, coldkeys: list, keypair=None):
+        """Add initial coldkeys to subnet."""
+        return self.subnet.owner_add_initial_coldkeys(subnet_id, coldkeys, keypair)
+
+    def owner_remove_initial_coldkeys(self, subnet_id: int, coldkeys: list, keypair=None):
+        """Remove initial coldkeys from subnet."""
+        return self.subnet.owner_remove_initial_coldkeys(subnet_id, coldkeys, keypair)
+
+    # Subnet pause/unpause operations
+    def pause_subnet(self, subnet_id: int, keypair=None):
+        """Pause a subnet."""
+        return self.subnet.pause_subnet(subnet_id, keypair)
+
+    def unpause_subnet(self, subnet_id: int, keypair=None):
+        """Unpause a subnet."""
+        return self.subnet.unpause_subnet(subnet_id, keypair)
+
+    # Subnet activation requirements
+    def check_subnet_activation_requirements(self, subnet_id: int):
+        """Check subnet activation requirements."""
+        return self.subnet.check_subnet_activation_requirements(subnet_id)
+
+    # Staking information methods
+    def get_node_staking_info(self, subnet_id: int, node_id: int):
+        """Get node staking information."""
+        return self.subnet.get_node_staking_info(subnet_id, node_id)
+
+    def get_subnet_staking_info(self, subnet_id: int):
+        """Get subnet staking information."""
+        return self.subnet.get_subnet_staking_info(subnet_id)
+
+    def get_general_staking_info(self):
+        """Get general staking information."""
+        return self.subnet.get_general_staking_info()
+
     # Wallet operations
     def add_to_stake(self, request: StakeAddRequest, keypair=None):
         """Add stake."""
@@ -253,6 +326,12 @@ class HypertensorClient:
         return self.wallet.remove_delegate_stake(
             subnet_id, shares_to_be_removed, keypair
         )
+
+    def increase_delegate_stake(
+        self, subnet_id: int, amount: int, keypair=None
+    ):
+        """Increase delegate stake."""
+        return self.wallet.increase_delegate_stake(subnet_id, amount, keypair)
 
     def update_coldkey(self, hotkey: str, new_coldkey: str, keypair=None):
         """Update coldkey."""

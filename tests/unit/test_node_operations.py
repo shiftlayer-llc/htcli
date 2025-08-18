@@ -21,13 +21,15 @@ class TestNodeRegistration:
             config = load_config()
             client = HypertensorClient(config)
 
-            response = client.register_subnet_node(
+            from src.htcli.models.requests import SubnetNodeAddRequest
+            request = SubnetNodeAddRequest(
                 subnet_id=1,
                 hotkey='5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
                 peer_id='QmTestPeerId1234567890abcdef',
                 delegate_reward_rate=1000,
                 stake_to_be_added=1000000000000000000
             )
+            response = client.add_subnet_node(request)
 
             assert response.success is True
             assert 'call composed successfully' in response.message
@@ -38,7 +40,7 @@ class TestNodeRegistration:
         with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
             mock_substrate_instance = Mock()
             mock_substrate.return_value = mock_substrate_instance
-            
+
             mock_receipt = Mock()
             mock_receipt.extrinsic_hash = '0x1234567890abcdef'
             mock_receipt.block_number = 12345
@@ -51,14 +53,15 @@ class TestNodeRegistration:
             mock_keypair = Mock()
             mock_keypair.ss58_address = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY'
 
-            response = client.register_subnet_node(
+            from src.htcli.models.requests import SubnetNodeAddRequest
+            request = SubnetNodeAddRequest(
                 subnet_id=1,
                 hotkey='5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
                 peer_id='QmTestPeerId1234567890abcdef',
                 delegate_reward_rate=1000,
-                stake_to_be_added=1000000000000000000,
-                keypair=mock_keypair
+                stake_to_be_added=1000000000000000000
             )
+            response = client.add_subnet_node(request, keypair=mock_keypair)
 
             assert response.success is True
             assert response.transaction_hash == '0x1234567890abcdef'
@@ -93,7 +96,7 @@ class TestNodeActivation:
         with patch('src.htcli.client.SubstrateInterface') as mock_substrate:
             mock_substrate_instance = Mock()
             mock_substrate.return_value = mock_substrate_instance
-            
+
             mock_receipt = Mock()
             mock_receipt.extrinsic_hash = '0xabcdef1234567890'
             mock_receipt.block_number = 12346
@@ -175,7 +178,7 @@ class TestNodeRemoval:
 
             response = client.remove_subnet_node(
                 subnet_id=1,
-                node_id=1
+                subnet_node_id=1
             )
 
             assert response.success is True
@@ -194,8 +197,7 @@ class TestNodeRemoval:
 
             response = client.remove_subnet_node(
                 subnet_id=1,
-                node_id=1,
-                remove_stake_automatically=True
+                subnet_node_id=1
             )
 
             assert response.success is True
@@ -238,7 +240,7 @@ class TestNodeUpdates:
 
             response = client.update_node_coldkey(
                 subnet_id=1,
-                node_id=1,
+                hotkey='5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
                 new_coldkey='5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty'
             )
 
@@ -258,7 +260,7 @@ class TestNodeUpdates:
 
             response = client.update_node_hotkey(
                 subnet_id=1,
-                node_id=1,
+                old_hotkey='5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
                 new_hotkey='5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty'
             )
 
@@ -282,7 +284,8 @@ class TestNodeCleanup:
 
             response = client.cleanup_expired_node(
                 subnet_id=1,
-                node_id=1
+                node_id=1,
+                cleanup_type='registered'
             )
 
             assert response.success is True

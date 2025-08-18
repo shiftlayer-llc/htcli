@@ -3,7 +3,7 @@ Pydantic models for request structures.
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Dict, Any
 
 
 class SubnetRegisterRequest(BaseModel):
@@ -13,7 +13,7 @@ class SubnetRegisterRequest(BaseModel):
     name: str = Field(..., description="Unique name of the subnet")
     repo: str = Field(..., description="GitHub or similar link to source code")
     description: str = Field(..., description="Description of the subnet")
-    misc: str = Field("", description="Miscellaneous information")
+    misc: Dict[str, Any] = Field(default_factory=dict, description="Miscellaneous information")
 
     # Stake configuration
     min_stake: int = Field(
@@ -44,7 +44,7 @@ class SubnetRegisterRequest(BaseModel):
 
     # Node configuration
     max_node_penalties: int = Field(
-        ..., description="Maximum penalties a node can have before removal"
+        default=3, description="Maximum penalties a node can have before removal"
     )
     max_registered_nodes: int = Field(
         ..., description="Maximum number of nodes in registration queue"

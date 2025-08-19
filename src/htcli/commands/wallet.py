@@ -25,10 +25,13 @@ console = Console()
 
 
 @app.command()
-def generate_key(
+def generate(
     name: str = typer.Option(..., "--name", "-n", help="Key name"),
     key_type: str = typer.Option(
-        "sr25519", "--type", "-t", help="Key type (sr25519/ed25519)"
+        "sr25519",
+        "--type",
+        "-t",
+        help="Key type (sr25519/ed25519)",
     ),
     password: Optional[str] = typer.Option(
         None, "--password", "-p", help="Key password"
@@ -57,7 +60,7 @@ def generate_key(
 
     try:
         keypair_info = generate_keypair(name, key_type, password)
-        print_success("✅ Key generated successfully!")
+        print_success("Key generated successfully!")
 
         # Display key information
         console.print(f"Name: {keypair_info.name}")
@@ -70,7 +73,7 @@ def generate_key(
 
 
 @app.command()
-def import_key(
+def restore(
     name: str = typer.Option(..., "--name", "-n", help="Key name"),
     private_key: str = typer.Option(
         ..., "--private-key", "-k", help="Private key (64-character hex)"
@@ -109,7 +112,7 @@ def import_key(
 
     try:
         keypair_info = import_keypair(name, private_key, key_type, password)
-        print_success("✅ Key imported successfully!")
+        print_success("Key imported successfully!")
 
         # Display key information
         console.print(f"Name: {keypair_info.name}")
@@ -122,7 +125,7 @@ def import_key(
 
 
 @app.command()
-def list_keys(
+def list(
     format_type: str = typer.Option(
         "table", "--format", "-f", help="Output format (table/json)"
     )
@@ -265,7 +268,7 @@ def status(
 
 
 @app.command()
-def delete_key(
+def delete(
     name: str = typer.Option(..., "--name", "-n", help="Key name to delete"),
     confirm: bool = typer.Option(
         False, "--confirm", "-y", help="Skip confirmation prompt"
@@ -289,7 +292,7 @@ def delete_key(
     try:
         success = delete_keypair(name)
         if success:
-            print_success(f"✅ Key '{name}' deleted successfully!")
+            print_success(f"Key '{name}' deleted successfully!")
         else:
             print_error(f"Key '{name}' not found.")
     except Exception as e:

@@ -209,7 +209,7 @@ def list_keys() -> list[dict]:
         raise Exception(f"Failed to list keys: {str(e)}")
 
 
-def delete_keypair(name: str):
+def delete_keypair(name: str) -> bool:
     """Delete a keypair from disk."""
     try:
         wallet_dir = Path.home() / ".htcli" / "wallets"
@@ -217,8 +217,9 @@ def delete_keypair(name: str):
 
         if keypair_file.exists():
             keypair_file.unlink()
+            return True
         else:
-            raise FileNotFoundError(f"Keypair '{name}' not found")
+            return False
 
     except Exception as e:
         raise Exception(f"Failed to delete keypair: {str(e)}")

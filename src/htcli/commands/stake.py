@@ -3,27 +3,20 @@ Staking management commands for the Hypertensor CLI.
 All commands follow the format: htcli stake <command> [switches]
 """
 
+from typing import Optional
+
 import typer
 from rich.console import Console
 from rich.panel import Panel
-from typing import Optional
 
-from ..utils.password import get_secure_password
-from ..models.requests import StakeAddRequest
-from ..utils.validation import (
-    validate_subnet_id,
-    validate_node_id,
-    validate_address,
-    validate_amount,
-)
-from ..utils.formatting import (
-    print_success,
-    print_error,
-    print_info,
-    format_balance,
-)
-from ..utils.ownership import get_user_addresses
 from ..dependencies import get_client, get_config
+from ..models.requests import StakeAddRequest
+from ..utils.formatting import (format_balance, print_error, print_info,
+                                print_success)
+from ..utils.ownership import get_user_addresses
+from ..utils.password import get_secure_password
+from ..utils.validation import (validate_address, validate_amount,
+                                validate_node_id, validate_subnet_id)
 
 app = typer.Typer(name="stake", help="Staking operations and management")
 console = Console()
@@ -1790,7 +1783,9 @@ def info(
         if address:
             # Validate the provided address
             if not validate_address(address):
-                print_error("❌ Invalid address format. Please provide a valid SS58 address.")
+                print_error(
+                    "❌ Invalid address format. Please provide a valid SS58 address."
+                )
                 raise typer.Exit(1)
             user_address = address
             print_info(f"🔑 Using provided address: {user_address}")
@@ -1826,10 +1821,10 @@ def info(
                         try:
                             choice = typer.prompt(
                                 f"Enter number (1-{len(addresses_only)}) or 'q' to quit",
-                                type=str
+                                type=str,
                             )
 
-                            if choice.lower() == 'q':
+                            if choice.lower() == "q":
                                 print_info("Address selection cancelled.")
                                 return
 
@@ -1839,14 +1834,18 @@ def info(
                                 print_info(f"🔑 Selected address: {user_address}")
                                 break
                             else:
-                                print_error(f"❌ Please enter a number between 1 and {len(addresses_only)}")
+                                print_error(
+                                    f"❌ Please enter a number between 1 and {len(addresses_only)}"
+                                )
                         except ValueError:
                             print_error("❌ Please enter a valid number")
                         except KeyboardInterrupt:
                             print_info("\nAddress selection cancelled.")
                             return
             else:
-                print_info("ℹ️ No addresses found in your wallet. Showing general network information.")
+                print_info(
+                    "ℹ️ No addresses found in your wallet. Showing general network information."
+                )
 
         # Get staking information
         if subnet_id and node_id:
@@ -1935,7 +1934,7 @@ def info(
                 network_stats = data.get("network_stats", {})
 
                 # Safely get top performing subnet info
-                top_subnets = network_stats.get('top_performing_subnets', [])
+                top_subnets = network_stats.get("top_performing_subnets", [])
                 top_subnet_info = ""
                 if top_subnets and len(top_subnets) > 0:
                     top_subnet = top_subnets[0]

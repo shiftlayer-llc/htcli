@@ -21,21 +21,25 @@ htcli chain info
 ## 📚 Documentation Index
 
 ### Core Features
+
 - **[Commands Overview](COMMANDS.md)** - Complete command reference and usage patterns
 - **[Command Tree](COMMAND_TREE.md)** - Visual command hierarchy and structure
 - **[API Reference](API.md)** - Programmatic interface and client methods
 - **[Configuration Guide](CONFIGURATION.md)** - Setup and configuration management
 
 ### Blockchain Operations
+
 - **[Node Management](NODE_MANAGEMENT.md)** - Complete node lifecycle management
 - **[Staking Guide](STAKING.md)** - Comprehensive staking operations and strategies
 - **[Personal Asset Filtering](PERSONAL_ASSET_FILTERING.md)** - Universal --mine flag usage
 
 ### Advanced Features
+
 - **[Automated Flows](AUTOMATED_FLOWS.md)** - Multi-step automated workflows
 - **[Tensor Precision Guide](TENSOR_PRECISION_GUIDE.md)** - Token precision and calculations
 
 ### Development & Testing
+
 - **[Command Testing Results](COMMAND_TESTING_RESULTS.md)** - Testing status and results
 - **[Command Restructure Summary](COMMAND_RESTRUCTURE_SUMMARY.md)** - Recent improvements
 - **[Test Update Summary](TEST_UPDATE_SUMMARY.md)** - Testing framework updates
@@ -43,6 +47,7 @@ htcli chain info
 ## 🎯 Key Features
 
 ### 🔗 Complete Node Lifecycle Management
+
 ```bash
 # Register a new node
 htcli node register --subnet-id 1 --hotkey 5HpG9w8EBLe5XCrbczpwq5TSXvedjrBGCwqxK9iYqurHh9Qu --peer-id 12D3KooW... --stake 1000000000000000000 --key-name my-node-key
@@ -68,6 +73,7 @@ htcli node remove --subnet-id 1 --node-id 5 --remove-stake --key-name my-node-ke
 ```
 
 ### 💰 Comprehensive Staking System
+
 ```bash
 # Subnet delegate staking
 htcli stake delegate-add --subnet-id 1 --amount 1000000000000000000 --key-name my-staking-key
@@ -83,6 +89,7 @@ htcli stake node-increase --subnet-id 1 --node-id 5 --amount 500000000000000000 
 ```
 
 ### 🔑 Complete Subnet Management
+
 ```bash
 # Register a new subnet
 htcli subnet register --name "My Subnet" --repo "https://github.com/my/subnet" --description "A great subnet" --min-stake 1000000000000000000 --max-stake 10000000000000000000 --key-name my-subnet-key
@@ -104,6 +111,7 @@ htcli subnet owner-transfer-ownership --subnet-id 1 --new-owner 5HpG9w8EBLe5XCrb
 ```
 
 ### 🎯 Personal Asset Filtering
+
 ```bash
 # View only your assets
 htcli subnet list --mine
@@ -116,6 +124,7 @@ htcli node status --subnet-id 1 --node-id 5 --mine
 ```
 
 ### 🔄 Automated Workflows
+
 ```bash
 # List available automated flows
 htcli flow list
@@ -130,6 +139,7 @@ htcli flow run subnet-deployment
 ## 🏗️ Architecture Overview
 
 ### Core Components
+
 - **Client Layer**: Direct blockchain interaction via SubstrateInterface
 - **Command Layer**: Typer-based CLI with rich formatting
 - **Validation Layer**: Comprehensive input validation and error handling
@@ -137,6 +147,7 @@ htcli flow run subnet-deployment
 - **Configuration Layer**: Secure key management and settings
 
 ### Key Design Principles
+
 - **Lazy Initialization**: Blockchain connection only when needed
 - **Comprehensive Validation**: Input validation and error handling
 - **Rich User Experience**: Beautiful panels and clear guidance
@@ -146,18 +157,21 @@ htcli flow run subnet-deployment
 ## 🔧 Technical Specifications
 
 ### Blockchain Integration
+
 - **SubstrateInterface**: Direct blockchain interaction
 - **Real Transactions**: Actual transaction submission and confirmation
 - **Storage Queries**: Direct blockchain state queries
 - **Extrinsic Composition**: Proper call composition and signing
 
 ### Security Features
+
 - **Key Management**: Secure key generation, storage, and loading
 - **Validation**: Comprehensive input and state validation
 - **Error Handling**: Graceful error handling and user feedback
 - **Confirmation**: Proper confirmations for critical operations
 
 ### User Experience
+
 - **Rich Formatting**: Beautiful panels, tables, and status indicators
 - **Comprehensive Guidance**: Strategic advice and best practices
 - **Progress Tracking**: Clear status updates and progress indication
@@ -166,6 +180,7 @@ htcli flow run subnet-deployment
 ## 🚀 Getting Started
 
 ### Installation
+
 ```bash
 # Install from source
 git clone https://github.com/your-repo/htcli.git
@@ -177,6 +192,7 @@ pip install htcli
 ```
 
 ### Initial Setup
+
 ```bash
 # Initialize configuration
 htcli config init
@@ -189,6 +205,7 @@ htcli chain info
 ```
 
 ### First Operations
+
 ```bash
 # View network status
 htcli chain info
@@ -206,6 +223,7 @@ htcli stake delegate-add --subnet-id 1 --amount 1000000000000000000 --key-name m
 ## 📈 Advanced Usage
 
 ### Node Management Strategy
+
 ```bash
 # Complete node lifecycle
 htcli node register --subnet-id 1 --hotkey <hotkey> --peer-id <peer-id> --stake 1000000000000000000 --key-name my-node-key
@@ -215,6 +233,7 @@ htcli node status --subnet-id 1 --node-id <node-id>
 ```
 
 ### Staking Portfolio Management
+
 ```bash
 # Diversify across subnets and nodes
 htcli stake delegate-add --subnet-id 1 --amount 1000000000000000000 --key-name my-staking-key
@@ -226,6 +245,7 @@ htcli stake info --mine
 ```
 
 ### Subnet Ownership Management
+
 ```bash
 # Complete subnet lifecycle
 htcli subnet register --name "My Subnet" --repo "https://github.com/my/subnet" --description "A great subnet" --key-name my-subnet-key
@@ -236,18 +256,21 @@ htcli subnet owner-update-name --subnet-id <subnet-id> --name "Updated Name" --k
 ## 🎯 Best Practices
 
 ### Security
+
 - Use hardware wallets for coldkeys
 - Keep hotkeys and coldkeys separate
 - Regularly backup your keys
 - Use strong passwords for key encryption
 
 ### Performance
+
 - Monitor node performance regularly
 - Update delegate reward rates strategically
 - Diversify staking across multiple subnets/nodes
 - Plan node lifecycle operations carefully
 
 ### Strategy
+
 - Research nodes before staking
 - Monitor reward rates and performance
 - Consider both subnet and node staking

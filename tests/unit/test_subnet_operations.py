@@ -3,6 +3,7 @@ Unit tests for subnet operations.
 """
 
 from unittest.mock import Mock, patch
+
 from src.htcli.client import HypertensorClient
 from src.htcli.models.requests import SubnetRegisterRequest
 

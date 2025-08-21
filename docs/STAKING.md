@@ -16,6 +16,7 @@ The Hypertensor CLI provides comprehensive staking capabilities for complete por
 ## 💰 Staking Types
 
 ### Subnet Delegate Staking
+
 - **Pool Staking**: Stake to entire subnet pool
 - **Subnet-Wide Rewards**: Rewards based on subnet performance
 - **Lower Risk**: Diversified across all subnet nodes
@@ -23,6 +24,7 @@ The Hypertensor CLI provides comprehensive staking capabilities for complete por
 - **Simpler Strategy**: No need to select specific nodes
 
 ### Node Delegate Staking
+
 - **Targeted Staking**: Stake to specific nodes
 - **Node-Specific Rewards**: Rewards based on node's delegate reward rate
 - **Higher Potential Returns**: Can offer better rates than subnet staking
@@ -32,6 +34,7 @@ The Hypertensor CLI provides comprehensive staking capabilities for complete por
 ## 🔗 Subnet Delegate Staking
 
 ### Add Subnet Delegate Stake
+
 ```bash
 htcli stake delegate-add \
   --subnet-id 1 \
@@ -40,6 +43,7 @@ htcli stake delegate-add \
 ```
 
 ### Remove Subnet Delegate Stake
+
 ```bash
 htcli stake delegate-remove \
   --subnet-id 1 \
@@ -48,6 +52,7 @@ htcli stake delegate-remove \
 ```
 
 ### Transfer Subnet Delegate Stake
+
 ```bash
 htcli stake delegate-transfer \
   --subnet-id 1 \
@@ -57,6 +62,7 @@ htcli stake delegate-transfer \
 ```
 
 ### Increase Subnet Delegate Stake Pool
+
 ```bash
 htcli stake delegate-increase \
   --subnet-id 1 \
@@ -65,6 +71,7 @@ htcli stake delegate-increase \
 ```
 
 ### Subnet Staking Benefits
+
 - **Diversification**: Stake across all subnet nodes
 - **Lower Risk**: Reduced exposure to individual node performance
 - **Stable Returns**: Consistent reward streams
@@ -74,6 +81,7 @@ htcli stake delegate-increase \
 ## 🎯 Node Delegate Staking
 
 ### Add Node Delegate Stake
+
 ```bash
 htcli stake node-add \
   --subnet-id 1 \
@@ -83,6 +91,7 @@ htcli stake node-add \
 ```
 
 ### Remove Node Delegate Stake
+
 ```bash
 htcli stake node-remove \
   --subnet-id 1 \
@@ -92,6 +101,7 @@ htcli stake node-remove \
 ```
 
 ### Transfer Node Delegate Stake
+
 ```bash
 htcli stake node-transfer \
   --subnet-id 1 \
@@ -102,6 +112,7 @@ htcli stake node-transfer \
 ```
 
 ### Increase Node Delegate Stake Pool
+
 ```bash
 htcli stake node-increase \
   --subnet-id 1 \
@@ -111,6 +122,7 @@ htcli stake node-increase \
 ```
 
 ### Node Staking Benefits
+
 - **Higher Returns**: Potential for better rates than subnet staking
 - **Node Selection**: Choose high-performing nodes
 - **Rate Optimization**: Find nodes with competitive rates
@@ -120,6 +132,7 @@ htcli stake node-increase \
 ## 📊 Staking Strategy
 
 ### Portfolio Diversification
+
 ```bash
 # Diversify across subnets
 htcli stake delegate-add --subnet-id 1 --amount 1000000000000000000 --key-name my-staking-key
@@ -133,6 +146,7 @@ htcli stake node-add --subnet-id 2 --node-id 3 --amount 200000000000000000 --key
 ```
 
 ### Risk Management
+
 - **Subnet Diversification**: Spread stakes across multiple subnets
 - **Node Diversification**: Spread stakes across multiple nodes
 - **Amount Limits**: Set maximum stakes per subnet/node
@@ -140,6 +154,7 @@ htcli stake node-add --subnet-id 2 --node-id 3 --amount 200000000000000000 --key
 - **Exit Strategies**: Plan for stake removal scenarios
 
 ### Performance Optimization
+
 - **Rate Comparison**: Compare reward rates across options
 - **Performance Tracking**: Monitor node and subnet performance
 - **Market Analysis**: Analyze competitive landscape
@@ -149,6 +164,7 @@ htcli stake node-add --subnet-id 2 --node-id 3 --amount 200000000000000000 --key
 ## 🔄 Stake Management
 
 ### Share vs Balance
+
 - **Shares**: Your stake representation in the pool/node
 - **Balance**: Actual tokens you receive back
 - **Conversion**: Shares converted to balance automatically
@@ -156,6 +172,7 @@ htcli stake node-add --subnet-id 2 --node-id 3 --amount 200000000000000000 --key
 - **Timing**: Conversion happens at current rates
 
 ### Transfer vs Removal
+
 - **Transfer**: Shares move to another account (no conversion)
 - **Removal**: Shares converted to balance for you
 - **Ownership**: Transfer changes ownership, removal returns tokens
@@ -163,6 +180,7 @@ htcli stake node-add --subnet-id 2 --node-id 3 --amount 200000000000000000 --key
 - **Use Cases**: Transfer for gifting, removal for liquidity
 
 ### Pool Increase (Airdrop)
+
 - **Community Benefits**: All delegators benefit proportionally
 - **Immediate Distribution**: Rewards distributed immediately
 - **Pool Value Growth**: Increases total pool value for everyone
@@ -172,6 +190,7 @@ htcli stake node-add --subnet-id 2 --node-id 3 --amount 200000000000000000 --key
 ## 📈 Portfolio Management
 
 ### Monitor Portfolio
+
 ```bash
 # View all your stakes
 htcli stake info --mine
@@ -184,6 +203,7 @@ htcli stake info --subnet-id 1 --node-id 5 --mine
 ```
 
 ### Portfolio Analysis
+
 - **Total Staked**: Sum of all stakes across subnets and nodes
 - **Reward Rates**: Current reward rates for each stake
 - **Performance**: Historical performance of stakes
@@ -191,6 +211,7 @@ htcli stake info --subnet-id 1 --node-id 5 --mine
 - **Optimization Opportunities**: Areas for improvement
 
 ### Rebalancing Strategy
+
 ```bash
 # Remove underperforming stakes
 htcli stake delegate-remove --subnet-id 1 --shares 200000000000000000 --key-name my-staking-key
@@ -204,6 +225,7 @@ htcli stake node-add --subnet-id 2 --node-id 8 --amount 200000000000000000 --key
 ## 🎯 Strategic Planning
 
 ### Research Phase
+
 1. **Subnet Analysis**: Research subnet performance and stability
 2. **Node Analysis**: Research individual node performance
 3. **Rate Comparison**: Compare reward rates across options
@@ -211,6 +233,7 @@ htcli stake node-add --subnet-id 2 --node-id 8 --amount 200000000000000000 --key
 5. **Market Analysis**: Analyze competitive landscape
 
 ### Planning Phase
+
 1. **Portfolio Allocation**: Plan stake allocation across options
 2. **Risk Limits**: Set maximum stakes per option
 3. **Performance Targets**: Set performance targets and benchmarks
@@ -218,6 +241,7 @@ htcli stake node-add --subnet-id 2 --node-id 8 --amount 200000000000000000 --key
 5. **Monitoring Plan**: Plan regular monitoring and review
 
 ### Execution Phase
+
 1. **Staged Entry**: Enter positions gradually
 2. **Performance Monitoring**: Monitor performance regularly
 3. **Strategic Adjustments**: Adjust based on performance
@@ -227,6 +251,7 @@ htcli stake node-add --subnet-id 2 --node-id 8 --amount 200000000000000000 --key
 ## 🛡️ Risk Management
 
 ### Diversification Risk
+
 - **Subnet Diversification**: Spread stakes across multiple subnets
 - **Node Diversification**: Spread stakes across multiple nodes
 - **Amount Limits**: Set maximum stakes per option
@@ -234,6 +259,7 @@ htcli stake node-add --subnet-id 2 --node-id 8 --amount 200000000000000000 --key
 - **Strategy Diversification**: Mix different staking strategies
 
 ### Performance Risk
+
 - **Regular Monitoring**: Monitor performance regularly
 - **Performance Benchmarks**: Set performance benchmarks
 - **Exit Triggers**: Define exit triggers for underperformance
@@ -241,6 +267,7 @@ htcli stake node-add --subnet-id 2 --node-id 8 --amount 200000000000000000 --key
 - **Alternative Options**: Identify alternative staking options
 
 ### Market Risk
+
 - **Market Analysis**: Regular market analysis
 - **Trend Monitoring**: Monitor market trends
 - **Adaptation**: Adapt strategies to market changes
@@ -248,6 +275,7 @@ htcli stake node-add --subnet-id 2 --node-id 8 --amount 200000000000000000 --key
 - **Liquidity Management**: Maintain adequate liquidity
 
 ### Operational Risk
+
 - **Key Security**: Secure key management
 - **Infrastructure**: Reliable infrastructure
 - **Monitoring**: Comprehensive monitoring
@@ -257,6 +285,7 @@ htcli stake node-add --subnet-id 2 --node-id 8 --amount 200000000000000000 --key
 ## 📊 Performance Monitoring
 
 ### Key Metrics
+
 - **Total Staked**: Total amount staked across all options
 - **Reward Rates**: Current reward rates for each stake
 - **Performance**: Historical performance of stakes
@@ -264,6 +293,7 @@ htcli stake node-add --subnet-id 2 --node-id 8 --amount 200000000000000000 --key
 - **Market Position**: Position relative to market
 
 ### Monitoring Commands
+
 ```bash
 # Monitor portfolio performance
 htcli stake info --mine
@@ -279,6 +309,7 @@ htcli chain info
 ```
 
 ### Performance Analysis
+
 - **Return on Investment**: Calculate ROI for each stake
 - **Risk-Adjusted Returns**: Risk-adjusted return metrics
 - **Performance Comparison**: Compare performance across options
@@ -288,6 +319,7 @@ htcli chain info
 ## 🔄 Advanced Staking Strategies
 
 ### Yield Farming
+
 ```bash
 # Stake in high-yield subnets
 htcli stake delegate-add --subnet-id 1 --amount 1000000000000000000 --key-name my-staking-key
@@ -298,6 +330,7 @@ htcli stake delegate-add --subnet-id 2 --amount 500000000000000000 --key-name my
 ```
 
 ### Node Operator Strategy
+
 ```bash
 # Stake in your own nodes
 htcli stake node-add --subnet-id 1 --node-id 5 --amount 1000000000000000000 --key-name my-staking-key
@@ -307,6 +340,7 @@ htcli stake node-increase --subnet-id 1 --node-id 5 --amount 500000000000000000 
 ```
 
 ### Arbitrage Strategy
+
 ```bash
 # Identify rate differences
 htcli stake info --mine
@@ -318,6 +352,7 @@ htcli stake delegate-transfer --subnet-id 1 --to-account <higher-rate-subnet> --
 ## 🎯 Best Practices
 
 ### Security
+
 - **Key Management**: Secure key generation and storage
 - **Access Control**: Limit access to staking keys
 - **Monitoring**: Monitor for unauthorized activity
@@ -325,6 +360,7 @@ htcli stake delegate-transfer --subnet-id 1 --to-account <higher-rate-subnet> --
 - **Incident Response**: Plan for security incidents
 
 ### Performance
+
 - **Regular Monitoring**: Monitor performance regularly
 - **Performance Optimization**: Optimize for better returns
 - **Risk Management**: Manage risks effectively
@@ -332,6 +368,7 @@ htcli stake delegate-transfer --subnet-id 1 --to-account <higher-rate-subnet> --
 - **Adaptation**: Adapt to changing market conditions
 
 ### Strategy
+
 - **Diversification**: Diversify across multiple options
 - **Research**: Research before staking
 - **Monitoring**: Monitor performance regularly
@@ -341,6 +378,7 @@ htcli stake delegate-transfer --subnet-id 1 --to-account <higher-rate-subnet> --
 ## 📈 Automation and Scripts
 
 ### Automated Monitoring
+
 ```bash
 #!/bin/bash
 # Automated portfolio monitoring script
@@ -348,15 +386,16 @@ htcli stake delegate-transfer --subnet-id 1 --to-account <higher-rate-subnet> --
 while true; do
   echo "=== Portfolio Status ==="
   htcli stake info --mine --format json
-  
+
   echo "=== Network Status ==="
   htcli chain info --format json
-  
+
   sleep 3600  # Check every hour
 done
 ```
 
 ### Performance Tracking
+
 ```bash
 #!/bin/bash
 # Performance tracking script
@@ -368,6 +407,7 @@ echo "---" >> performance.log
 ```
 
 ### Rebalancing Script
+
 ```bash
 #!/bin/bash
 # Automated rebalancing script

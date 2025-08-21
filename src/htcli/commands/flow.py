@@ -7,11 +7,11 @@ into streamlined, user-friendly processes.
 
 import typer
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
+from rich.table import Table
 
 from ..flows import AVAILABLE_FLOWS
-from ..utils.formatting import print_success, print_error, print_info
+from ..utils.formatting import print_error, print_info, print_success
 
 app = typer.Typer(name="flow", help="Automated workflows for common tasks")
 console = Console()

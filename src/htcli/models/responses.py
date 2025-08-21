@@ -3,8 +3,9 @@
 Response models for Hypertensor CLI.
 """
 
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
-from typing import Dict, Any, Optional, List
 
 
 class BaseResponse(BaseModel):

@@ -2,18 +2,19 @@
 Main CLI entry point for the Hypertensor CLI.
 """
 
-import typer
-from rich.console import Console
 from pathlib import Path
 from typing import Optional
 
-from .commands.subnet import app as subnet_app
-from .commands.wallet import app as wallet_app
+import typer
+from rich.console import Console
+
 from .commands.chain import app as chain_app
 from .commands.config import app as config_app
+from .commands.flow import app as flow_app
 from .commands.node import app as node_app
 from .commands.stake import app as stake_app
-from .commands.flow import app as flow_app
+from .commands.subnet import app as subnet_app
+from .commands.wallet import app as wallet_app
 from .config import load_config
 from .dependencies import set_config
 

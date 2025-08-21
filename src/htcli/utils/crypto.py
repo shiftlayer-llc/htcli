@@ -2,23 +2,26 @@
 Cryptographic utility functions for the Hypertensor CLI.
 """
 
+import base64
 import json
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
-from substrateinterface import Keypair
+
 from cryptography.fernet import Fernet
-import base64
+from substrateinterface import Keypair
+
 from .password import get_secure_password
 
 
+@dataclass
 class KeypairInfo:
     """Information about a keypair."""
 
-    def __init__(self, name: str, key_type: str, public_key: str, ss58_address: str):
-        self.name = name
-        self.key_type = key_type
-        self.public_key = public_key
-        self.ss58_address = ss58_address
+    name: str
+    key_type: str
+    public_key: str
+    ss58_address: str
 
 
 def generate_keypair(

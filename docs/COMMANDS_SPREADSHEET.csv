@@ -1,3 +1,0 @@
-Category,Command,Sub-command,Caller,Description,Format,Example,Progress,Notes
-Configuration,config,init,User/Admin,Initialize Hypertensor CLI configuration interactively,Interactive,htcli config init,✅ Complete,Interactive wizard for initial setup
-Subnet,subnet,register,Subnet Owner/Operator,Register a new subnet with comprehensive parameters,CLI,htcli subnet register --name "My AI Subnet" --repo "https://github.com/my/ai-subnet" --description "Advanced AI computation subnet" --min-stake 1000000000000000000 --max-stake 10000000000000000000 --churn-limit 4 --registration-epochs 10 --activation-grace-epochs 5 --idle-epochs 3 --included-epochs 2 --max-penalties 3 --key-name my-subnet-key,✅ Complete,Comprehensive subnet registration

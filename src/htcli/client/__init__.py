@@ -4,13 +4,15 @@ Modular client structure for Hypertensor CLI.
 
 import asyncio
 import logging
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 from substrateinterface import SubstrateInterface
+
 from ..models.requests import *
 from ..models.responses import *
+from .chain import ChainClient
 from .subnet import SubnetClient
 from .wallet import WalletClient
-from .chain import ChainClient
 
 logger = logging.getLogger(__name__)
 

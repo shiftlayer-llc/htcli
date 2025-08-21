@@ -2,23 +2,17 @@
 Flattened wallet commands - 3-level hierarchy.
 """
 
+from typing import Optional
+
 import typer
 from rich.console import Console
-from typing import Optional
-from ..utils.crypto import (
-    generate_keypair,
-    import_keypair,
-    list_keys as list_keys_util,
-    delete_keypair,
-)
-from ..utils.validation import (
-    validate_key_type,
-    validate_password,
-    validate_private_key,
-    validate_wallet_name,
-)
-from ..utils.formatting import print_success, print_error, format_table
-from ..utils.ownership import get_user_addresses, get_ownership_summary
+
+from ..utils.crypto import delete_keypair, generate_keypair, import_keypair
+from ..utils.crypto import list_keys as list_keys_util
+from ..utils.formatting import format_table, print_error, print_success
+from ..utils.ownership import get_ownership_summary, get_user_addresses
+from ..utils.validation import (validate_key_type, validate_password,
+                                validate_private_key, validate_wallet_name)
 
 app = typer.Typer(name="wallet", help="Wallet operations")
 console = Console()

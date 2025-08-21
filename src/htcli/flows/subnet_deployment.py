@@ -15,17 +15,16 @@ Flow Steps:
 8. Deployment verification
 """
 
-from typing import Dict, Any, List
-from rich.prompt import Prompt, IntPrompt, Confirm
+from typing import Any, Dict, List
 
-from .base import BaseFlow, FlowStep
-from ..models.requests import (
-    SubnetRegisterRequest,
-    SubnetNodeAddRequest,
-    StakeAddRequest,
-)
-from ..utils.formatting import print_success, print_error, print_info, format_balance
+from rich.prompt import Confirm, IntPrompt, Prompt
+
+from ..models.requests import (StakeAddRequest, SubnetNodeAddRequest,
+                               SubnetRegisterRequest)
+from ..utils.formatting import (format_balance, print_error, print_info,
+                                print_success)
 from ..utils.validation import validate_address, validate_path
+from .base import BaseFlow, FlowStep
 
 
 class SubnetDeploymentFlow(BaseFlow):

@@ -2,15 +2,14 @@
 Integration tests for password management.
 """
 
-import pytest
 import os
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
+
+import pytest
+
 from src.htcli.main import app
-from src.htcli.utils.password import (
-    get_secure_password,
-    get_stored_password,
-    clear_password_cache,
-)
+from src.htcli.utils.password import (clear_password_cache,
+                                      get_secure_password, get_stored_password)
 
 
 class TestPasswordIntegration:

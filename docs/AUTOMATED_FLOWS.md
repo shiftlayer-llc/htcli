@@ -9,38 +9,46 @@ The Hypertensor CLI provides automated flows that guide users through complex mu
 ## 🔄 Available Flows
 
 ### 1. Subnet Deployment Flow
+
 **Purpose**: Complete subnet deployment from registration to activation
 **Steps**: Registration → Configuration → Node Setup → Activation
 
 ### 2. Node Onboarding Flow
+
 **Purpose**: Complete node onboarding from registration to validation
 **Steps**: Registration → Activation → Performance Optimization → Monitoring
 
 ### 3. Staking Portfolio Flow
+
 **Purpose**: Comprehensive staking portfolio setup and management
 **Steps**: Research → Diversification → Optimization → Monitoring
 
 ### 4. Development Setup Flow
+
 **Purpose**: Complete development environment setup
 **Steps**: Environment Setup → Key Generation → Network Connection → Testing
 
 ### 5. Migration Recovery Flow
+
 **Purpose**: Node migration and recovery procedures
 **Steps**: Backup → Migration → Verification → Recovery
 
 ## 🚀 Using Automated Flows
 
 ### List Available Flows
+
 ```bash
 htcli flow list --format table
 ```
 
 ### Get Flow Information
+
 ```bash
 htcli flow info subnet-deployment --format table
 ```
 
 ### Run Automated Flow
+
 ```bash
 htcli flow run subnet-deployment --interactive
 ```
@@ -50,9 +58,11 @@ htcli flow run subnet-deployment --interactive
 ### Subnet Deployment Flow
 
 #### Purpose
+
 Complete subnet deployment from initial registration to full activation with comprehensive setup and optimization.
 
 #### Steps
+
 1. **Subnet Registration**
    - Name and description setup
    - Repository configuration
@@ -78,6 +88,7 @@ Complete subnet deployment from initial registration to full activation with com
    - Performance monitoring
 
 #### Usage
+
 ```bash
 # Run subnet deployment flow
 htcli flow run subnet-deployment --interactive
@@ -89,9 +100,11 @@ htcli flow run subnet-deployment --name "My AI Subnet" --repo "https://github.co
 ### Node Onboarding Flow
 
 #### Purpose
+
 Complete node onboarding process from registration to active validation with performance optimization and monitoring.
 
 #### Steps
+
 1. **Node Registration**
    - Hotkey and coldkey setup
    - Peer ID configuration
@@ -117,6 +130,7 @@ Complete node onboarding process from registration to active validation with per
    - Maintenance planning
 
 #### Usage
+
 ```bash
 # Run node onboarding flow
 htcli flow run node-onboarding --interactive
@@ -128,9 +142,11 @@ htcli flow run node-onboarding --subnet-id 1 --hotkey <hotkey>
 ### Staking Portfolio Flow
 
 #### Purpose
+
 Comprehensive staking portfolio setup with diversification, optimization, and ongoing management.
 
 #### Steps
+
 1. **Portfolio Research**
    - Subnet analysis
    - Node performance research
@@ -156,6 +172,7 @@ Comprehensive staking portfolio setup with diversification, optimization, and on
    - Risk management
 
 #### Usage
+
 ```bash
 # Run staking portfolio flow
 htcli flow run staking-portfolio --interactive
@@ -167,9 +184,11 @@ htcli flow run staking-portfolio --budget 10000000000000000000
 ### Development Setup Flow
 
 #### Purpose
+
 Complete development environment setup for Hypertensor network development and testing.
 
 #### Steps
+
 1. **Environment Setup**
    - CLI installation
    - Configuration setup
@@ -195,6 +214,7 @@ Complete development environment setup for Hypertensor network development and t
    - Security validation
 
 #### Usage
+
 ```bash
 # Run development setup flow
 htcli flow run development-setup --interactive
@@ -206,9 +226,11 @@ htcli flow run development-setup --environment testnet
 ### Migration Recovery Flow
 
 #### Purpose
+
 Node migration and recovery procedures for maintenance, upgrades, and disaster recovery.
 
 #### Steps
+
 1. **Backup and Preparation**
    - Data backup
    - Configuration backup
@@ -234,6 +256,7 @@ Node migration and recovery procedures for maintenance, upgrades, and disaster r
    - Documentation update
 
 #### Usage
+
 ```bash
 # Run migration recovery flow
 htcli flow run migration-recovery --interactive
@@ -245,24 +268,28 @@ htcli flow run migration-recovery --subnet-id 1 --node-id 5
 ## 🎯 Flow Features
 
 ### Interactive Prompts
+
 - **User Input**: Collect required information
 - **Validation**: Validate user inputs
 - **Confirmation**: Confirm critical actions
 - **Guidance**: Provide helpful guidance
 
 ### Progress Tracking
+
 - **Step Progress**: Show current step and total steps
 - **Status Updates**: Real-time status updates
 - **Error Handling**: Graceful error handling
 - **Recovery**: Automatic recovery from errors
 
 ### Comprehensive Guidance
+
 - **Step Explanations**: Explain each step
 - **Best Practices**: Provide best practices
 - **Risk Warnings**: Warn about risks
 - **Success Criteria**: Define success criteria
 
 ### Customization Options
+
 - **Parameter Override**: Override default parameters
 - **Skip Steps**: Skip optional steps
 - **Custom Configuration**: Use custom configurations
@@ -271,6 +298,7 @@ htcli flow run migration-recovery --subnet-id 1 --node-id 5
 ## 🔧 Flow Configuration
 
 ### Flow Parameters
+
 ```bash
 # Subnet deployment parameters
 htcli flow run subnet-deployment \
@@ -295,6 +323,7 @@ htcli flow run staking-portfolio \
 ```
 
 ### Flow Customization
+
 ```bash
 # Custom flow configuration
 htcli flow run subnet-deployment \
@@ -306,6 +335,7 @@ htcli flow run subnet-deployment \
 ## 📊 Flow Monitoring
 
 ### Progress Tracking
+
 ```bash
 # Monitor flow progress
 htcli flow status <flow-id>
@@ -318,6 +348,7 @@ htcli flow cancel <flow-id>
 ```
 
 ### Flow History
+
 ```bash
 # View flow history
 htcli flow history --format table
@@ -329,12 +360,14 @@ htcli flow history --flow-id <flow-id> --format json
 ## 🛡️ Flow Security
 
 ### Input Validation
+
 - **Parameter Validation**: Validate all input parameters
 - **Security Checks**: Perform security checks
 - **Confirmation Prompts**: Confirm critical actions
 - **Error Recovery**: Graceful error recovery
 
 ### Access Control
+
 - **Key Management**: Secure key handling
 - **Permission Checks**: Check user permissions
 - **Audit Logging**: Log all actions
@@ -343,6 +376,7 @@ htcli flow history --flow-id <flow-id> --format json
 ## 🔄 Flow Integration
 
 ### Script Integration
+
 ```bash
 #!/bin/bash
 # Integrate flows into scripts
@@ -360,6 +394,7 @@ htcli flow run node-onboarding --subnet-id 1 --non-interactive
 ```
 
 ### API Integration
+
 ```python
 from src.htcli.flows import FlowManager
 
@@ -383,12 +418,14 @@ print(f"Flow status: {status}")
 ## 📈 Flow Optimization
 
 ### Performance Optimization
+
 - **Parallel Execution**: Execute steps in parallel where possible
 - **Resource Management**: Optimize resource usage
 - **Caching**: Cache frequently used data
 - **Batch Operations**: Use batch operations for efficiency
 
 ### Error Handling
+
 - **Retry Logic**: Automatic retry for transient errors
 - **Fallback Strategies**: Fallback strategies for failures
 - **Rollback Capability**: Ability to rollback changes
@@ -397,18 +434,21 @@ print(f"Flow status: {status}")
 ## 🎯 Best Practices
 
 ### Flow Design
+
 - **Modular Steps**: Design flows with modular steps
 - **Clear Dependencies**: Define clear step dependencies
 - **Error Recovery**: Include error recovery mechanisms
 - **Documentation**: Document flow behavior and requirements
 
 ### Flow Usage
+
 - **Testing**: Test flows in development environment
 - **Validation**: Validate flow parameters
 - **Monitoring**: Monitor flow execution
 - **Documentation**: Document flow usage and results
 
 ### Flow Maintenance
+
 - **Regular Updates**: Update flows regularly
 - **Version Control**: Use version control for flows
 - **Testing**: Regular testing of flows
@@ -417,19 +457,21 @@ print(f"Flow status: {status}")
 ## 🔧 Advanced Features
 
 ### Custom Flows
+
 ```python
 from src.htcli.flows import BaseFlow
 
 class CustomFlow(BaseFlow):
     def __init__(self):
         super().__init__("custom-flow", "Custom Flow Description")
-    
+
     def execute(self, parameters):
         # Custom flow logic
         pass
 ```
 
 ### Flow Templates
+
 ```bash
 # Create flow template
 htcli flow create-template --name "my-template" --flow-id <flow-id>
@@ -439,6 +481,7 @@ htcli flow run --template "my-template" --parameters "params.json"
 ```
 
 ### Flow Scheduling
+
 ```bash
 # Schedule flow execution
 htcli flow schedule --flow-id subnet-deployment --schedule "0 0 * * *"
@@ -449,7 +492,3 @@ htcli flow schedule --list
 # Cancel scheduled flow
 htcli flow schedule --cancel <schedule-id>
 ```
-
----
-
-**Automated flows provide powerful workflow automation capabilities, enabling users to execute complex multi-step operations with guided assistance, progress tracking, and comprehensive error handling.** 🚀

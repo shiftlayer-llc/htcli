@@ -2,18 +2,19 @@
 Configuration management commands for the Hypertensor CLI.
 """
 
-import typer
-import yaml
 from pathlib import Path
 from typing import Optional
+
+import typer
+import yaml
 from rich.console import Console
-from rich.prompt import Prompt, Confirm
-from rich.table import Table
 from rich.panel import Panel
+from rich.prompt import Confirm, Prompt
+from rich.table import Table
 
 from ..config import Config, NetworkConfig, OutputConfig, WalletConfig
-from ..utils.formatting import print_success, print_error, print_info
-from ..utils.validation import validate_url, validate_path
+from ..utils.formatting import print_error, print_info, print_success
+from ..utils.validation import validate_path, validate_url
 
 app = typer.Typer(name="config", help="Configuration management")
 console = Console()
@@ -340,8 +341,6 @@ def show_config_summary(config: Config):
     # Output table
     network_table.add_row("Retry Attempts", str(config.network.retry_attempts))
 
-    console.print(network_table)
-
     # Output table
     output_table = Table(title="Output", show_header=True, header_style="bold green")
     output_table.add_column("Setting", style="cyan")
@@ -667,12 +666,14 @@ def set(
 
         # Type conversion and validation
         if isinstance(old_value, bool):
-            if value.lower() in ('true', '1', 'yes', 'on'):
+            if value.lower() in ("true", "1", "yes", "on"):
                 new_value = True
-            elif value.lower() in ('false', '0', 'no', 'off'):
+            elif value.lower() in ("false", "0", "no", "off"):
                 new_value = False
             else:
-                print_error(f"Invalid boolean value: {value}. Use 'true'/'false' or '1'/'0'")
+                print_error(
+                    f"Invalid boolean value: {value}. Use 'true'/'false' or '1'/'0'"
+                )
                 raise typer.Exit(1)
         elif isinstance(old_value, int):
             try:

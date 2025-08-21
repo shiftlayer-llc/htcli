@@ -3,6 +3,7 @@ Unit tests for staking operations.
 """
 
 from unittest.mock import Mock, patch
+
 from src.htcli.client import HypertensorClient
 
 

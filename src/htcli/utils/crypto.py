@@ -22,12 +22,13 @@ class KeypairInfo:
     key_type: str
     public_key: str
     ss58_address: str
+    owner_address: Optional[str] = None  # For hotkeys
 
 
-def generate_keypair(
+def generate_coldkey_pair(
     name: str, key_type: str = "sr25519", password: Optional[str] = None
 ) -> KeypairInfo:
-    """Generate a new keypair."""
+    """Generate a new coldkey pair."""
     try:
         # Generate random keypair
         if key_type == "sr25519":
@@ -47,20 +48,68 @@ def generate_keypair(
             key_type=key_type,
             public_key=keypair.public_key.hex(),
             ss58_address=keypair.ss58_address,
+            owner_address=None,  # Coldkeys don't have owners
         )
 
         # Get secure password for saving
         save_password = password or get_secure_password(
             name,
-            prompt_message="Enter password to secure this keypair",
+            prompt_message="Enter password to secure this coldkey",
             allow_default=True,
         )
-        save_keypair(name, keypair, save_password)
+        save_coldkey(name, keypair, save_password)
 
         return keypair_info
 
     except Exception as e:
-        raise Exception(f"Failed to generate keypair: {str(e)}")
+        raise Exception(f"Failed to generate coldkey: {str(e)}")
+
+
+def generate_hotkey_pair(
+    name: str, owner_address: str, key_type: str = "sr25519", password: Optional[str] = None
+) -> KeypairInfo:
+    """Generate a new hotkey pair owned by a coldkey."""
+    try:
+        # Generate random keypair
+        if key_type == "sr25519":
+            mnemonic = Keypair.generate_mnemonic()
+            keypair = Keypair.create_from_uri(mnemonic)
+        elif key_type == "ed25519":
+            mnemonic = Keypair.generate_mnemonic()
+            keypair = Keypair.create_from_uri(
+                mnemonic, crypto_type=0
+            )  # 0 for ed25519, 1 for sr25519
+        else:
+            raise ValueError(f"Unsupported key type: {key_type}")
+
+        # Create keypair info
+        keypair_info = KeypairInfo(
+            name=name,
+            key_type=key_type,
+            public_key=keypair.public_key.hex(),
+            ss58_address=keypair.ss58_address,
+            owner_address=owner_address,  # Hotkeys have owners
+        )
+
+        # Get secure password for saving
+        save_password = password or get_secure_password(
+            name,
+            prompt_message="Enter password to secure this hotkey",
+            allow_default=True,
+        )
+        save_hotkey(name, keypair, owner_address, save_password)
+
+        return keypair_info
+
+    except Exception as e:
+        raise Exception(f"Failed to generate hotkey: {str(e)}")
+
+
+def generate_keypair(
+    name: str, key_type: str = "sr25519", password: Optional[str] = None
+) -> KeypairInfo:
+    """Generate a new keypair (legacy function - now creates coldkey)."""
+    return generate_coldkey_pair(name, key_type, password)
 
 
 def import_keypair(
@@ -87,6 +136,7 @@ def import_keypair(
             key_type=key_type,
             public_key=keypair.public_key.hex(),
             ss58_address=keypair.ss58_address,
+            owner_address=None,  # Coldkeys don't have owners
         )
 
         # Get secure password for saving
@@ -103,8 +153,8 @@ def import_keypair(
         raise Exception(f"Failed to import keypair: {str(e)}")
 
 
-def save_keypair(name: str, keypair: Keypair, password: str):
-    """Save a keypair to disk with encryption."""
+def save_coldkey(name: str, keypair: Keypair, password: str):
+    """Save a coldkey to disk with encryption."""
     try:
         # Create wallet directory
         wallet_dir = Path.home() / ".htcli" / "wallets"
@@ -118,24 +168,72 @@ def save_keypair(name: str, keypair: Keypair, password: str):
         private_key_bytes = keypair.private_key
         encrypted_private_key = cipher.encrypt(private_key_bytes)
 
-        # Save encrypted keypair
-        keypair_data = {
+        # Create wallet data
+        wallet_data = {
             "name": name,
-            "key_type": (
-                "sr25519" if keypair.crypto_type == 1 else "ed25519"
-            ),  # 1 for sr25519, 0 for ed25519
+            "key_type": "sr25519" if keypair.crypto_type == 1 else "ed25519",
             "public_key": keypair.public_key.hex(),
             "ss58_address": keypair.ss58_address,
             "encrypted_private_key": base64.b64encode(encrypted_private_key).decode(),
             "salt": base64.b64encode(key).decode(),
+            "is_hotkey": False,  # This is a coldkey
+            "owner_address": None,  # Coldkeys don't have owners
         }
 
-        keypair_file = wallet_dir / f"{name}.json"
-        with open(keypair_file, "w") as f:
-            json.dump(keypair_data, f, indent=2)
+        # Save to file
+        wallet_file = wallet_dir / f"{name}.json"
+        with open(wallet_file, "w") as f:
+            json.dump(wallet_data, f, indent=2)
+
+        # Set secure permissions
+        wallet_file.chmod(0o600)
 
     except Exception as e:
-        raise Exception(f"Failed to save keypair: {str(e)}")
+        raise Exception(f"Failed to save coldkey: {str(e)}")
+
+
+def save_hotkey(name: str, keypair: Keypair, owner_address: str, password: str):
+    """Save a hotkey to disk with encryption."""
+    try:
+        # Create wallet directory
+        wallet_dir = Path.home() / ".htcli" / "wallets"
+        wallet_dir.mkdir(parents=True, exist_ok=True)
+
+        # Generate encryption key from password
+        key = Fernet.generate_key()
+        cipher = Fernet(key)
+
+        # Encrypt private key
+        private_key_bytes = keypair.private_key
+        encrypted_private_key = cipher.encrypt(private_key_bytes)
+
+        # Create wallet data
+        wallet_data = {
+            "name": name,
+            "key_type": "sr25519" if keypair.crypto_type == 1 else "ed25519",
+            "public_key": keypair.public_key.hex(),
+            "ss58_address": keypair.ss58_address,
+            "encrypted_private_key": base64.b64encode(encrypted_private_key).decode(),
+            "salt": base64.b64encode(key).decode(),
+            "is_hotkey": True,  # This is a hotkey
+            "owner_address": owner_address,  # Hotkeys have owners
+        }
+
+        # Save to file
+        wallet_file = wallet_dir / f"{name}.json"
+        with open(wallet_file, "w") as f:
+            json.dump(wallet_data, f, indent=2)
+
+        # Set secure permissions
+        wallet_file.chmod(0o600)
+
+    except Exception as e:
+        raise Exception(f"Failed to save hotkey: {str(e)}")
+
+
+def save_keypair(name: str, keypair: Keypair, password: str):
+    """Save a keypair to disk with encryption (legacy function)."""
+    save_coldkey(name, keypair, password)
 
 
 def load_keypair(name: str, password: Optional[str] = None) -> Keypair:
@@ -200,6 +298,9 @@ def list_keys() -> list[dict]:
                     "address": keypair_data[
                         "ss58_address"
                     ],  # Alias for ownership utils
+                    # Add hotkey/coldkey information
+                    "is_hotkey": keypair_data.get("is_hotkey", False),
+                    "owner_address": keypair_data.get("owner_address", None),
                 }
                 keys.append(key_info)
             except Exception:

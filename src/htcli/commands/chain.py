@@ -19,7 +19,7 @@ console = Console()
 
 
 @app.command()
-def network(
+def stats(
     format_type: str = typer.Option(
         "table", "--format", "-f", help="Output format (table/json)"
     )
@@ -105,6 +105,7 @@ def balance(
 ):
     """Get account balance."""
     client = get_client()
+
 
     # Validate inputs
     if not validate_address(address):

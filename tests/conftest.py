@@ -3,9 +3,10 @@ Pytest configuration and fixtures for htcli tests.
 """
 
 import os
-import pytest
 from pathlib import Path
 from unittest.mock import Mock
+
+import pytest
 from typer.testing import CliRunner
 
 from src.htcli.config import Config, NetworkConfig

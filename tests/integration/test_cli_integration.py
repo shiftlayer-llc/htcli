@@ -2,8 +2,9 @@
 Integration tests for the htcli application.
 """
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from src.htcli.main import app
 

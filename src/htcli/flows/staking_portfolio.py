@@ -13,13 +13,15 @@ Flow Steps:
 6. Portfolio monitoring setup
 """
 
-from typing import Dict, Any, List
-from rich.prompt import Prompt, IntPrompt, Confirm
+from typing import Any, Dict, List
+
+from rich.prompt import Confirm, IntPrompt, Prompt
 from rich.table import Table
 
-from .base import BaseFlow, FlowStep
 from ..models.requests import StakeAddRequest
-from ..utils.formatting import print_success, print_error, print_info, format_balance
+from ..utils.formatting import (format_balance, print_error, print_info,
+                                print_success)
+from .base import BaseFlow, FlowStep
 
 
 class StakingPortfolioFlow(BaseFlow):

@@ -3,6 +3,7 @@ Dependencies for the Hypertensor CLI.
 """
 
 from typing import Optional
+
 from .client import HypertensorClient
 from .config import Config
 

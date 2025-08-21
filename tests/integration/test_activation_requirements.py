@@ -3,6 +3,7 @@ Integration tests for subnet activation requirements.
 """
 
 from unittest.mock import patch
+
 from src.htcli.main import app
 
 

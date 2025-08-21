@@ -3,17 +3,13 @@ Unit tests for password management functionality.
 """
 
 import os
-from unittest.mock import patch, mock_open
 from pathlib import Path
+from unittest.mock import mock_open, patch
 
-from src.htcli.utils.password import (
-    get_secure_password,
-    prompt_for_password,
-    store_password,
-    clear_password_cache,
-    get_cached_password,
-    set_cached_password,
-)
+from src.htcli.utils.password import (clear_password_cache,
+                                      get_cached_password, get_secure_password,
+                                      prompt_for_password, set_cached_password,
+                                      store_password)
 
 
 class TestPasswordManagement:

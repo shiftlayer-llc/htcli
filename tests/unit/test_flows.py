@@ -4,6 +4,7 @@ Unit tests for automated flows.
 
 import time
 from unittest.mock import Mock, patch
+
 from src.htcli.flows.base import BaseFlow
 
 

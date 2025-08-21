@@ -3,6 +3,7 @@ Integration tests for automatic stake removal.
 """
 
 from unittest.mock import patch
+
 from src.htcli.main import app
 
 

@@ -2,12 +2,13 @@
 Output formatting utility functions for the Hypertensor CLI.
 """
 
+import json
+from typing import Any, Dict, List
+
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from typing import Any, Dict, List
-import json
+from rich.table import Table
 
 # TENSOR token precision constant
 TENSOR_DECIMALS = 18
@@ -376,7 +377,6 @@ Total Attestations: {stats.get('total_attestations', 0)}
 Network Uptime: {stats.get('network_uptime', 0)}%
 Average Block Time: {stats.get('average_block_time', 0)}s
     """
-
 
     panel = Panel(info_text, title="Network Statistics")
     console.print(panel)

@@ -5,7 +5,9 @@ Handles all wallet and staking-related blockchain operations.
 """
 
 import logging
+
 from substrateinterface import SubstrateInterface
+
 from ..models.requests import StakeAddRequest, StakeRemoveRequest
 from ..models.responses import *
 

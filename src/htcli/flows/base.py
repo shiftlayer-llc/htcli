@@ -5,16 +5,17 @@ Provides the foundation for all automated flows with common functionality,
 error handling, and user interaction patterns.
 """
 
+import time
 from abc import ABC
-from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass
 from enum import Enum
-import time
+from typing import Any, Callable, Dict, List, Optional
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.table import Table
 from rich.prompt import Confirm
+from rich.table import Table
 
 from ..dependencies import get_client
 from ..utils.formatting import print_error, print_info

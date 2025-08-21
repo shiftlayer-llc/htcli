@@ -6,7 +6,9 @@ Handles all chain-related blockchain operations.
 
 import logging
 from typing import Optional
+
 from substrateinterface import SubstrateInterface
+
 from ..models.responses import *
 
 logger = logging.getLogger(__name__)
@@ -54,12 +56,8 @@ class ChainClient:
                     # ),
                     # "total_stake": total_stake.value if total_stake else 0,
                     "total_subnets": total_subnets.value,
-                    "total_active_subnets": (
-                        total_active_subnets.value
-                    ),
-                    "total_active_nodes": (
-                        total_active_nodes.value
-                    ),
+                    "total_active_subnets": (total_active_subnets.value),
+                    "total_active_nodes": (total_active_nodes.value),
                     "total_stake": total_stake.value,
                 },
             )

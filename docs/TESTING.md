@@ -16,18 +16,21 @@ This document provides a comprehensive guide to the testing strategy used in the
 ## 🏗️ **Testing Architecture**
 
 ### **1. Unit Tests (`tests/unit/`)**
+
 - **Purpose**: Test individual functions and methods in isolation
 - **Scope**: Single component testing
 - **Dependencies**: Mocked external dependencies
 - **Speed**: Fast execution (< 1 second per test)
 
 ### **2. Integration Tests (`tests/integration/`)**
+
 - **Purpose**: Test multiple components working together
 - **Scope**: End-to-end workflows and CLI commands
 - **Dependencies**: Mocked blockchain interface
 - **Speed**: Medium execution (1-5 seconds per test)
 
 ### **3. Network Tests (`tests/integration/test_network_connectivity.py`)**
+
 - **Purpose**: Test real network connectivity
 - **Scope**: Actual blockchain communication
 - **Dependencies**: Real network endpoints
@@ -63,6 +66,7 @@ def test_register_subnet_success(self):
 We use Python's `unittest.mock.patch` to replace external dependencies:
 
 #### **Why We Mock**
+
 - **Speed**: Tests run in milliseconds instead of seconds
 - **Reliability**: Tests don't depend on external systems
 - **Control**: We can test any scenario (success, failure, edge cases)
@@ -85,17 +89,20 @@ with patch("src.htcli.client.SubstrateInterface") as mock_substrate:
 #### **Mock Configuration Examples**
 
 **Success Scenario:**
+
 ```python
 mock_substrate_instance.compose_call.return_value = "0x1234567890abcdef"
 mock_substrate_instance.submit_extrinsic.return_value = mock_receipt
 ```
 
 **Error Scenario:**
+
 ```python
 mock_substrate_instance.compose_call.side_effect = Exception("Network timeout")
 ```
 
 **Different Responses:**
+
 ```python
 # First call succeeds, second call fails
 mock_substrate_instance.compose_call.side_effect = [
@@ -439,24 +446,28 @@ pytest tests/ -v
 ### **Common Issues**
 
 1. **Import Errors**
+
    ```bash
    # Solution: Install package in development mode
    uv pip install -e .
    ```
 
 2. **Mock Not Working**
+
    ```python
    # Check the import path in patch
    with patch("correct.import.path.SubstrateInterface") as mock_substrate:
    ```
 
 3. **Network Test Failures**
+
    ```bash
    # Skip network tests if network is unavailable
    pytest -m "not network"
    ```
 
 4. **Test Data Issues**
+
    ```python
    # Use realistic test data from fixtures
    from tests.fixtures.sample_data import SAMPLE_ADDRESSES
@@ -507,10 +518,10 @@ pytest tests/ -v --tb=long
 
 ## 📚 **Additional Resources**
 
-- **Pytest Documentation**: https://docs.pytest.org/
-- **unittest.mock Documentation**: https://docs.python.org/3/library/unittest.mock.html
-- **Typer Testing**: https://typer.tiangolo.com/tutorial/testing/
-- **SubstrateInterface**: https://github.com/polkascan/py-substrate-interface
+- **Pytest Documentation**: <https://docs.pytest.org/>
+- **unittest.mock Documentation**: <https://docs.python.org/3/library/unittest.mock.html>
+- **Typer Testing**: <https://typer.tiangolo.com/tutorial/testing/>
+- **SubstrateInterface**: <https://github.com/polkascan/py-substrate-interface>
 
 ---
 

@@ -3,8 +3,8 @@ Input validation utility functions for the Hypertensor CLI.
 """
 
 import re
-from typing import Optional, Union, List
 from pathlib import Path
+from typing import List, Optional, Union
 
 
 def validate_address(address: str) -> bool:

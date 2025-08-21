@@ -7,12 +7,14 @@ Uses modular structure with separate client modules.
 import asyncio
 import logging
 from typing import Optional
+
 from substrateinterface import SubstrateInterface
-from .models.requests import *
-from .models.responses import *
+
+from .client.chain import ChainClient
 from .client.subnet import SubnetClient
 from .client.wallet import WalletClient
-from .client.chain import ChainClient
+from .models.requests import *
+from .models.responses import *
 
 logger = logging.getLogger(__name__)
 

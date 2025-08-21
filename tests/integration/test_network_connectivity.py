@@ -2,12 +2,13 @@
 Network connectivity tests for Hypertensor blockchain.
 """
 
-import pytest
 import asyncio
 
-from src.htcli.main import app
+import pytest
+
 from src.htcli.client import HypertensorClient
 from src.htcli.config import load_config
+from src.htcli.main import app
 
 
 class TestNetworkConnectivity:

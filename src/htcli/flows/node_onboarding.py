@@ -14,14 +14,16 @@ Flow Steps:
 7. Node status monitoring setup
 """
 
-from typing import Dict, Any, List
-from rich.prompt import Prompt, IntPrompt, Confirm
+from typing import Any, Dict, List
+
+from rich.prompt import Confirm, IntPrompt, Prompt
 from rich.table import Table
 
-from .base import BaseFlow, FlowStep
-from ..models.requests import SubnetNodeAddRequest, StakeAddRequest
-from ..utils.formatting import print_success, print_error, print_info, format_balance
+from ..models.requests import StakeAddRequest, SubnetNodeAddRequest
+from ..utils.formatting import (format_balance, print_error, print_info,
+                                print_success)
 from ..utils.validation import validate_address
+from .base import BaseFlow, FlowStep
 
 
 class NodeOnboardingFlow(BaseFlow):

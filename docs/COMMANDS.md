@@ -731,7 +731,3 @@ htcli node status --subnet-id 1 --node-id 5
 htcli stake info --mine
 htcli chain info
 ```
-
----
-
-**This comprehensive command reference covers all 50+ commands available in the Hypertensor CLI, providing complete blockchain management capabilities with professional-grade user experience and strategic guidance.** 🚀

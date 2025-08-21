@@ -15,6 +15,7 @@ The Hypertensor CLI provides a comprehensive programmatic API for blockchain int
 ## 🏗️ Client Architecture
 
 ### Client Initialization
+
 ```python
 from src.htcli.client import HypertensorClient
 
@@ -28,6 +29,7 @@ client = HypertensorClient(config=config)
 ```
 
 ### Client Components
+
 - **Subnet Client**: Subnet registration and management
 - **Node Client**: Node lifecycle management
 - **Staking Client**: Staking operations and portfolio management
@@ -37,6 +39,7 @@ client = HypertensorClient(config=config)
 ## 🔑 Subnet Operations API
 
 ### Register Subnet
+
 ```python
 from src.htcli.models.requests import SubnetRegisterRequest
 
@@ -62,6 +65,7 @@ print(f"Transaction hash: {response.transaction_hash}")
 ```
 
 ### Activate Subnet
+
 ```python
 response = client.activate_subnet(
     subnet_id=1,
@@ -71,6 +75,7 @@ print(f"Subnet activated: {response.success}")
 ```
 
 ### Pause/Unpause Subnet
+
 ```python
 # Pause subnet
 response = client.pause_subnet(
@@ -86,6 +91,7 @@ response = client.unpause_subnet(
 ```
 
 ### Update Subnet Parameters
+
 ```python
 # Update subnet name
 response = client.owner_update_name(
@@ -110,6 +116,7 @@ response = client.owner_update_description(
 ```
 
 ### Ownership Management
+
 ```python
 # Transfer ownership
 response = client.transfer_subnet_ownership(
@@ -132,6 +139,7 @@ response = client.undo_subnet_ownership_transfer(
 ```
 
 ### Get Subnet Information
+
 ```python
 # Get subnet data
 subnet_data = client.get_subnet_data(subnet_id=1)
@@ -147,6 +155,7 @@ for subnet in subnets:
 ## 🔗 Node Operations API
 
 ### Register Node
+
 ```python
 from src.htcli.models.requests import SubnetNodeAddRequest
 
@@ -166,6 +175,7 @@ print(f"Node registered: {response.success}")
 ```
 
 ### Node Lifecycle Management
+
 ```python
 # Activate node
 response = client.activate_subnet_node(
@@ -200,6 +210,7 @@ response = client.update_node_hotkey(
 ```
 
 ### Node Deactivation and Reactivation
+
 ```python
 # Deactivate node
 response = client.deactivate_subnet_node(
@@ -217,6 +228,7 @@ response = client.reactivate_subnet_node(
 ```
 
 ### Node Removal and Cleanup
+
 ```python
 # Remove node
 response = client.remove_subnet_node(
@@ -235,6 +247,7 @@ response = client.cleanup_expired_node(
 ```
 
 ### Get Node Information
+
 ```python
 # Get node status
 node_status = client.get_subnet_node_status(subnet_id=1, node_id=5)
@@ -250,6 +263,7 @@ for node in nodes:
 ## 💰 Staking Operations API
 
 ### Subnet Delegate Staking
+
 ```python
 # Add subnet delegate stake
 response = client.add_to_delegate_stake(
@@ -282,6 +296,7 @@ response = client.increase_delegate_stake(
 ```
 
 ### Node Delegate Staking
+
 ```python
 # Add node delegate stake
 response = client.add_to_node_delegate_stake(
@@ -318,6 +333,7 @@ response = client.increase_node_delegate_stake(
 ```
 
 ### Get Staking Information
+
 ```python
 # Get staking info
 staking_info = client.get_stake_info(subnet_id=1, node_id=5)
@@ -333,6 +349,7 @@ print(f"Your shares: {delegate_info.your_shares}")
 ## 🔐 Wallet Operations API
 
 ### Key Management
+
 ```python
 from src.htcli.utils.crypto import generate_keypair, import_keypair, load_keypair
 
@@ -352,6 +369,7 @@ for key in keys:
 ```
 
 ### Wallet Status
+
 ```python
 # Get wallet status
 status = get_wallet_status("my-key")
@@ -363,6 +381,7 @@ print(f"Public key: {status.public_key}")
 ## 🔍 Chain Operations API
 
 ### Network Information
+
 ```python
 # Get network info
 network_info = client.get_network_info()
@@ -376,6 +395,7 @@ print(f"Chain version: {chain_info.version}")
 ```
 
 ### Balance and Account Information
+
 ```python
 # Get account balance
 balance = client.get_balance("5HpG9w8EBLe5XCrbczpwq5TSXvedjrBGCwqxK9iYqurHh9Qu")
@@ -387,6 +407,7 @@ print(f"Account nonce: {account_info.nonce}")
 ```
 
 ### Block and Transaction Information
+
 ```python
 # Get block info
 block_info = client.get_block_info(block_number=12345)
@@ -402,6 +423,7 @@ print(f"Transaction block: {tx_info.block_number}")
 ## 📊 Request/Response Models
 
 ### Subnet Register Request
+
 ```python
 from src.htcli.models.requests import SubnetRegisterRequest
 
@@ -423,6 +445,7 @@ request = SubnetRegisterRequest(
 ```
 
 ### Subnet Node Add Request
+
 ```python
 from src.htcli.models.requests import SubnetNodeAddRequest
 
@@ -439,6 +462,7 @@ request = SubnetNodeAddRequest(
 ```
 
 ### Response Models
+
 ```python
 from src.htcli.models.responses import (
     SubnetRegisterResponse,
@@ -463,6 +487,7 @@ else:
 ## 🛡️ Error Handling
 
 ### Exception Handling
+
 ```python
 try:
     response = client.register_subnet(request, keypair)
@@ -475,6 +500,7 @@ except Exception as e:
 ```
 
 ### Validation Errors
+
 ```python
 from src.htcli.utils.validation import validate_subnet_id, validate_amount
 
@@ -487,6 +513,7 @@ if not validate_amount(amount):
 ```
 
 ### Network Errors
+
 ```python
 try:
     response = client.get_subnet_data(subnet_id=1)
@@ -499,6 +526,7 @@ except TimeoutError:
 ## 🔄 Integration Examples
 
 ### Automated Node Management
+
 ```python
 import time
 from src.htcli.client import HypertensorClient
@@ -510,32 +538,33 @@ def monitor_node_performance(subnet_id, node_id, keypair):
     while True:
         # Get node status
         status = client.get_subnet_node_status(subnet_id, node_id)
-        
+
         # Check performance
         if status.attestation_ratio < 0.8:
             # Lower reward rate to reduce delegation
             current_rate = status.delegate_reward_rate
             new_rate = int(current_rate * 0.95)  # 5% decrease
-            
+
             response = client.update_node_delegate_reward_rate(
                 subnet_id, node_id, new_rate, keypair
             )
             print(f"Updated reward rate to {new_rate}")
-        
+
         time.sleep(3600)  # Check every hour
 ```
 
 ### Portfolio Management Bot
+
 ```python
 def rebalance_portfolio(client, keypair):
     """Rebalance staking portfolio based on performance"""
     # Get all stakes
     stakes = client.get_stake_info(mine=True)
-    
+
     # Calculate performance metrics
     total_staked = sum(stake.amount for stake in stakes)
     avg_performance = sum(stake.performance for stake in stakes) / len(stakes)
-    
+
     # Rebalance if performance is low
     if avg_performance < 0.05:
         # Remove from low-performing stakes
@@ -544,7 +573,7 @@ def rebalance_portfolio(client, keypair):
                 client.remove_delegate_stake(
                     stake.subnet_id, stake.shares, keypair
                 )
-        
+
         # Add to high-performing subnets
         high_performing_subnets = get_high_performing_subnets()
         for subnet in high_performing_subnets:
@@ -554,19 +583,20 @@ def rebalance_portfolio(client, keypair):
 ```
 
 ### Network Monitoring
+
 ```python
 def monitor_network(client):
     """Monitor network health and performance"""
     # Get network stats
     network_info = client.get_network_info()
-    
+
     # Check for issues
     if network_info.total_nodes < 100:
         print("Warning: Low node count")
-    
+
     if network_info.total_subnets < 5:
         print("Warning: Low subnet count")
-    
+
     # Monitor specific subnets
     subnets = client.list_subnets()
     for subnet in subnets:
@@ -578,6 +608,7 @@ def monitor_network(client):
 ## 📈 Performance Optimization
 
 ### Connection Pooling
+
 ```python
 # Reuse client instance
 client = HypertensorClient()
@@ -589,6 +620,7 @@ for subnet_id in range(1, 6):
 ```
 
 ### Batch Operations
+
 ```python
 def batch_stake_operations(client, keypair):
     """Perform multiple staking operations efficiently"""
@@ -597,7 +629,7 @@ def batch_stake_operations(client, keypair):
         (2, 500000000000000000),
         (3, 750000000000000000),
     ]
-    
+
     for subnet_id, amount in operations:
         response = client.add_to_delegate_stake(subnet_id, amount, keypair)
         if response.success:
@@ -607,6 +639,7 @@ def batch_stake_operations(client, keypair):
 ```
 
 ### Caching
+
 ```python
 import functools
 
@@ -619,6 +652,7 @@ def get_cached_subnet_data(client, subnet_id):
 ## 🔧 Configuration Management
 
 ### Load Configuration
+
 ```python
 from src.htcli.config import load_config
 
@@ -628,6 +662,7 @@ print(f"Default key: {config.wallet.default_key}")
 ```
 
 ### Custom Configuration
+
 ```python
 from src.htcli.config import Config, NetworkConfig, WalletConfig
 
@@ -644,7 +679,3 @@ config = Config(
 
 client = HypertensorClient(config=config)
 ```
-
----
-
-**This comprehensive API reference provides complete programmatic access to all Hypertensor CLI functionality, enabling advanced automation, integration, and custom applications for Hypertensor network management.** 🚀

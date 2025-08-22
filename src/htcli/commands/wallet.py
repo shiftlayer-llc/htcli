@@ -49,8 +49,8 @@ console = Console()
 @app.command()
 def generate_hotkey(
     name: Optional[str] = typer.Option(None, "--name", "-n", help="Hotkey name"),
-    owner_address: Optional[str] = typer.Option(
-        None, "--owner", "-o", help="Coldkey address that owns this hotkey"
+    owner_name: Optional[str] = typer.Option(
+        None, "--owner", "-o", help="Coldkey wallet name that owns this hotkey"
     ),
     key_type: str = typer.Option(
         "sr25519", "--type", "-t", help="Key type (sr25519/ed25519)"
@@ -65,8 +65,8 @@ def generate_hotkey(
     """Generate a new hotkey with comprehensive guidance."""
 
     # Interactive prompting for missing arguments
-    name, owner_address, key_type, password, show_guidance = prompt_for_missing_args(
-        name, owner_address, key_type, password, show_guidance
+    name, owner_address, key_type, owner_name, password, show_guidance = prompt_for_missing_args(
+        name, owner_name, key_type, password, show_guidance
     )
 
     # Validate inputs
@@ -86,9 +86,18 @@ def generate_hotkey(
         )
         raise typer.Exit(1)
 
-    # Validate owner address format
-    if not owner_address.startswith("5"):
-        print_error("Owner address must be a valid SS58 address starting with '5'")
+    # Validate that owner is a coldkey, not a hotkey
+    try:
+        from ..utils.crypto import get_wallet_info_by_name
+        owner_wallet_info = get_wallet_info_by_name(owner_name)
+        if owner_wallet_info.get("is_hotkey", False):
+            print_error(f"'{owner_name}' is a hotkey. Please provide a coldkey wallet name as the owner.")
+            raise typer.Exit(1)
+    except FileNotFoundError:
+        print_error(f"Owner wallet '{owner_name}' not found. Please provide an existing coldkey wallet name.")
+        raise typer.Exit(1)
+    except Exception as e:
+        print_error(f"Error validating owner wallet '{owner_name}': {str(e)}")
         raise typer.Exit(1)
 
     try:
@@ -102,7 +111,8 @@ def generate_hotkey(
                 HOTKEY_GUIDANCE_TEMPLATE.format(
                     name=name,
                     address=keypair_info.ss58_address,
-                    owner=owner_address,
+                    owner_name=owner_name,
+                    owner_address=owner_address,
                 ),
                 title="Hotkey Generation Complete",
                 border_style="green",
@@ -114,7 +124,7 @@ def generate_hotkey(
             console.print(f"Type: {keypair_info.key_type}")
             console.print(f"Public Key: {keypair_info.public_key}")
             console.print(f"SS58 Address: {keypair_info.ss58_address}")
-            console.print(f"Owner: {keypair_info.owner_address}")
+            console.print(f"Owner: {owner_name} ({owner_address})")
 
     except Exception as e:
         print_error(f"Failed to generate hotkey: {str(e)}")

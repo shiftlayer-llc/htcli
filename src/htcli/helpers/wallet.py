@@ -4,7 +4,7 @@ import typer
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
-from src.htcli.utils.crypto import list_keys
+from src.htcli.utils.crypto import list_keys, get_wallet_info_by_name
 from src.htcli.utils.formatting import print_error
 from src.htcli.utils.validation import (
     validate_password,
@@ -17,11 +17,11 @@ console = Console()
 
 def prompt_for_missing_args(
     name: Optional[str] = None,
-    owner_address: Optional[str] = None,
+    owner_name: Optional[str] = None,
     key_type: Optional[str] = None,
     password: Optional[str] = None,
     show_guidance: Optional[bool] = None,
-) -> tuple[str, str, str, Optional[str], bool]:
+) -> tuple[str, str, str, str, Optional[str], bool]:
     """Interactive prompt for missing arguments."""
 
     # Prompt for name if missing
@@ -34,13 +34,29 @@ def prompt_for_missing_args(
                 "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
             )
 
-    # Prompt for owner address if missing
-    if not owner_address:
+    # Prompt for owner wallet name if missing
+    if not owner_name:
         while True:
-            owner_address = Prompt.ask("Enter coldkey address that owns this hotkey")
-            if owner_address.startswith("5"):
+            owner_name = Prompt.ask("Enter coldkey wallet name that owns this hotkey")
+            try:
+                # Validate that the wallet exists and is a coldkey
+                wallet_info = get_wallet_info_by_name(owner_name)
+                if wallet_info.get("is_hotkey", False):
+                    print_error(f"'{owner_name}' is a hotkey. Please provide a coldkey wallet name.")
+                    continue
                 break
-            print_error("Owner address must be a valid SS58 address starting with '5'")
+            except FileNotFoundError:
+                print_error(f"Coldkey wallet '{owner_name}' not found. Please provide an existing coldkey wallet name.")
+            except Exception as e:
+                print_error(f"Error accessing wallet '{owner_name}': {str(e)}")
+
+    # Get the owner address from the wallet name
+    try:
+        wallet_info = get_wallet_info_by_name(owner_name)
+        owner_address = wallet_info["ss58_address"]
+    except Exception as e:
+        print_error(f"Failed to get address for wallet '{owner_name}': {str(e)}")
+        raise typer.Exit(1)
 
     # Prompt for key type if missing
     if not key_type:
@@ -70,7 +86,7 @@ def prompt_for_missing_args(
     if show_guidance is None:
         show_guidance = Confirm.ask("Show comprehensive guidance?", default=True)
 
-    return name, owner_address, key_type, password, show_guidance
+    return name, owner_address, key_type, owner_name, password, show_guidance
 
 
 def prompt_for_coldkey_args(

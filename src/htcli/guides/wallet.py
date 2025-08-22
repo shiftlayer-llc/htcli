@@ -4,7 +4,7 @@ HOTKEY_GUIDANCE_TEMPLATE = """
 [bold]Hotkey Details:[/bold]
 • Name: {name}
 • Address: {address}
-• Owner: {owner}
+• Owner: {owner_name} ({owner_address})
 
 [bold]What is a Hotkey?[/bold]
 • Used for operational tasks (consensus, validation)

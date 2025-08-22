@@ -360,6 +360,36 @@ def list_keys() -> list[dict]:
         raise Exception(f"Failed to list keys: {str(e)}")
 
 
+def get_wallet_info_by_name(name: str) -> dict:
+    """Get wallet information by name without loading the private key."""
+    try:
+        wallet_dir = Path.home() / ".htcli" / "wallets"
+        keypair_file = wallet_dir / f"{name}.json"
+
+        if not keypair_file.exists():
+            raise FileNotFoundError(f"Wallet '{name}' not found")
+
+        with open(keypair_file, "r") as f:
+            keypair_data = json.load(f)
+
+        # Return wallet info without private key
+        wallet_info = {
+            "name": keypair_data["name"],
+            "key_type": keypair_data["key_type"],
+            "public_key": keypair_data["public_key"],
+            "ss58_address": keypair_data["ss58_address"],
+            "address": keypair_data["ss58_address"],  # Alias for compatibility
+            "is_hotkey": keypair_data.get("is_hotkey", False),
+            "owner_address": keypair_data.get("owner_address", None),
+            "is_encrypted": keypair_data.get("is_encrypted", True),
+        }
+        
+        return wallet_info
+
+    except Exception as e:
+        raise Exception(f"Failed to get wallet info: {str(e)}")
+
+
 def delete_keypair(name: str) -> bool:
     """Delete a keypair from disk."""
     try:

@@ -125,7 +125,10 @@ def generate_hotkey(
 def generate_coldkey(
     name: Optional[str] = typer.Option(None, "--name", "-n", help="Coldkey name"),
     key_type: str = typer.Option(
-        "sr25519", "--type", "-t", help="Key type (sr25519/ed25519)"
+        "sr25519",
+        "--type",
+        "-t",
+        help="Key type (sr25519/ed25519)",
     ),
     password: Optional[str] = typer.Option(
         None, "--password", "-p", help="Key password"
@@ -233,7 +236,7 @@ def restore(
 
     try:
         keypair_info = import_keypair(name, private_key, key_type, password)
-        print_success("✅ Key imported successfully!")
+        print_success("Key imported successfully!")
 
         # Display key information
         console.print(f"Name: {keypair_info.name}")

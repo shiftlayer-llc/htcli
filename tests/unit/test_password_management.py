@@ -6,10 +6,14 @@ import os
 from pathlib import Path
 from unittest.mock import mock_open, patch
 
-from src.htcli.utils.password import (clear_password_cache,
-                                      get_cached_password, get_secure_password,
-                                      prompt_for_password, set_cached_password,
-                                      store_password)
+from src.htcli.utils.password import (
+    clear_password_cache,
+    get_cached_password,
+    get_secure_password,
+    prompt_for_password,
+    set_cached_password,
+    store_password,
+)
 
 
 class TestPasswordManagement:

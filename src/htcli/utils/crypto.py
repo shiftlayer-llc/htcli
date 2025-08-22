@@ -51,13 +51,9 @@ def generate_coldkey_pair(
             owner_address=None,  # Coldkeys don't have owners
         )
 
-        # Get secure password for saving
-        save_password = password or get_secure_password(
-            name,
-            prompt_message="Enter password to secure this coldkey",
-            allow_default=True,
-        )
-        save_coldkey(name, keypair, save_password)
+        # Use the password directly from the CLI function
+        # The CLI function already handles the password prompting
+        save_coldkey(name, keypair, password)
 
         return keypair_info
 
@@ -66,7 +62,10 @@ def generate_coldkey_pair(
 
 
 def generate_hotkey_pair(
-    name: str, owner_address: str, key_type: str = "sr25519", password: Optional[str] = None
+    name: str,
+    owner_address: str,
+    key_type: str = "sr25519",
+    password: Optional[str] = None,
 ) -> KeypairInfo:
     """Generate a new hotkey pair owned by a coldkey."""
     try:
@@ -91,13 +90,9 @@ def generate_hotkey_pair(
             owner_address=owner_address,  # Hotkeys have owners
         )
 
-        # Get secure password for saving
-        save_password = password or get_secure_password(
-            name,
-            prompt_message="Enter password to secure this hotkey",
-            allow_default=True,
-        )
-        save_hotkey(name, keypair, owner_address, save_password)
+        # Use the password directly from the CLI function
+        # The CLI function already handles the password prompting
+        save_hotkey(name, keypair, owner_address, password)
 
         return keypair_info
 
@@ -153,32 +148,49 @@ def import_keypair(
         raise Exception(f"Failed to import keypair: {str(e)}")
 
 
-def save_coldkey(name: str, keypair: Keypair, password: str):
+def save_coldkey(name: str, keypair: Keypair, password: Optional[str]):
     """Save a coldkey to disk with encryption."""
     try:
         # Create wallet directory
         wallet_dir = Path.home() / ".htcli" / "wallets"
         wallet_dir.mkdir(parents=True, exist_ok=True)
 
-        # Generate encryption key from password
-        key = Fernet.generate_key()
-        cipher = Fernet(key)
+        if password is not None:
+            # Encrypt private key with password
+            key = Fernet.generate_key()
+            cipher = Fernet(key)
+            private_key_bytes = keypair.private_key
+            encrypted_private_key = cipher.encrypt(private_key_bytes)
 
-        # Encrypt private key
-        private_key_bytes = keypair.private_key
-        encrypted_private_key = cipher.encrypt(private_key_bytes)
+            # Create wallet data with encryption
+            wallet_data = {
+                "name": name,
+                "key_type": "sr25519" if keypair.crypto_type == 1 else "ed25519",
+                "public_key": keypair.public_key.hex(),
+                "ss58_address": keypair.ss58_address,
+                "encrypted_private_key": base64.b64encode(
+                    encrypted_private_key
+                ).decode(),
+                "salt": base64.b64encode(key).decode(),
+                "is_hotkey": False,  # This is a coldkey
+                "owner_address": None,  # Coldkeys don't have owners
+                "is_encrypted": True,
+            }
+        else:
+            # Store private key without encryption (less secure but user's choice)
+            private_key_bytes = keypair.private_key
 
-        # Create wallet data
-        wallet_data = {
-            "name": name,
-            "key_type": "sr25519" if keypair.crypto_type == 1 else "ed25519",
-            "public_key": keypair.public_key.hex(),
-            "ss58_address": keypair.ss58_address,
-            "encrypted_private_key": base64.b64encode(encrypted_private_key).decode(),
-            "salt": base64.b64encode(key).decode(),
-            "is_hotkey": False,  # This is a coldkey
-            "owner_address": None,  # Coldkeys don't have owners
-        }
+            # Create wallet data without encryption
+            wallet_data = {
+                "name": name,
+                "key_type": "sr25519" if keypair.crypto_type == 1 else "ed25519",
+                "public_key": keypair.public_key.hex(),
+                "ss58_address": keypair.ss58_address,
+                "private_key": private_key_bytes.hex(),  # Store unencrypted
+                "is_hotkey": False,  # This is a coldkey
+                "owner_address": None,  # Coldkeys don't have owners
+                "is_encrypted": False,
+            }
 
         # Save to file
         wallet_file = wallet_dir / f"{name}.json"
@@ -192,32 +204,51 @@ def save_coldkey(name: str, keypair: Keypair, password: str):
         raise Exception(f"Failed to save coldkey: {str(e)}")
 
 
-def save_hotkey(name: str, keypair: Keypair, owner_address: str, password: str):
+def save_hotkey(
+    name: str, keypair: Keypair, owner_address: str, password: Optional[str]
+):
     """Save a hotkey to disk with encryption."""
     try:
         # Create wallet directory
         wallet_dir = Path.home() / ".htcli" / "wallets"
         wallet_dir.mkdir(parents=True, exist_ok=True)
 
-        # Generate encryption key from password
-        key = Fernet.generate_key()
-        cipher = Fernet(key)
+        if password is not None:
+            # Encrypt private key with password
+            key = Fernet.generate_key()
+            cipher = Fernet(key)
+            private_key_bytes = keypair.private_key
+            encrypted_private_key = cipher.encrypt(private_key_bytes)
 
-        # Encrypt private key
-        private_key_bytes = keypair.private_key
-        encrypted_private_key = cipher.encrypt(private_key_bytes)
+            # Create wallet data with encryption
+            wallet_data = {
+                "name": name,
+                "key_type": "sr25519" if keypair.crypto_type == 1 else "ed25519",
+                "public_key": keypair.public_key.hex(),
+                "ss58_address": keypair.ss58_address,
+                "encrypted_private_key": base64.b64encode(
+                    encrypted_private_key
+                ).decode(),
+                "salt": base64.b64encode(key).decode(),
+                "is_hotkey": True,  # This is a hotkey
+                "owner_address": owner_address,  # Hotkeys have owners
+                "is_encrypted": True,
+            }
+        else:
+            # Store private key without encryption (less secure but user's choice)
+            private_key_bytes = keypair.private_key
 
-        # Create wallet data
-        wallet_data = {
-            "name": name,
-            "key_type": "sr25519" if keypair.crypto_type == 1 else "ed25519",
-            "public_key": keypair.public_key.hex(),
-            "ss58_address": keypair.ss58_address,
-            "encrypted_private_key": base64.b64encode(encrypted_private_key).decode(),
-            "salt": base64.b64encode(key).decode(),
-            "is_hotkey": True,  # This is a hotkey
-            "owner_address": owner_address,  # Hotkeys have owners
-        }
+            # Create wallet data without encryption
+            wallet_data = {
+                "name": name,
+                "key_type": "sr25519" if keypair.crypto_type == 1 else "ed25519",
+                "public_key": keypair.public_key.hex(),
+                "ss58_address": keypair.ss58_address,
+                "private_key": private_key_bytes.hex(),  # Store unencrypted
+                "is_hotkey": True,  # This is a hotkey
+                "owner_address": owner_address,  # Hotkeys have owners
+                "is_encrypted": False,
+            }
 
         # Save to file
         wallet_file = wallet_dir / f"{name}.json"
@@ -248,19 +279,33 @@ def load_keypair(name: str, password: Optional[str] = None) -> Keypair:
         with open(keypair_file, "r") as f:
             keypair_data = json.load(f)
 
-        # Get secure password for decryption
-        decrypt_password = password or get_secure_password(
-            name,
-            prompt_message="Enter password to unlock this keypair",
-            allow_default=True,
-        )
+        # Check if the key is encrypted
+        is_encrypted = keypair_data.get(
+            "is_encrypted", True
+        )  # Default to True for backward compatibility
 
-        # Decrypt private key
-        salt = base64.b64decode(keypair_data["salt"])
-        encrypted_private_key = base64.b64decode(keypair_data["encrypted_private_key"])
+        if is_encrypted:
+            # Get secure password for decryption
+            decrypt_password = password or get_secure_password(
+                name,
+                prompt_message="Enter password to unlock this keypair",
+                allow_default=True,
+            )
 
-        cipher = Fernet(salt)
-        private_key_bytes = cipher.decrypt(encrypted_private_key)
+            # Decrypt private key
+            salt = base64.b64decode(keypair_data["salt"])
+            encrypted_private_key = base64.b64decode(
+                keypair_data["encrypted_private_key"]
+            )
+
+            cipher = Fernet(salt)
+            private_key_bytes = cipher.decrypt(encrypted_private_key)
+        else:
+            # Key is not encrypted, load directly
+            if "private_key" in keypair_data:
+                private_key_bytes = bytes.fromhex(keypair_data["private_key"])
+            else:
+                raise ValueError("Key file is corrupted: missing private key")
 
         # Create keypair
         if keypair_data["key_type"] == "sr25519":
@@ -301,6 +346,8 @@ def list_keys() -> list[dict]:
                     # Add hotkey/coldkey information
                     "is_hotkey": keypair_data.get("is_hotkey", False),
                     "owner_address": keypair_data.get("owner_address", None),
+                    # Add encryption status
+                    "is_encrypted": keypair_data.get("is_encrypted", True),
                 }
                 keys.append(key_info)
             except Exception:

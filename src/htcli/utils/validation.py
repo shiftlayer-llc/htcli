@@ -1,5 +1,5 @@
 """
-Input validation utility functions for the Hypertensor CLI.
+Validation helpers for user input in the Hypertensor CLI.
 """
 
 import re

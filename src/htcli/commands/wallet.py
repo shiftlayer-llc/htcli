@@ -32,6 +32,7 @@ from ..utils.crypto import (
     generate_coldkey_pair,
     generate_hotkey_pair,
     import_keypair,
+    import_keypair_from_mnemonic,
     list_keys,
     delete_coldkey_and_hotkeys,
 )
@@ -41,6 +42,7 @@ from ..utils.validation import (
     validate_password,
     validate_private_key,
     validate_wallet_name,
+    validate_mnemonic,
 )
 
 app = typer.Typer(name="wallet", help="Wallet operations")
@@ -207,6 +209,9 @@ def restore(
     private_key: Optional[str] = typer.Option(
         None, "--private-key", "-k", help="Private key (64-character hex)"
     ),
+    mnemonic: Optional[str] = typer.Option(
+        None, "--mnemonic", "-m", help="Mnemonic phrase (12 or 24 words)"
+    ),
     key_type: str = typer.Option(
         "sr25519", "--type", "-t", help="Key type (sr25519/ed25519)"
     ),
@@ -217,11 +222,11 @@ def restore(
         None, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
 ):
-    """Import a keypair from private key with comprehensive guidance."""
+    """Import a keypair from private key or mnemonic phrase with comprehensive guidance."""
 
     # Interactive prompting for missing arguments
-    name, private_key, key_type, password, show_guidance = prompt_for_restore_args(
-        name, private_key, key_type, password, show_guidance
+    name, private_key, mnemonic, key_type, password, show_guidance = prompt_for_restore_args(
+        name, private_key, mnemonic, key_type, password, show_guidance
     )
 
     # Validate inputs
@@ -231,8 +236,21 @@ def restore(
         )
         raise typer.Exit(1)
 
-    if not validate_private_key(private_key):
+    # Validate that either private key or mnemonic is provided, but not both
+    if not private_key and not mnemonic:
+        print_error("Either private key or mnemonic phrase must be provided.")
+        raise typer.Exit(1)
+    
+    if private_key and mnemonic:
+        print_error("Please provide either private key OR mnemonic phrase, not both.")
+        raise typer.Exit(1)
+
+    if private_key and not validate_private_key(private_key):
         print_error("Invalid private key format. Should be a 64-character hex string.")
+        raise typer.Exit(1)
+
+    if mnemonic and not validate_mnemonic(mnemonic):
+        print_error("Invalid mnemonic format. Should be 12 or 24 lowercase words.")
         raise typer.Exit(1)
 
     if not validate_key_type(key_type):
@@ -246,8 +264,14 @@ def restore(
         raise typer.Exit(1)
 
     try:
-        keypair_info = import_keypair(name, private_key, key_type, password)
-        print_success("Key imported successfully!")
+        if private_key:
+            keypair_info = import_keypair(name, private_key, key_type, password)
+            import_method = "private key"
+        else:
+            keypair_info = import_keypair_from_mnemonic(name, mnemonic, key_type, password)
+            import_method = "mnemonic phrase"
+
+        print_success(f"✅ Key imported successfully from {import_method}!")
 
         # Display key information
         console.print(f"Name: {keypair_info.name}")
@@ -263,6 +287,7 @@ def restore(
                     name=name,
                     address=keypair_info.ss58_address,
                     key_type=key_type,
+                    import_method=import_method,
                 ),
                 title="Key Import Complete",
                 border_style="green",
@@ -436,25 +461,25 @@ def delete(
         from ..utils.crypto import get_wallet_info_by_name
         wallet_info = get_wallet_info_by_name(name)
         is_coldkey = not wallet_info.get("is_hotkey", False)
-        
+
         if is_coldkey:
             # Check for associated hotkeys
             all_keys = list_keys()
             coldkey_address = wallet_info["ss58_address"]
             associated_hotkeys = []
-            
+
             for key_info in all_keys:
-                if (key_info.get("is_hotkey", False) and 
+                if (key_info.get("is_hotkey", False) and
                     key_info.get("owner_address") == coldkey_address):
                     associated_hotkeys.append(key_info["name"])
-            
+
             if associated_hotkeys:
                 # Show warning about associated hotkeys
                 console.print(f"\n[yellow]⚠️  Warning:[/yellow] Coldkey '{name}' has {len(associated_hotkeys)} associated hotkey(s):")
                 for hotkey in associated_hotkeys:
                     console.print(f"   • {hotkey}")
                 console.print("\n[yellow]All associated hotkeys will be deleted together with the coldkey.[/yellow]")
-                
+
                 # Confirmation prompt
                 if not confirm:
                     delete_confirm = typer.confirm(
@@ -463,11 +488,11 @@ def delete(
                     if not delete_confirm:
                         console.print("Operation cancelled.")
                         return
-                
+
                 # Delete coldkey and all associated hotkeys
                 result = delete_coldkey_and_hotkeys(name)
                 print_success(f"✅ Coldkey '{name}' and {result['total_hotkeys_deleted']} associated hotkeys deleted successfully!")
-                
+
                 if show_guidance:
                     from rich.panel import Panel
                     guidance_panel = Panel(
@@ -495,10 +520,10 @@ def delete(
                     if not delete_confirm:
                         console.print("Operation cancelled.")
                         return
-                
+
                 delete_keypair(name)
                 print_success(f"✅ Coldkey '{name}' deleted successfully!")
-                
+
                 if show_guidance:
                     from rich.panel import Panel
                     guidance_panel = Panel(
@@ -514,10 +539,10 @@ def delete(
                 if not delete_confirm:
                     console.print("Operation cancelled.")
                     return
-            
+
             delete_keypair(name)
             print_success(f"✅ Hotkey '{name}' deleted successfully!")
-            
+
             if show_guidance:
                 from rich.panel import Panel
                 guidance_panel = Panel(

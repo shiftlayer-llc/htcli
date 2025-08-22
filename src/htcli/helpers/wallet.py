@@ -10,6 +10,7 @@ from src.htcli.utils.validation import (
     validate_password,
     validate_private_key,
     validate_wallet_name,
+    validate_mnemonic,
 )
 
 console = Console()
@@ -141,10 +142,11 @@ def prompt_for_coldkey_args(
 def prompt_for_restore_args(
     name: Optional[str] = None,
     private_key: Optional[str] = None,
+    mnemonic: Optional[str] = None,
     key_type: Optional[str] = None,
     password: Optional[str] = None,
     show_guidance: Optional[bool] = None,
-) -> tuple[str, str, str, Optional[str], bool]:
+) -> tuple[str, Optional[str], Optional[str], str, Optional[str], bool]:
     """Interactive prompt for restore arguments."""
 
     # Prompt for name if missing
@@ -157,8 +159,18 @@ def prompt_for_restore_args(
                 "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
             )
 
-    # Prompt for private key if missing
-    if not private_key:
+    # Prompt for import method if neither private key nor mnemonic is provided
+    if not private_key and not mnemonic:
+        import_method = Prompt.ask(
+            "Choose import method", 
+            choices=["private-key", "mnemonic"], 
+            default="mnemonic"
+        )
+    else:
+        import_method = "private-key" if private_key else "mnemonic"
+
+    # Prompt for private key or mnemonic based on chosen method
+    if import_method == "private-key" and not private_key:
         while True:
             private_key = Prompt.ask(
                 "Enter private key (64-character hex)", password=True
@@ -167,6 +179,16 @@ def prompt_for_restore_args(
                 break
             print_error(
                 "Invalid private key format. Should be a 64-character hex string."
+            )
+    elif import_method == "mnemonic" and not mnemonic:
+        while True:
+            mnemonic = Prompt.ask(
+                "Enter mnemonic phrase (12 or 24 words)", password=True
+            )
+            if validate_mnemonic(mnemonic):
+                break
+            print_error(
+                "Invalid mnemonic format. Should be 12 or 24 lowercase words."
             )
 
     # Prompt for key type if missing
@@ -197,7 +219,7 @@ def prompt_for_restore_args(
     if show_guidance is None:
         show_guidance = Confirm.ask("Show comprehensive guidance?", default=True)
 
-    return name, private_key, key_type, password, show_guidance
+    return name, private_key, mnemonic, key_type, password, show_guidance
 
 
 def display_keys_tree(keys: list):

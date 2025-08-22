@@ -148,6 +148,45 @@ def import_keypair(
         raise Exception(f"Failed to import keypair: {str(e)}")
 
 
+def import_keypair_from_mnemonic(
+    name: str,
+    mnemonic: str,
+    key_type: str = "sr25519",
+    password: Optional[str] = None,
+) -> KeypairInfo:
+    """Import an existing keypair from mnemonic phrase."""
+    try:
+        # Import keypair from mnemonic
+        if key_type == "sr25519":
+            keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42, crypto_type=1)
+        elif key_type == "ed25519":
+            keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42, crypto_type=0)
+        else:
+            raise ValueError(f"Unsupported key type: {key_type}")
+
+        # Create keypair info
+        keypair_info = KeypairInfo(
+            name=name,
+            key_type=key_type,
+            public_key=keypair.public_key.hex(),
+            ss58_address=keypair.ss58_address,
+            owner_address=None,  # Coldkeys don't have owners
+        )
+
+        # Get secure password for saving
+        save_password = password or get_secure_password(
+            name,
+            prompt_message="Enter password to secure this imported keypair",
+            allow_default=True,
+        )
+        save_keypair(name, keypair, save_password)
+
+        return keypair_info
+
+    except Exception as e:
+        raise Exception(f"Failed to import keypair from mnemonic: {str(e)}")
+
+
 def save_coldkey(name: str, keypair: Keypair, password: Optional[str]):
     """Save a coldkey to disk with encryption."""
     try:

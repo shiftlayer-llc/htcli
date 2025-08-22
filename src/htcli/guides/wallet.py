@@ -14,8 +14,6 @@ HOTKEY_GUIDANCE_TEMPLATE = """
 
 [bold]Usage Examples:[/bold]
 • Register node: htcli node register --hotkey {address}
-• Update hotkey: htcli wallet update-hotkey --old-hotkey {address}
-
 [yellow]💡 Security Tip:[/yellow] Keep your coldkey secure, hotkey can be rotated if compromised
 """
 
@@ -36,7 +34,6 @@ COLDKEY_GUIDANCE_TEMPLATE = """
 
 [bold]Usage Examples:[/bold]
 • Register subnet: htcli subnet register (uses this coldkey)
-• Transfer funds: htcli wallet transfer --from {keypair_info.ss58_address}
 • Create hotkey: htcli wallet generate-hotkey --owner {keypair_info.ss58_address}
 
 [yellow]⚠️ Security Warning:[/yellow] Keep this coldkey secure - it controls your funds!
@@ -47,8 +44,9 @@ RESTORE_GUIDANCE_TEMPLATE = """
 
 [bold]Imported Key Details:[/bold]
 • Name: {name}
-• Address: {keypair_info.ss58_address}
+• Address: {address}
 • Type: {key_type}
+• Import Method: {import_method}
 
 [bold]What was imported?[/bold]
 • Your private key has been securely stored
@@ -58,9 +56,9 @@ RESTORE_GUIDANCE_TEMPLATE = """
 [bold]Usage Examples:[/bold]
 • View key: htcli wallet list
 • Use for operations: htcli subnet register
-• Transfer funds: htcli wallet transfer
+• Check status: htcli wallet status
 
-[yellow]💡 Security Tip:[/yellow] Keep your private key secure and never share it!
+[yellow]💡 Security Tip:[/yellow] Keep your private key and mnemonic secure and never share them!
 """
 
 
@@ -84,10 +82,7 @@ You don't have any keys stored yet. To get started:
 1. [cyan]Generate a new key:[/cyan]
    htcli wallet generate-key --name my-wallet
 
-2. [cyan]Import existing key:[/cyan]
-   htcli wallet import-key --name my-wallet --private-key <key>
-
-3. [cyan]Check your identity:[/cyan]
+2. [cyan]Check your identity:[/cyan]
    htcli wallet status
 """
 
@@ -108,11 +103,6 @@ CAPABILITIES_TEMPLATE = """
 ✅ [green]Filter results[/green] (use --mine flag)
 ✅ [green]Earn rewards[/green] (staking rewards)
 ✅ [green]Participate in governance[/green] (voting, proposals)
-
-[yellow]💡 Next Steps:[/yellow]
-• Check your balance: htcli chain balance --address <your-address>
-• View your assets: htcli --mine subnet list
-• Start staking: htcli stake add --subnet-id 1 --amount 100 --key-name <key-name>
 """
 
 

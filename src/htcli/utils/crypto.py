@@ -404,3 +404,50 @@ def delete_keypair(name: str) -> bool:
 
     except Exception as e:
         raise Exception(f"Failed to delete keypair: {str(e)}")
+
+
+def delete_coldkey_and_hotkeys(coldkey_name: str) -> dict:
+    """Delete a coldkey and all its associated hotkeys."""
+    try:
+        # First, get the coldkey info to get its address
+        coldkey_info = get_wallet_info_by_name(coldkey_name)
+        coldkey_address = coldkey_info["ss58_address"]
+        
+        # Check if it's actually a coldkey
+        if coldkey_info.get("is_hotkey", False):
+            raise Exception(f"'{coldkey_name}' is a hotkey, not a coldkey")
+        
+        # Find all hotkeys owned by this coldkey
+        all_keys = list_keys()
+        associated_hotkeys = []
+        
+        for key_info in all_keys:
+            if (key_info.get("is_hotkey", False) and 
+                key_info.get("owner_address") == coldkey_address):
+                associated_hotkeys.append(key_info["name"])
+        
+        # Delete the coldkey first
+        coldkey_deleted = delete_keypair(coldkey_name)
+        if not coldkey_deleted:
+            raise Exception(f"Failed to delete coldkey '{coldkey_name}'")
+        
+        # Delete all associated hotkeys
+        hotkeys_deleted = []
+        for hotkey_name in associated_hotkeys:
+            try:
+                if delete_keypair(hotkey_name):
+                    hotkeys_deleted.append(hotkey_name)
+                else:
+                    print(f"Warning: Failed to delete hotkey '{hotkey_name}'")
+            except Exception as e:
+                print(f"Warning: Error deleting hotkey '{hotkey_name}': {str(e)}")
+        
+        return {
+            "coldkey_deleted": coldkey_name,
+            "coldkey_address": coldkey_address,
+            "hotkeys_deleted": hotkeys_deleted,
+            "total_hotkeys_deleted": len(hotkeys_deleted)
+        }
+        
+    except Exception as e:
+        raise Exception(f"Failed to delete coldkey and hotkeys: {str(e)}")

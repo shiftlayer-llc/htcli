@@ -33,6 +33,7 @@ from ..utils.crypto import (
     generate_hotkey_pair,
     import_keypair,
     list_keys,
+    delete_coldkey_and_hotkeys,
 )
 from ..utils.formatting import print_error, print_success
 from ..utils.validation import (
@@ -430,26 +431,101 @@ def delete(
         print_error("Invalid wallet name.")
         raise typer.Exit(1)
 
-    # Confirmation prompt
-    if not confirm:
-        delete_confirm = typer.confirm(f"Are you sure you want to delete key '{name}'?")
-        if not delete_confirm:
-            console.print("Operation cancelled.")
-            return
-
     try:
-        delete_keypair(name)
-        print_success(f" Key '{name}' deleted successfully!")
-
-        if show_guidance:
-            from rich.panel import Panel
-
-            guidance_panel = Panel(
-                WALLET_DELETE_GUIDANCE_TEMPLATE.format(name=name),
-                title="Key Deletion Complete",
-                border_style="red",
-            )
-            console.print(guidance_panel)
+        # Check if this is a coldkey and has associated hotkeys
+        from ..utils.crypto import get_wallet_info_by_name
+        wallet_info = get_wallet_info_by_name(name)
+        is_coldkey = not wallet_info.get("is_hotkey", False)
+        
+        if is_coldkey:
+            # Check for associated hotkeys
+            all_keys = list_keys()
+            coldkey_address = wallet_info["ss58_address"]
+            associated_hotkeys = []
+            
+            for key_info in all_keys:
+                if (key_info.get("is_hotkey", False) and 
+                    key_info.get("owner_address") == coldkey_address):
+                    associated_hotkeys.append(key_info["name"])
+            
+            if associated_hotkeys:
+                # Show warning about associated hotkeys
+                console.print(f"\n[yellow]⚠️  Warning:[/yellow] Coldkey '{name}' has {len(associated_hotkeys)} associated hotkey(s):")
+                for hotkey in associated_hotkeys:
+                    console.print(f"   • {hotkey}")
+                console.print("\n[yellow]All associated hotkeys will be deleted together with the coldkey.[/yellow]")
+                
+                # Confirmation prompt
+                if not confirm:
+                    delete_confirm = typer.confirm(
+                        f"Are you sure you want to delete coldkey '{name}' and all {len(associated_hotkeys)} associated hotkeys?"
+                    )
+                    if not delete_confirm:
+                        console.print("Operation cancelled.")
+                        return
+                
+                # Delete coldkey and all associated hotkeys
+                result = delete_coldkey_and_hotkeys(name)
+                print_success(f"✅ Coldkey '{name}' and {result['total_hotkeys_deleted']} associated hotkeys deleted successfully!")
+                
+                if show_guidance:
+                    from rich.panel import Panel
+                    guidance_panel = Panel(
+                        f"[bold red]🗑️ Coldkey and Hotkeys Deleted Successfully[/bold red]\n\n"
+                        f"[bold]Deleted Coldkey:[/bold] {result['coldkey_deleted']}\n"
+                        f"[bold]Coldkey Address:[/bold] {result['coldkey_address']}\n"
+                        f"[bold]Associated Hotkeys Deleted:[/bold] {result['total_hotkeys_deleted']}\n\n"
+                        f"[bold]What happened?[/bold]\n"
+                        f"• The coldkey and all its hotkeys have been permanently removed\n"
+                        f"• All encrypted private key files have been deleted\n"
+                        f"• You can no longer use these keys for operations\n\n"
+                        f"[bold]Important Notes:[/bold]\n"
+                        f"• If you had funds associated with the coldkey, they are still on the blockchain\n"
+                        f"• You can recover them by importing the private key again\n"
+                        f"• Make sure you have a backup of the private keys if needed\n\n"
+                        f"[yellow]⚠️ Warning:[/yellow] This action cannot be undone!",
+                        title="Coldkey and Hotkeys Deletion Complete",
+                        border_style="red",
+                    )
+                    console.print(guidance_panel)
+            else:
+                # No associated hotkeys, proceed with normal deletion
+                if not confirm:
+                    delete_confirm = typer.confirm(f"Are you sure you want to delete coldkey '{name}'?")
+                    if not delete_confirm:
+                        console.print("Operation cancelled.")
+                        return
+                
+                delete_keypair(name)
+                print_success(f"✅ Coldkey '{name}' deleted successfully!")
+                
+                if show_guidance:
+                    from rich.panel import Panel
+                    guidance_panel = Panel(
+                        WALLET_DELETE_GUIDANCE_TEMPLATE.format(name=name),
+                        title="Coldkey Deletion Complete",
+                        border_style="red",
+                    )
+                    console.print(guidance_panel)
+        else:
+            # It's a hotkey, proceed with normal deletion
+            if not confirm:
+                delete_confirm = typer.confirm(f"Are you sure you want to delete hotkey '{name}'?")
+                if not delete_confirm:
+                    console.print("Operation cancelled.")
+                    return
+            
+            delete_keypair(name)
+            print_success(f"✅ Hotkey '{name}' deleted successfully!")
+            
+            if show_guidance:
+                from rich.panel import Panel
+                guidance_panel = Panel(
+                    WALLET_DELETE_GUIDANCE_TEMPLATE.format(name=name),
+                    title="Hotkey Deletion Complete",
+                    border_style="red",
+                )
+                console.print(guidance_panel)
 
     except Exception as e:
         print_error(f"Failed to delete key: {str(e)}")

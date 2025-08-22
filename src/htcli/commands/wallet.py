@@ -17,6 +17,8 @@ from src.htcli.guides.wallet import (
     RESTORE_GUIDANCE_TEMPLATE,
     WALLET_DELETE_GUIDANCE_TEMPLATE,
     WALLET_STATUS_GUIDANCE_TEMPLATE,
+    COLDKEY_RESTORE_GUIDANCE_TEMPLATE,
+    HOTKEY_RESTORE_GUIDANCE_TEMPLATE,
 )
 from src.htcli.helpers.wallet import (
     display_keys_table,
@@ -25,6 +27,8 @@ from src.htcli.helpers.wallet import (
     prompt_for_delete_args,
     prompt_for_missing_args,
     prompt_for_restore_args,
+    prompt_for_restore_coldkey_args,
+    prompt_for_restore_hotkey_args,
 )
 
 from ..utils.crypto import (
@@ -33,6 +37,8 @@ from ..utils.crypto import (
     generate_hotkey_pair,
     import_keypair,
     import_keypair_from_mnemonic,
+    import_hotkey_from_private_key,
+    import_hotkey_from_mnemonic,
     list_keys,
     delete_coldkey_and_hotkeys,
 )
@@ -204,8 +210,8 @@ def generate_coldkey(
 
 
 @app.command()
-def restore(
-    name: Optional[str] = typer.Option(None, "--name", "-n", help="Key name"),
+def restore_coldkey(
+    name: Optional[str] = typer.Option(None, "--name", "-n", help="Coldkey name"),
     private_key: Optional[str] = typer.Option(
         None, "--private-key", "-k", help="Private key (64-character hex)"
     ),
@@ -222,10 +228,10 @@ def restore(
         None, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
 ):
-    """Import a keypair from private key or mnemonic phrase with comprehensive guidance."""
+    """Import a coldkey from private key or mnemonic phrase with comprehensive guidance."""
 
     # Interactive prompting for missing arguments
-    name, private_key, mnemonic, key_type, password, show_guidance = prompt_for_restore_args(
+    name, private_key, mnemonic, key_type, password, show_guidance = prompt_for_restore_coldkey_args(
         name, private_key, mnemonic, key_type, password, show_guidance
     )
 
@@ -240,7 +246,7 @@ def restore(
     if not private_key and not mnemonic:
         print_error("Either private key or mnemonic phrase must be provided.")
         raise typer.Exit(1)
-    
+
     if private_key and mnemonic:
         print_error("Please provide either private key OR mnemonic phrase, not both.")
         raise typer.Exit(1)
@@ -271,7 +277,7 @@ def restore(
             keypair_info = import_keypair_from_mnemonic(name, mnemonic, key_type, password)
             import_method = "mnemonic phrase"
 
-        print_success(f"✅ Key imported successfully from {import_method}!")
+        print_success(f"✅ Coldkey imported successfully from {import_method}!")
 
         # Display key information
         console.print(f"Name: {keypair_info.name}")
@@ -283,19 +289,136 @@ def restore(
             from rich.panel import Panel
 
             guidance_panel = Panel(
-                RESTORE_GUIDANCE_TEMPLATE.format(
+                COLDKEY_RESTORE_GUIDANCE_TEMPLATE.format(
                     name=name,
                     address=keypair_info.ss58_address,
                     key_type=key_type,
                     import_method=import_method,
                 ),
-                title="Key Import Complete",
+                title="Coldkey Import Complete",
                 border_style="green",
             )
             console.print(guidance_panel)
 
     except Exception as e:
-        print_error(f"Failed to import key: {str(e)}")
+        print_error(f"Failed to import coldkey: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def restore_hotkey(
+    name: Optional[str] = typer.Option(None, "--name", "-n", help="Hotkey name"),
+    private_key: Optional[str] = typer.Option(
+        None, "--private-key", "-k", help="Private key (64-character hex)"
+    ),
+    mnemonic: Optional[str] = typer.Option(
+        None, "--mnemonic", "-m", help="Mnemonic phrase (12 or 24 words)"
+    ),
+    owner_name: Optional[str] = typer.Option(
+        None, "--owner", "-o", help="Coldkey wallet name that owns this hotkey"
+    ),
+    key_type: str = typer.Option(
+        "sr25519", "--type", "-t", help="Key type (sr25519/ed25519)"
+    ),
+    password: Optional[str] = typer.Option(
+        None, "--password", "-p", help="Key password"
+    ),
+    show_guidance: Optional[bool] = typer.Option(
+        None, "--guidance/--no-guidance", help="Show comprehensive guidance"
+    ),
+):
+    """Import a hotkey from private key or mnemonic phrase with comprehensive guidance."""
+
+    # Interactive prompting for missing arguments
+    name, private_key, mnemonic, owner_name, key_type, password, show_guidance = prompt_for_restore_hotkey_args(
+        name, private_key, mnemonic, owner_name, key_type, password, show_guidance
+    )
+
+    # Validate inputs
+    if not validate_wallet_name(name):
+        print_error(
+            "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
+        )
+        raise typer.Exit(1)
+
+    # Validate that either private key or mnemonic is provided, but not both
+    if not private_key and not mnemonic:
+        print_error("Either private key or mnemonic phrase must be provided.")
+        raise typer.Exit(1)
+
+    if private_key and mnemonic:
+        print_error("Please provide either private key OR mnemonic phrase, not both.")
+        raise typer.Exit(1)
+
+    if private_key and not validate_private_key(private_key):
+        print_error("Invalid private key format. Should be a 64-character hex string.")
+        raise typer.Exit(1)
+
+    if mnemonic and not validate_mnemonic(mnemonic):
+        print_error("Invalid mnemonic format. Should be 12 or 24 lowercase words.")
+        raise typer.Exit(1)
+
+    if not validate_key_type(key_type):
+        print_error("Invalid key type. Use 'sr25519' or 'ed25519'.")
+        raise typer.Exit(1)
+
+    if password and not validate_password(password):
+        print_error(
+            "Invalid password. Must be at least 8 characters with letters and numbers."
+        )
+        raise typer.Exit(1)
+
+    # Get owner address from owner name
+    try:
+        from ..utils.crypto import get_wallet_info_by_name
+        owner_wallet_info = get_wallet_info_by_name(owner_name)
+        if owner_wallet_info.get("is_hotkey", False):
+            print_error(f"'{owner_name}' is a hotkey. Please provide a coldkey wallet name as the owner.")
+            raise typer.Exit(1)
+        owner_address = owner_wallet_info["ss58_address"]
+    except FileNotFoundError:
+        print_error(f"Owner wallet '{owner_name}' not found. Please provide an existing coldkey wallet name.")
+        raise typer.Exit(1)
+    except Exception as e:
+        print_error(f"Error validating owner wallet '{owner_name}': {str(e)}")
+        raise typer.Exit(1)
+
+    try:
+        if private_key:
+            keypair_info = import_hotkey_from_private_key(name, private_key, owner_address, key_type, password)
+            import_method = "private key"
+        else:
+            keypair_info = import_hotkey_from_mnemonic(name, mnemonic, owner_address, key_type, password)
+            import_method = "mnemonic phrase"
+
+        print_success(f"✅ Hotkey imported successfully from {import_method}!")
+
+        # Display key information
+        console.print(f"Name: {keypair_info.name}")
+        console.print(f"Type: {keypair_info.key_type}")
+        console.print(f"Public Key: {keypair_info.public_key}")
+        console.print(f"SS58 Address: {keypair_info.ss58_address}")
+        console.print(f"Owner: {owner_name} ({owner_address})")
+
+        if show_guidance:
+            from rich.panel import Panel
+
+            guidance_panel = Panel(
+                HOTKEY_RESTORE_GUIDANCE_TEMPLATE.format(
+                    name=name,
+                    address=keypair_info.ss58_address,
+                    key_type=key_type,
+                    import_method=import_method,
+                    owner_name=owner_name,
+                    owner_address=owner_address,
+                ),
+                title="Hotkey Import Complete",
+                border_style="green",
+            )
+            console.print(guidance_panel)
+
+    except Exception as e:
+        print_error(f"Failed to import hotkey: {str(e)}")
         raise typer.Exit(1)
 
 

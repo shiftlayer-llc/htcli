@@ -62,6 +62,67 @@ RESTORE_GUIDANCE_TEMPLATE = """
 """
 
 
+COLDKEY_RESTORE_GUIDANCE_TEMPLATE = """
+[bold cyan]🔐 Coldkey Imported Successfully[/bold cyan]
+
+[bold]Imported Coldkey Details:[/bold]
+• Name: {name}
+• Address: {address}
+• Type: {key_type}
+• Import Method: {import_method}
+
+[bold]What was imported?[/bold]
+• Your coldkey private key has been securely stored
+• The key is encrypted with your password
+• You can now use this coldkey for operations
+
+[bold]What is a Coldkey?[/bold]
+• Controls account ownership and funds
+• Should be kept offline/secure
+• Used for critical operations
+• Can own multiple hotkeys
+
+[bold]Usage Examples:[/bold]
+• View key: htcli wallet list
+• Register subnet: htcli subnet register
+• Create hotkey: htcli wallet generate-hotkey --owner {name}
+• Check status: htcli wallet status
+
+[yellow]⚠️ Security Warning:[/yellow] Keep this coldkey secure - it controls your funds!
+"""
+
+
+HOTKEY_RESTORE_GUIDANCE_TEMPLATE = """
+[bold cyan]🔑 Hotkey Imported Successfully[/bold cyan]
+
+[bold]Imported Hotkey Details:[/bold]
+• Name: {name}
+• Address: {address}
+• Type: {key_type}
+• Import Method: {import_method}
+• Owner: {owner_name} ({owner_address})
+
+[bold]What was imported?[/bold]
+• Your hotkey private key has been securely stored
+• The key is encrypted with your password
+• You can now use this hotkey for operations
+
+[bold]What is a Hotkey?[/bold]
+• Used for operational tasks (consensus, validation)
+• Owned by your coldkey for security
+• Can be kept online for frequent operations
+• Cannot transfer funds directly
+
+[bold]Usage Examples:[/bold]
+• View key: htcli wallet list
+• Register node: htcli node register --hotkey {address}
+• Update hotkey: htcli wallet update-hotkey --old-hotkey {address}
+• Check status: htcli wallet status
+
+[yellow]💡 Security Tip:[/yellow] Keep your coldkey secure, hotkey can be rotated if compromised
+"""
+
+
 # guidance_templates.py
 
 WALLET_STATUS_GUIDANCE_TEMPLATE = """

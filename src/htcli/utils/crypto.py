@@ -134,13 +134,8 @@ def import_keypair(
             owner_address=None,  # Coldkeys don't have owners
         )
 
-        # Get secure password for saving
-        save_password = password or get_secure_password(
-            name,
-            prompt_message="Enter password to secure this imported keypair",
-            allow_default=True,
-        )
-        save_keypair(name, keypair, save_password)
+        # Use provided password or None (no prompting)
+        save_keypair(name, keypair, password)
 
         return keypair_info
 
@@ -173,18 +168,85 @@ def import_keypair_from_mnemonic(
             owner_address=None,  # Coldkeys don't have owners
         )
 
-        # Get secure password for saving
-        save_password = password or get_secure_password(
-            name,
-            prompt_message="Enter password to secure this imported keypair",
-            allow_default=True,
-        )
-        save_keypair(name, keypair, save_password)
+        # Use provided password or None (no prompting)
+        save_keypair(name, keypair, password)
 
         return keypair_info
 
     except Exception as e:
         raise Exception(f"Failed to import keypair from mnemonic: {str(e)}")
+
+
+def import_hotkey_from_private_key(
+    name: str,
+    private_key: str,
+    owner_address: str,
+    key_type: str = "sr25519",
+    password: Optional[str] = None,
+) -> KeypairInfo:
+    """Import an existing hotkey from private key."""
+    try:
+        # Import keypair
+        if key_type == "sr25519":
+            keypair = Keypair.create_from_private_key(private_key)
+        elif key_type == "ed25519":
+            keypair = Keypair.create_from_private_key(
+                private_key, crypto_type=0
+            )  # 0 for ed25519, 1 for sr25519
+        else:
+            raise ValueError(f"Unsupported key type: {key_type}")
+
+        # Create keypair info
+        keypair_info = KeypairInfo(
+            name=name,
+            key_type=key_type,
+            public_key=keypair.public_key.hex(),
+            ss58_address=keypair.ss58_address,
+            owner_address=owner_address,  # Hotkeys have owners
+        )
+
+        # Use provided password or None (no prompting)
+        save_hotkey(name, keypair, owner_address, password)
+
+        return keypair_info
+
+    except Exception as e:
+        raise Exception(f"Failed to import hotkey from private key: {str(e)}")
+
+
+def import_hotkey_from_mnemonic(
+    name: str,
+    mnemonic: str,
+    owner_address: str,
+    key_type: str = "sr25519",
+    password: Optional[str] = None,
+) -> KeypairInfo:
+    """Import an existing hotkey from mnemonic phrase."""
+    try:
+        # Import keypair from mnemonic
+        if key_type == "sr25519":
+            keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42, crypto_type=1)
+        elif key_type == "ed25519":
+            keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42, crypto_type=0)
+        else:
+            raise ValueError(f"Unsupported key type: {key_type}")
+
+        # Create keypair info
+        keypair_info = KeypairInfo(
+            name=name,
+            key_type=key_type,
+            public_key=keypair.public_key.hex(),
+            ss58_address=keypair.ss58_address,
+            owner_address=owner_address,  # Hotkeys have owners
+        )
+
+        # Use provided password or None (no prompting)
+        save_hotkey(name, keypair, owner_address, password)
+
+        return keypair_info
+
+    except Exception as e:
+        raise Exception(f"Failed to import hotkey from mnemonic: {str(e)}")
 
 
 def save_coldkey(name: str, keypair: Keypair, password: Optional[str]):
@@ -422,7 +484,7 @@ def get_wallet_info_by_name(name: str) -> dict:
             "owner_address": keypair_data.get("owner_address", None),
             "is_encrypted": keypair_data.get("is_encrypted", True),
         }
-        
+
         return wallet_info
 
     except Exception as e:
@@ -451,25 +513,25 @@ def delete_coldkey_and_hotkeys(coldkey_name: str) -> dict:
         # First, get the coldkey info to get its address
         coldkey_info = get_wallet_info_by_name(coldkey_name)
         coldkey_address = coldkey_info["ss58_address"]
-        
+
         # Check if it's actually a coldkey
         if coldkey_info.get("is_hotkey", False):
             raise Exception(f"'{coldkey_name}' is a hotkey, not a coldkey")
-        
+
         # Find all hotkeys owned by this coldkey
         all_keys = list_keys()
         associated_hotkeys = []
-        
+
         for key_info in all_keys:
-            if (key_info.get("is_hotkey", False) and 
+            if (key_info.get("is_hotkey", False) and
                 key_info.get("owner_address") == coldkey_address):
                 associated_hotkeys.append(key_info["name"])
-        
+
         # Delete the coldkey first
         coldkey_deleted = delete_keypair(coldkey_name)
         if not coldkey_deleted:
             raise Exception(f"Failed to delete coldkey '{coldkey_name}'")
-        
+
         # Delete all associated hotkeys
         hotkeys_deleted = []
         for hotkey_name in associated_hotkeys:
@@ -480,13 +542,13 @@ def delete_coldkey_and_hotkeys(coldkey_name: str) -> dict:
                     print(f"Warning: Failed to delete hotkey '{hotkey_name}'")
             except Exception as e:
                 print(f"Warning: Error deleting hotkey '{hotkey_name}': {str(e)}")
-        
+
         return {
             "coldkey_deleted": coldkey_name,
             "coldkey_address": coldkey_address,
             "hotkeys_deleted": hotkeys_deleted,
             "total_hotkeys_deleted": len(hotkeys_deleted)
         }
-        
+
     except Exception as e:
         raise Exception(f"Failed to delete coldkey and hotkeys: {str(e)}")

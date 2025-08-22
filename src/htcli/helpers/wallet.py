@@ -222,6 +222,189 @@ def prompt_for_restore_args(
     return name, private_key, mnemonic, key_type, password, show_guidance
 
 
+def prompt_for_restore_coldkey_args(
+    name: Optional[str] = None,
+    private_key: Optional[str] = None,
+    mnemonic: Optional[str] = None,
+    key_type: Optional[str] = None,
+    password: Optional[str] = None,
+    show_guidance: Optional[bool] = None,
+) -> tuple[str, Optional[str], Optional[str], str, Optional[str], bool]:
+    """Interactive prompt for coldkey restore arguments."""
+
+    # Prompt for name if missing
+    if not name:
+        while True:
+            name = Prompt.ask("Enter coldkey name", default="imported-coldkey")
+            if validate_wallet_name(name):
+                break
+            print_error(
+                "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
+            )
+
+    # Prompt for import method if neither private key nor mnemonic is provided
+    if not private_key and not mnemonic:
+        import_method = Prompt.ask(
+            "Choose import method", 
+            choices=["private-key", "mnemonic"], 
+            default="mnemonic"
+        )
+    else:
+        import_method = "private-key" if private_key else "mnemonic"
+
+    # Prompt for private key or mnemonic based on chosen method
+    if import_method == "private-key" and not private_key:
+        while True:
+            private_key = Prompt.ask(
+                "Enter private key (64-character hex)", password=True
+            )
+            if validate_private_key(private_key):
+                break
+            print_error(
+                "Invalid private key format. Should be a 64-character hex string."
+            )
+    elif import_method == "mnemonic" and not mnemonic:
+        while True:
+            mnemonic = Prompt.ask(
+                "Enter mnemonic phrase (12 or 24 words)", password=True
+            )
+            if validate_mnemonic(mnemonic):
+                break
+            print_error(
+                "Invalid mnemonic format. Should be 12 or 24 lowercase words."
+            )
+
+    # Prompt for key type if missing
+    if not key_type:
+        key_type = Prompt.ask(
+            "Enter key type", choices=["sr25519", "ed25519"], default="sr25519"
+        )
+
+    # Prompt for password (optional)
+    if password is None:
+        use_password = Confirm.ask(
+            "Do you want to set a password for this imported coldkey?", default=False
+        )
+        if use_password:
+            while True:
+                password = Prompt.ask(
+                    "Enter password (min 8 chars, letters + numbers)", password=True
+                )
+                if validate_password(password):
+                    break
+                print_error(
+                    "Invalid password. Must be at least 8 characters with letters and numbers."
+                )
+        else:
+            password = None
+
+    # Prompt for guidance (optional)
+    if show_guidance is None:
+        show_guidance = Confirm.ask("Show comprehensive guidance?", default=True)
+
+    return name, private_key, mnemonic, key_type, password, show_guidance
+
+
+def prompt_for_restore_hotkey_args(
+    name: Optional[str] = None,
+    private_key: Optional[str] = None,
+    mnemonic: Optional[str] = None,
+    owner_name: Optional[str] = None,
+    key_type: Optional[str] = None,
+    password: Optional[str] = None,
+    show_guidance: Optional[bool] = None,
+) -> tuple[str, Optional[str], Optional[str], str, str, Optional[str], bool]:
+    """Interactive prompt for hotkey restore arguments."""
+
+    # Prompt for name if missing
+    if not name:
+        while True:
+            name = Prompt.ask("Enter hotkey name", default="imported-hotkey")
+            if validate_wallet_name(name):
+                break
+            print_error(
+                "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
+            )
+
+    # Prompt for import method if neither private key nor mnemonic is provided
+    if not private_key and not mnemonic:
+        import_method = Prompt.ask(
+            "Choose import method", 
+            choices=["private-key", "mnemonic"], 
+            default="mnemonic"
+        )
+    else:
+        import_method = "private-key" if private_key else "mnemonic"
+
+    # Prompt for private key or mnemonic based on chosen method
+    if import_method == "private-key" and not private_key:
+        while True:
+            private_key = Prompt.ask(
+                "Enter private key (64-character hex)", password=True
+            )
+            if validate_private_key(private_key):
+                break
+            print_error(
+                "Invalid private key format. Should be a 64-character hex string."
+            )
+    elif import_method == "mnemonic" and not mnemonic:
+        while True:
+            mnemonic = Prompt.ask(
+                "Enter mnemonic phrase (12 or 24 words)", password=True
+            )
+            if validate_mnemonic(mnemonic):
+                break
+            print_error(
+                "Invalid mnemonic format. Should be 12 or 24 lowercase words."
+            )
+
+    # Prompt for owner wallet name if missing
+    if not owner_name:
+        while True:
+            owner_name = Prompt.ask("Enter coldkey wallet name that owns this hotkey")
+            try:
+                # Validate that the wallet exists and is a coldkey
+                wallet_info = get_wallet_info_by_name(owner_name)
+                if wallet_info.get("is_hotkey", False):
+                    print_error(f"'{owner_name}' is a hotkey. Please provide a coldkey wallet name.")
+                    continue
+                break
+            except FileNotFoundError:
+                print_error(f"Coldkey wallet '{owner_name}' not found. Please provide an existing coldkey wallet name.")
+            except Exception as e:
+                print_error(f"Error accessing wallet '{owner_name}': {str(e)}")
+
+    # Prompt for key type if missing
+    if not key_type:
+        key_type = Prompt.ask(
+            "Enter key type", choices=["sr25519", "ed25519"], default="sr25519"
+        )
+
+    # Prompt for password (optional)
+    if password is None:
+        use_password = Confirm.ask(
+            "Do you want to set a password for this imported hotkey?", default=False
+        )
+        if use_password:
+            while True:
+                password = Prompt.ask(
+                    "Enter password (min 8 chars, letters + numbers)", password=True
+                )
+                if validate_password(password):
+                    break
+                print_error(
+                    "Invalid password. Must be at least 8 characters with letters and numbers."
+                )
+        else:
+            password = None
+
+    # Prompt for guidance (optional)
+    if show_guidance is None:
+        show_guidance = Confirm.ask("Show comprehensive guidance?", default=True)
+
+    return name, private_key, mnemonic, owner_name, key_type, password, show_guidance
+
+
 def display_keys_tree(keys: list):
     """Display keys in hierarchical tree format."""
     from collections import defaultdict

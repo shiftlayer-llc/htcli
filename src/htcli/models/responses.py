@@ -232,6 +232,18 @@ class DelegateStakeTransferResponse(BaseResponse):
     )
 
 
+class TransferResponse(BaseResponse):
+    """Response for fund transfers."""
+
+    from_address: Optional[str] = Field(None, description="Source address")
+    to_address: Optional[str] = Field(None, description="Destination address")
+    amount: Optional[str] = Field(None, description="Transfer amount")
+    fee: Optional[str] = Field(None, description="Transaction fee")
+    transfer_data: Optional[Dict[str, Any]] = Field(
+        None, description="Transfer data"
+    )
+
+
 class DelegateStakeRemoveResponse(BaseResponse):
     """Response for delegate stake removal."""
 

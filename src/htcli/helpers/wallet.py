@@ -11,6 +11,7 @@ from src.htcli.utils.validation import (
     validate_private_key,
     validate_wallet_name,
     validate_mnemonic,
+    validate_address,
 )
 
 console = Console()
@@ -672,7 +673,7 @@ def prompt_for_update_coldkey_args(
         # First show available coldkeys
         keys = list_keys()
         coldkeys = [k for k in keys if not k.get("is_hotkey", False)]
-        
+
         if not coldkeys:
             print_error("No coldkeys found to update.")
             raise typer.Exit(1)
@@ -711,11 +712,11 @@ def prompt_for_update_coldkey_args(
     # Prompt for password changes if not provided
     if new_password is None and remove_password is None:
         password_action = Prompt.ask(
-            "Password action", 
-            choices=["keep", "change", "remove"], 
+            "Password action",
+            choices=["keep", "change", "remove"],
             default="keep"
         )
-        
+
         if password_action == "change":
             while True:
                 new_password = Prompt.ask("Enter new password (min 8 chars, letters + numbers)", password=True)
@@ -752,7 +753,7 @@ def prompt_for_update_hotkey_args(
         # First show available hotkeys
         keys = list_keys()
         hotkeys = [k for k in keys if k.get("is_hotkey", False)]
-        
+
         if not hotkeys:
             print_error("No hotkeys found to update.")
             raise typer.Exit(1)
@@ -796,7 +797,7 @@ def prompt_for_update_hotkey_args(
             # Show available coldkeys
             keys = list_keys()
             coldkeys = [k for k in keys if not k.get("is_hotkey", False)]
-            
+
             if not coldkeys:
                 print_error("No coldkeys available to assign as owner.")
                 raise typer.Exit(1)
@@ -820,11 +821,11 @@ def prompt_for_update_hotkey_args(
     # Prompt for password changes if not provided
     if new_password is None and remove_password is None:
         password_action = Prompt.ask(
-            "Password action", 
-            choices=["keep", "change", "remove"], 
+            "Password action",
+            choices=["keep", "change", "remove"],
             default="keep"
         )
-        
+
         if password_action == "change":
             while True:
                 new_password = Prompt.ask("Enter new password (min 8 chars, letters + numbers)", password=True)
@@ -844,3 +845,179 @@ def prompt_for_update_hotkey_args(
         show_guidance = Confirm.ask("Show comprehensive guidance?", default=True)
 
     return name, new_name, new_password, remove_password, new_owner, show_guidance
+
+
+def prompt_for_balance_args(
+    wallet_name: Optional[str] = None,
+    address: Optional[str] = None,
+    format_type: Optional[str] = None,
+    show_guidance: Optional[bool] = None,
+) -> tuple[Optional[str], Optional[str], str, bool]:
+    """Interactive prompt for balance arguments."""
+
+    # Prompt for wallet name or address if missing
+    if not wallet_name and not address:
+        choice = Prompt.ask(
+            "Check balance by",
+            choices=["wallet", "address"],
+            default="wallet"
+        )
+
+        if choice == "wallet":
+            # Show available wallets
+            keys = list_keys()
+
+            if not keys:
+                print_error("No wallets found.")
+                raise typer.Exit(1)
+
+            console.print("\n[bold]Available wallets:[/bold]")
+            for i, key in enumerate(keys, 1):
+                key_type = "Hotkey" if key.get("is_hotkey", False) else "Coldkey"
+                console.print(f"{i}. {key['name']} ({key_type}) - {key['ss58_address']}")
+
+            while True:
+                wallet_name = Prompt.ask("\nEnter wallet name to check balance")
+                if validate_wallet_name(wallet_name):
+                    # Check if wallet exists
+                    key_names = [k["name"] for k in keys]
+                    if wallet_name in key_names:
+                        break
+                    else:
+                        print_error(f"Wallet '{wallet_name}' not found. Please choose from the list above.")
+                else:
+                    print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
+        else:
+            # Get address directly
+            while True:
+                address = Prompt.ask("Enter address to check balance")
+                if validate_address(address):
+                    break
+                else:
+                    print_error("Invalid address format.")
+
+    # Prompt for format if not provided
+    if format_type is None:
+        format_type = Prompt.ask(
+            "Output format",
+            choices=["table", "json"],
+            default="table"
+        )
+
+    # Prompt for guidance if not provided
+    if show_guidance is None:
+        show_guidance = Confirm.ask("Show comprehensive guidance?", default=True)
+
+    return wallet_name, address, format_type, show_guidance
+
+
+def prompt_for_transfer_args(
+    from_wallet: Optional[str] = None,
+    to_address: Optional[str] = None,
+    amount: Optional[str] = None,
+    password: Optional[str] = None,
+    show_guidance: Optional[bool] = None,
+) -> tuple[str, str, str, Optional[str], bool]:
+    """Interactive prompt for transfer arguments."""
+
+    # Prompt for source wallet if missing
+    if not from_wallet:
+        # Show available coldkeys (only coldkeys can transfer)
+        keys = list_keys()
+        coldkeys = [k for k in keys if not k.get("is_hotkey", False)]
+
+        if not coldkeys:
+            print_error("No coldkeys found. Only coldkeys can transfer funds.")
+            raise typer.Exit(1)
+
+        console.print("\n[bold]Available coldkeys for transfer:[/bold]")
+        for i, key in enumerate(coldkeys, 1):
+            console.print(f"{i}. {key['name']} ({key['ss58_address']})")
+
+        while True:
+            from_wallet = Prompt.ask("\nEnter source coldkey name")
+            if validate_wallet_name(from_wallet):
+                # Check if wallet exists and is a coldkey
+                key_names = [k["name"] for k in coldkeys]
+                if from_wallet in key_names:
+                    break
+                else:
+                    print_error(f"Coldkey '{from_wallet}' not found. Please choose from the list above.")
+            else:
+                print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
+
+    # Prompt for destination address if missing
+    if not to_address:
+        console.print("\n[bold]You can enter either:[/bold]")
+        console.print("• A wallet name (e.g., 'my-wallet')")
+        console.print("• A full SS58 address (e.g., '5CFhfdvxRwW6gdSMALYJxK8TTgURrDPyFedbvc7wagJD8H5B')")
+
+        while True:
+            to_address = Prompt.ask("Enter destination (wallet name or address)")
+
+            # First try to validate as an address
+            if validate_address(to_address):
+                break
+
+            # If not a valid address, try to treat it as a wallet name
+            if validate_wallet_name(to_address):
+                try:
+                    # Check if wallet exists and get its address
+                    wallet_info = get_wallet_info_by_name(to_address)
+                    to_address = wallet_info["ss58_address"]
+                    console.print(f"[green]✓[/green] Found wallet '{to_address}' with address: {wallet_info['ss58_address']}")
+                    break
+                except FileNotFoundError:
+                    print_error(f"Wallet '{to_address}' not found.")
+                except Exception as e:
+                    print_error(f"Error accessing wallet '{to_address}': {str(e)}")
+            else:
+                print_error("Invalid wallet name or address format.")
+
+    # If to_address is provided but not a valid SS58 address, try to resolve as wallet name
+    elif not validate_address(to_address):
+        if validate_wallet_name(to_address):
+            try:
+                # Check if wallet exists and get its address
+                wallet_info = get_wallet_info_by_name(to_address)
+                console.print(f"[green]✓[/green] Resolved wallet '{to_address}' to address: {wallet_info['ss58_address']}")
+                to_address = wallet_info["ss58_address"]
+            except FileNotFoundError:
+                print_error(f"Destination wallet '{to_address}' not found.")
+                raise typer.Exit(1)
+            except Exception as e:
+                print_error(f"Error accessing destination wallet '{to_address}': {str(e)}")
+                raise typer.Exit(1)
+        else:
+            print_error("Invalid destination address or wallet name format.")
+            raise typer.Exit(1)
+
+    # Prompt for amount if missing
+    if not amount:
+        while True:
+            amount = Prompt.ask("Enter amount to transfer")
+            try:
+                # Basic validation - should be a positive number
+                float(amount)
+                if float(amount) <= 0:
+                    print_error("Amount must be greater than 0.")
+                    continue
+                break
+            except ValueError:
+                print_error("Invalid amount. Please enter a valid number.")
+
+    # Prompt for password if wallet is encrypted
+    if password is None:
+        try:
+            wallet_info = get_wallet_info_by_name(from_wallet)
+            if wallet_info.get("is_encrypted", True):
+                password = Prompt.ask("Enter wallet password", password=True)
+        except Exception:
+            # If we can't get wallet info, assume it might be encrypted
+            password = Prompt.ask("Enter wallet password (if required)", password=True)
+
+    # Prompt for guidance if not provided
+    if show_guidance is None:
+        show_guidance = Confirm.ask("Show comprehensive guidance?", default=True)
+
+    return from_wallet, to_address, amount, password, show_guidance

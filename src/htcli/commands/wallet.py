@@ -19,6 +19,8 @@ from src.htcli.guides.wallet import (
     HOTKEY_RESTORE_GUIDANCE_TEMPLATE,
     COLDKEY_UPDATE_GUIDANCE_TEMPLATE,
     HOTKEY_UPDATE_GUIDANCE_TEMPLATE,
+    BALANCE_GUIDANCE_TEMPLATE,
+    TRANSFER_GUIDANCE_TEMPLATE,
 )
 from src.htcli.helpers.wallet import (
     display_keys_table,
@@ -30,6 +32,8 @@ from src.htcli.helpers.wallet import (
     prompt_for_restore_hotkey_args,
     prompt_for_update_coldkey_args,
     prompt_for_update_hotkey_args,
+    prompt_for_balance_args,
+    prompt_for_transfer_args,
 )
 
 from ..utils.crypto import (
@@ -140,7 +144,12 @@ def generate_hotkey(
             console.print(f"Owner: {owner_name} ({owner_address})")
 
     except Exception as e:
-        print_error(f"Failed to generate hotkey: {str(e)}")
+        from src.htcli.errors import HTCLIError
+        if isinstance(e, HTCLIError):
+            e.display()
+        else:
+            from src.htcli.errors import handle_and_display_error
+            handle_and_display_error(e, "generate-hotkey")
         raise typer.Exit(1)
 
 
@@ -209,7 +218,12 @@ def generate_coldkey(
             console.print(f"SS58 Address: {keypair_info.ss58_address}")
 
     except Exception as e:
-        print_error(f"Failed to generate coldkey: {str(e)}")
+        from src.htcli.errors import HTCLIError
+        if isinstance(e, HTCLIError):
+            e.display()
+        else:
+            from src.htcli.errors import handle_and_display_error
+            handle_and_display_error(e, "generate-coldkey")
         raise typer.Exit(1)
 
 
@@ -701,7 +715,12 @@ def delete(
                 console.print(guidance_panel)
 
     except Exception as e:
-        print_error(f"Failed to delete key: {str(e)}")
+        from src.htcli.errors import HTCLIError
+        if isinstance(e, HTCLIError):
+            e.display()
+        else:
+            from src.htcli.errors import handle_and_display_error
+            handle_and_display_error(e, "delete")
         raise typer.Exit(1)
 
 
@@ -836,4 +855,181 @@ def update_hotkey_cmd(
 
     except Exception as e:
         print_error(f"Failed to update hotkey: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def balance(
+    wallet_name: Optional[str] = typer.Option(None, "--wallet", "-w", help="Wallet name to check balance"),
+    address: Optional[str] = typer.Option(None, "--address", "-a", help="Address to check balance"),
+    format_type: str = typer.Option(
+        "table", "--format", "-f", help="Output format (table/json)"
+    ),
+    show_guidance: Optional[bool] = typer.Option(
+        None, "--guidance/--no-guidance", help="Show comprehensive guidance"
+    ),
+):
+    """Check balance of a wallet or address."""
+
+    # Interactive prompting for missing arguments
+    wallet_name, address, format_type, show_guidance = prompt_for_balance_args(
+        wallet_name, address, format_type, show_guidance
+    )
+
+    # Get client for blockchain operations
+    from ..dependencies import get_client
+    client = get_client()
+
+    try:
+        # If wallet name provided, get the address from the wallet
+        if wallet_name:
+            from ..utils.crypto import get_wallet_info_by_name
+            wallet_info = get_wallet_info_by_name(wallet_name)
+            address = wallet_info["ss58_address"]
+            wallet_type = "Hotkey" if wallet_info.get("is_hotkey", False) else "Coldkey"
+        else:
+            wallet_type = "External Address"
+
+        # Get balance from blockchain
+        response = client.get_balance(address)
+        if response.success:
+            balance_data = response.data
+
+            if show_guidance:
+                from rich.panel import Panel
+                guidance_panel = Panel(
+                    BALANCE_GUIDANCE_TEMPLATE.format(
+                        wallet_name=wallet_name or "N/A",
+                        address=address,
+                        wallet_type=wallet_type,
+                        formatted_balance=balance_data.get('formatted_balance', 'N/A'),
+                        raw_balance=balance_data.get('balance', 'N/A'),
+                        unit=balance_data.get('unit', 'HT'),
+                    ),
+                    title="Balance Information",
+                    border_style="blue",
+                )
+                console.print(guidance_panel)
+            else:
+                if format_type == "json":
+                    console.print_json(data=balance_data)
+                else:
+                    console.print(f"[bold]Wallet:[/bold] {wallet_name or 'External Address'}")
+                    console.print(f"[bold]Address:[/bold] {address}")
+                    console.print(f"[bold]Type:[/bold] {wallet_type}")
+                    console.print(f"[bold]Balance:[/bold] {balance_data.get('formatted_balance', 'N/A')}")
+                    console.print(f"[bold]Raw Balance:[/bold] {balance_data.get('balance', 'N/A')}")
+
+                    # Add helpful information if balance is 0
+                    from src.htcli.errors import display_balance_info
+                    display_balance_info(address, balance_data.get('balance', 0))
+        else:
+            print_error(f"Failed to retrieve balance: {response.message}")
+            raise typer.Exit(1)
+
+    except Exception as e:
+        print_error(f"Failed to get balance: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def transfer(
+    from_wallet: Optional[str] = typer.Option(None, "--from", "-f", help="Source wallet name"),
+    to_address: Optional[str] = typer.Option(None, "--to", "-t", help="Destination address"),
+    amount: Optional[str] = typer.Option(None, "--amount", "-a", help="Amount to transfer"),
+    password: Optional[str] = typer.Option(None, "--password", "-p", help="Wallet password"),
+    show_guidance: Optional[bool] = typer.Option(
+        None, "--guidance/--no-guidance", help="Show comprehensive guidance"
+    ),
+):
+    """Transfer balance from one wallet to another address."""
+
+    # Interactive prompting for missing arguments
+    from_wallet, to_address, amount, password, show_guidance = prompt_for_transfer_args(
+        from_wallet, to_address, amount, password, show_guidance
+    )
+
+    # Get client for blockchain operations
+    from ..dependencies import get_client
+    client = get_client()
+
+    try:
+        # Load the source wallet
+        from ..utils.crypto import get_wallet_info_by_name, load_keypair
+        wallet_info = get_wallet_info_by_name(from_wallet)
+
+        # Verify it's a coldkey (only coldkeys can transfer funds)
+        if wallet_info.get("is_hotkey", False):
+            print_error(f"'{from_wallet}' is a hotkey. Only coldkeys can transfer funds.")
+            raise typer.Exit(1)
+
+        # Load the keypair
+        keypair = load_keypair(from_wallet, password)
+
+        # Validate destination address or resolve wallet name
+        from ..utils.validation import validate_address
+        if not validate_address(to_address):
+            # If not a valid address, try to treat it as a wallet name
+            if validate_wallet_name(to_address):
+                try:
+                    # Check if wallet exists and get its address
+                    dest_wallet_info = get_wallet_info_by_name(to_address)
+                    console.print(f"[green]✓[/green] Resolved wallet '{to_address}' to address: {dest_wallet_info['ss58_address']}")
+                    to_address = dest_wallet_info["ss58_address"]
+                except FileNotFoundError:
+                    print_error(f"Destination wallet '{to_address}' not found.")
+                    raise typer.Exit(1)
+                except Exception as e:
+                    print_error(f"Error accessing destination wallet '{to_address}': {str(e)}")
+                    raise typer.Exit(1)
+            else:
+                print_error("Invalid destination address or wallet name format.")
+                raise typer.Exit(1)
+
+        # Perform the transfer
+        response = client.transfer_funds(
+            from_address=wallet_info["ss58_address"],
+            to_address=to_address,
+            amount=amount,
+            keypair=keypair
+        )
+
+        if response.success:
+            transfer_data = response.data
+
+            if show_guidance:
+                from rich.panel import Panel
+                guidance_panel = Panel(
+                    TRANSFER_GUIDANCE_TEMPLATE.format(
+                        from_wallet=from_wallet,
+                        from_address=wallet_info["ss58_address"],
+                        to_address=to_address,
+                        amount=amount,
+                        tx_hash=transfer_data.get('tx_hash', 'N/A'),
+                        block_number=transfer_data.get('block_number', 'N/A'),
+                        fee=transfer_data.get('fee', 'N/A'),
+                    ),
+                    title="Transfer Complete",
+                    border_style="green",
+                )
+                console.print(guidance_panel)
+            else:
+                console.print(f"[bold green]✅ Transfer successful![/bold green]")
+                console.print(f"[bold]From:[/bold] {from_wallet} ({wallet_info['ss58_address']})")
+                console.print(f"[bold]To:[/bold] {to_address}")
+                console.print(f"[bold]Amount:[/bold] {amount}")
+                console.print(f"[bold]Transaction Hash:[/bold] {transfer_data.get('tx_hash', 'N/A')}")
+                console.print(f"[bold]Block Number:[/bold] {transfer_data.get('block_number', 'N/A')}")
+                console.print(f"[bold]Fee:[/bold] {transfer_data.get('fee', 'N/A')}")
+        else:
+            print_error(f"Transfer failed: {response.message}")
+            raise typer.Exit(1)
+
+    except Exception as e:
+        from src.htcli.errors import HTCLIError
+        if isinstance(e, HTCLIError):
+            e.display()
+        else:
+            from src.htcli.errors import handle_and_display_error
+            handle_and_display_error(e, "transfer")
         raise typer.Exit(1)

@@ -248,3 +248,72 @@ HOTKEY_UPDATE_GUIDANCE_TEMPLATE = """
 • Use 'htcli wallet status' to verify the changes
 • Continue using this hotkey for node operations and consensus signing
 """
+
+
+BALANCE_GUIDANCE_TEMPLATE = """
+[bold blue]💰 Balance Information[/bold blue]
+
+[bold]Wallet Details:[/bold]
+• Wallet Name: {wallet_name}
+• Address: {address}
+• Type: {wallet_type}
+
+[bold]Balance Information:[/bold]
+• Formatted Balance: {formatted_balance}
+• Raw Balance: {raw_balance}
+• Unit: {unit}
+
+[bold]What this means:[/bold]
+• This is the current balance of the specified wallet/address
+• The balance is stored on the blockchain and is always up-to-date
+• Only coldkeys can hold funds directly
+• Hotkeys are used for operations but don't hold funds
+
+[bold]Usage Examples:[/bold]
+• Check balance: htcli wallet balance --wallet my-coldkey
+• Check external address: htcli wallet balance --address 5CFhfdvxRwW6gdSMALYJxK8TTgURrDPyFedbvc7wagJD8H5B
+• Transfer funds: htcli wallet transfer --from my-coldkey --to 5CFhfdvxRwW6gdSMALYJxK8TTgURrDPyFedbvc7wagJD8H5B --amount 100
+
+[bold]Next Steps:[/bold]
+• Use 'htcli wallet transfer' to send funds to another address
+• Use 'htcli wallet list' to see all your wallets
+• Use 'htcli wallet status' to check overall wallet status
+"""
+
+
+TRANSFER_GUIDANCE_TEMPLATE = """
+[bold green]✅ Transfer Complete[/bold green]
+
+[bold]Transfer Details:[/bold]
+• From Wallet: {from_wallet}
+• From Address: {from_address}
+• To Address: {to_address}
+• Amount: {amount}
+
+[bold]Transaction Information:[/bold]
+• Transaction Hash: {tx_hash}
+• Block Number: {block_number}
+• Fee: {fee}
+
+[bold]What happened:[/bold]
+• The funds have been successfully transferred from your coldkey
+• The transaction has been included in a block on the blockchain
+• The recipient can now use these funds
+• Your coldkey balance has been reduced by the transfer amount plus fees
+
+[bold]Security Notes:[/bold]
+• Only coldkeys can transfer funds (hotkeys cannot)
+• Always verify the destination address before transferring
+• Keep your coldkey secure - it controls your funds
+• Transaction fees are automatically deducted from your balance
+
+[bold]Next Steps:[/bold]
+• Use 'htcli wallet balance --wallet {from_wallet}' to check your updated balance
+• Use 'htcli wallet balance --address {to_address}' to verify the recipient received the funds
+• Keep the transaction hash for reference: {tx_hash}
+
+[bold]Important:[/bold]
+• This transaction is irreversible once confirmed
+• Always double-check the destination address and amount
+• Consider the transaction fee when calculating transfer amounts
+"""

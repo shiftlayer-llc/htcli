@@ -123,11 +123,19 @@ class HypertensorClient:
 
     def get_balance(self, address: str):
         """Get account balance."""
-        return self.wallet.get_balance(address)
+        return self.chain.get_balance(address)
 
     def claim_unbondings(self, keypair=None):
         """Claim unbondings."""
         return self.wallet.claim_unbondings(keypair)
+
+    def test_method(self):
+        """Test method."""
+        return "test"
+
+    def transfer_funds(self, from_address: str, to_address: str, amount: str, keypair=None):
+        """Transfer funds from one address to another."""
+        return self.wallet.transfer_funds(from_address, to_address, amount, keypair)
 
     def add_to_delegate_stake(
         self, subnet_id: int, stake_to_be_added: int, keypair=None

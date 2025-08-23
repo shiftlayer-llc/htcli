@@ -22,6 +22,7 @@ class KeypairInfo:
     key_type: str
     public_key: str
     ss58_address: str
+    mnemonic: Optional[str] = None  # Recovery phrase
     owner_address: Optional[str] = None  # For hotkeys
 
 
@@ -48,6 +49,7 @@ def generate_coldkey_pair(
             key_type=key_type,
             public_key=keypair.public_key.hex(),
             ss58_address=keypair.ss58_address,
+            mnemonic=mnemonic,  # Include the recovery phrase
             owner_address=None,  # Coldkeys don't have owners
         )
 
@@ -87,6 +89,7 @@ def generate_hotkey_pair(
             key_type=key_type,
             public_key=keypair.public_key.hex(),
             ss58_address=keypair.ss58_address,
+            mnemonic=mnemonic,  # Include the recovery phrase
             owner_address=owner_address,  # Hotkeys have owners
         )
 

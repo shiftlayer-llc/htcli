@@ -78,6 +78,9 @@ def generate_hotkey(
     show_guidance: Optional[bool] = typer.Option(
         None, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
+    copy_mnemonic: bool = typer.Option(
+        False, "--copy-mnemonic", help="Copy recovery phrase to clipboard after generation"
+    ),
 ):
     """Generate a new hotkey with comprehensive guidance."""
 
@@ -143,6 +146,19 @@ def generate_hotkey(
             console.print(f"SS58 Address: {keypair_info.ss58_address}")
             console.print(f"Owner: {owner_name} ({owner_address})")
 
+            # Display mnemonic with copy option
+            if keypair_info.mnemonic:
+                from ..utils.mnemonic import display_mnemonic_with_copy_option, copy_to_clipboard
+                display_mnemonic_with_copy_option(keypair_info.mnemonic, keypair_info.name, "Hotkey")
+
+                # Handle copy to clipboard flag
+                if copy_mnemonic:
+                    if copy_to_clipboard(keypair_info.mnemonic):
+                        console.print("✅ Recovery phrase copied to clipboard!")
+                        console.print("📋 You can now paste it in a secure location.")
+                    else:
+                        console.print("⚠️  Failed to copy to clipboard. Please copy manually.")
+
     except Exception as e:
         from src.htcli.errors import HTCLIError
         if isinstance(e, HTCLIError):
@@ -167,6 +183,9 @@ def generate_coldkey(
     ),
     show_guidance: Optional[bool] = typer.Option(
         None, "--guidance/--no-guidance", help="Show comprehensive guidance"
+    ),
+    copy_mnemonic: bool = typer.Option(
+        False, "--copy-mnemonic", help="Copy recovery phrase to clipboard after generation"
     ),
 ):
     """Generate a new coldkey with comprehensive guidance."""
@@ -216,6 +235,19 @@ def generate_coldkey(
             console.print(f"Type: {keypair_info.key_type}")
             console.print(f"Public Key: {keypair_info.public_key}")
             console.print(f"SS58 Address: {keypair_info.ss58_address}")
+
+            # Display mnemonic with copy option
+            if keypair_info.mnemonic:
+                from ..utils.mnemonic import display_mnemonic_with_copy_option, copy_to_clipboard
+                display_mnemonic_with_copy_option(keypair_info.mnemonic, keypair_info.name, "Coldkey")
+
+                # Handle copy to clipboard flag
+                if copy_mnemonic:
+                    if copy_to_clipboard(keypair_info.mnemonic):
+                        console.print("✅ Recovery phrase copied to clipboard!")
+                        console.print("📋 You can now paste it in a secure location.")
+                    else:
+                        console.print("⚠️  Failed to copy to clipboard. Please copy manually.")
 
     except Exception as e:
         from src.htcli.errors import HTCLIError
@@ -929,6 +961,123 @@ def balance(
 
     except Exception as e:
         print_error(f"Failed to get balance: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def show_mnemonic(
+    wallet_name: str = typer.Option(..., "--wallet", "-w", help="Wallet name to show mnemonic for"),
+    copy_to_clipboard: bool = typer.Option(False, "--copy", "-c", help="Copy mnemonic to clipboard"),
+):
+    """Show the recovery phrase for an existing wallet."""
+    try:
+        from ..utils.crypto import get_wallet_info_by_name
+        from rich.panel import Panel
+
+        # Get wallet info
+        wallet_info = get_wallet_info_by_name(wallet_name)
+        wallet_type = "Hotkey" if wallet_info.get("is_hotkey", False) else "Coldkey"
+
+        console.print(f"[bold green]🔐 Recovery Phrase for {wallet_type} '{wallet_name}'[/bold green]")
+        console.print()
+
+        # Explain that mnemonics are only available during generation
+        info_text = f"""
+⚠️  Recovery phrases are only displayed during wallet generation for security reasons.
+
+🔐 {wallet_type} '{wallet_name}' Information:
+• Address: {wallet_info['ss58_address']}
+• Type: {wallet_info['key_type']}
+• Status: {'Encrypted' if wallet_info.get('is_encrypted', True) else 'Unencrypted'}
+
+💡 To get your recovery phrase:
+• If you just generated this wallet, scroll up to see the recovery phrase
+• If you imported this wallet, you should have the original recovery phrase
+• If you lost your recovery phrase, you cannot recover it from the stored wallet
+
+🔒 Security Note:
+• Recovery phrases are never stored on disk for security
+• They are only shown once during generation
+• Always save your recovery phrase in a secure, offline location
+        """
+
+        panel = Panel(
+            info_text,
+            title="[bold red]🔐 Recovery Phrase Information[/bold red]",
+            border_style="red",
+            padding=(1, 2)
+        )
+        console.print(panel)
+
+    except FileNotFoundError:
+        print_error(f"Wallet '{wallet_name}' not found.")
+        raise typer.Exit(1)
+    except Exception as e:
+        print_error(f"Failed to show wallet info: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def verify_mnemonic(
+    wallet_name: str = typer.Option(..., "--wallet", "-w", help="Wallet name to verify mnemonic for"),
+):
+    """Verify that you have correctly backed up your recovery phrase."""
+    try:
+        from ..utils.crypto import get_wallet_info_by_name
+        from ..utils.mnemonic import verify_mnemonic_backup
+        from rich.panel import Panel
+
+        # Get wallet info
+        wallet_info = get_wallet_info_by_name(wallet_name)
+        wallet_type = "Hotkey" if wallet_info.get("is_hotkey", False) else "Coldkey"
+
+        console.print(f"[bold green]🔍 Backup Verification for {wallet_type} '{wallet_name}'[/bold green]")
+        console.print()
+
+        # Show wallet info
+        info_text = f"""
+🔐 {wallet_type} '{wallet_name}' Information:
+• Address: {wallet_info['ss58_address']}
+• Type: {wallet_info['key_type']}
+• Status: {'Encrypted' if wallet_info.get('is_encrypted', True) else 'Unencrypted'}
+
+⚠️  Important: This command helps verify that you have saved your recovery phrase correctly.
+   You will need to enter a few words from your recovery phrase to verify your backup.
+        """
+
+        panel = Panel(
+            info_text,
+            title="[bold yellow]🔍 Backup Verification[/bold yellow]",
+            border_style="yellow",
+            padding=(1, 2)
+        )
+        console.print(panel)
+
+        # Ask user to provide their mnemonic for verification
+        console.print("\n[bold cyan]Enter your recovery phrase (12 or 24 words):[/bold cyan]")
+        console.print("Type each word separated by spaces, then press Enter:")
+
+        mnemonic_input = input().strip()
+
+        if not mnemonic_input:
+            print_error("No recovery phrase provided.")
+            raise typer.Exit(1)
+
+        # Verify the mnemonic backup
+        if verify_mnemonic_backup(mnemonic_input):
+            console.print("\n🎉 [bold green]Verification successful![/bold green]")
+            console.print("✅ Your recovery phrase backup is correct.")
+            console.print("🔒 Keep it safe in a secure, offline location.")
+        else:
+            console.print("\n❌ [bold red]Verification failed![/bold red]")
+            console.print("⚠️  Please check your recovery phrase and try again.")
+            raise typer.Exit(1)
+
+    except FileNotFoundError:
+        print_error(f"Wallet '{wallet_name}' not found.")
+        raise typer.Exit(1)
+    except Exception as e:
+        print_error(f"Failed to verify mnemonic: {str(e)}")
         raise typer.Exit(1)
 
 

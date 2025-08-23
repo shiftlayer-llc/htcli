@@ -1,8 +1,9 @@
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 import typer
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
+from rich.table import Table
 
 from src.htcli.utils.crypto import list_keys, get_wallet_info_by_name, wallet_name_exists
 from src.htcli.utils.formatting import print_error
@@ -1021,3 +1022,140 @@ def prompt_for_transfer_args(
         show_guidance = Confirm.ask("Show comprehensive guidance?", default=True)
 
     return from_wallet, to_address, amount, password, show_guidance
+
+
+def display_all_wallet_balances(client, format_type: str = "table", show_guidance: bool = False):
+    """Display balance for all wallets in a table format similar to btcli."""
+    try:
+        from src.htcli.utils.crypto import list_keys
+
+        # Get all wallets
+        wallets = list_keys()
+
+        if not wallets:
+            console.print("[yellow]No wallets found. Create a wallet first using 'htcli wallet generate-coldkey'[/yellow]")
+            return
+
+        # Filter to only coldkeys for balance display (like btcli)
+        coldkeys = [w for w in wallets if not w.get("is_hotkey", False)]
+
+        if not coldkeys:
+            console.print("[yellow]No coldkeys found. Create a coldkey first using 'htcli wallet generate-coldkey'[/yellow]")
+            return
+
+        # Get balances for all coldkeys
+        wallet_balances = []
+        total_free_balance = 0
+        total_staked_value = 0
+
+        for wallet in coldkeys:
+            try:
+                # Get balance from blockchain
+                response = client.get_balance(wallet["ss58_address"])
+                if response.success:
+                    balance_data = response.data
+                    free_balance = balance_data.get('balance', 0)
+
+                    # For now, we'll set staked value to 0 since we don't have staking info yet
+                    # TODO: Implement staking balance retrieval when staking is available
+                    staked_value = 0
+
+                    wallet_balances.append({
+                        "name": wallet["name"],
+                        "address": wallet["ss58_address"],
+                        "free_balance": free_balance,
+                        "staked_value": staked_value,
+                        "total_balance": free_balance + staked_value
+                    })
+
+                    total_free_balance += free_balance
+                    total_staked_value += staked_value
+                else:
+                    console.print(f"[red]Failed to get balance for {wallet['name']}: {response.message}[/red]")
+            except Exception as e:
+                console.print(f"[red]Error getting balance for {wallet['name']}: {str(e)}[/red]")
+
+        if not wallet_balances:
+            console.print("[red]Failed to retrieve any wallet balances.[/red]")
+            return
+
+        # Display network info
+        console.print(f"[bold cyan]Using the specified network from config[/bold cyan]")
+        console.print()
+
+        if format_type == "json":
+            # JSON format
+            json_data = {
+                "wallets": wallet_balances,
+                "totals": {
+                    "total_free_balance": total_free_balance,
+                    "total_staked_value": total_staked_value,
+                    "total_balance": total_free_balance + total_staked_value
+                }
+            }
+            console.print_json(data=json_data)
+        else:
+            # Table format
+            table = Table(
+                title="[bold cyan]Wallet Coldkey Balance[/bold cyan]",
+                show_header=True,
+                header_style="bold cyan",
+                border_style="cyan"
+            )
+
+            # Add columns
+            table.add_column("Wallet Name", style="cyan", no_wrap=True)
+            table.add_column("Coldkey Address", style="green", no_wrap=True)
+            table.add_column("Free Balance", style="yellow", justify="right")
+            table.add_column("Staked Value", style="blue", justify="right")
+            table.add_column("Total Balance", style="bold white", justify="right")
+
+            # Add wallet rows
+            for wallet in wallet_balances:
+                table.add_row(
+                    wallet["name"],
+                    wallet["address"],
+                    f"{wallet['free_balance'] / 1e18:,.4f} τ",
+                    f"{wallet['staked_value'] / 1e18:,.4f} τ",
+                    f"{wallet['total_balance'] / 1e18:,.4f} τ"
+                )
+
+            # Add totals row
+            table.add_row(
+                "[bold]Total Balance[/bold]",
+                "",
+                f"[bold]{total_free_balance / 1e18:,.4f} τ[/bold]",
+                f"[bold]{total_staked_value / 1e18:,.4f} τ[/bold]",
+                f"[bold]{(total_free_balance + total_staked_value) / 1e18:,.4f} τ[/bold]"
+            )
+
+            console.print(table)
+
+            # Show guidance if requested
+            if show_guidance:
+                from rich.panel import Panel
+                guidance_text = """
+[bold]Balance Information:[/bold]
+• Free Balance: Liquid funds available for transfers and transactions
+• Staked Value: Funds currently staked in the network (if any)
+• Total Balance: Sum of free and staked balances
+
+[bold]Note:[/bold] Staking functionality is not yet implemented in htcli.
+Staked values will show 0.0000 τ until staking features are added.
+
+[bold]Commands:[/bold]
+• Check individual wallet: htcli wallet balance --wallet <name>
+• Transfer funds: htcli wallet transfer --from <wallet> --to <address> --amount <value>
+• List all wallets: htcli wallet list
+                """
+                guidance_panel = Panel(
+                    guidance_text,
+                    title="[bold blue]Balance Information[/bold blue]",
+                    border_style="blue",
+                    padding=(1, 2)
+                )
+                console.print(guidance_panel)
+
+    except Exception as e:
+        console.print(f"[red]Failed to display wallet balances: {str(e)}[/red]")
+        raise typer.Exit(1)

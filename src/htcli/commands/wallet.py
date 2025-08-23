@@ -34,6 +34,7 @@ from src.htcli.helpers.wallet import (
     prompt_for_update_hotkey_args,
     prompt_for_balance_args,
     prompt_for_transfer_args,
+    display_all_wallet_balances,
 )
 
 from ..utils.crypto import (
@@ -894,6 +895,7 @@ def update_hotkey_cmd(
 def balance(
     wallet_name: Optional[str] = typer.Option(None, "--wallet", "-w", help="Wallet name to check balance"),
     address: Optional[str] = typer.Option(None, "--address", "-a", help="Address to check balance"),
+    show_all: bool = typer.Option(False, "--all", help="Show balance for all wallets"),
     format_type: str = typer.Option(
         "table", "--format", "-f", help="Output format (table/json)"
     ),
@@ -901,18 +903,23 @@ def balance(
         None, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
 ):
-    """Check balance of a wallet or address."""
-
-    # Interactive prompting for missing arguments
-    wallet_name, address, format_type, show_guidance = prompt_for_balance_args(
-        wallet_name, address, format_type, show_guidance
-    )
+    """Check balance of a wallet, address, or all wallets."""
 
     # Get client for blockchain operations
     from ..dependencies import get_client
     client = get_client()
 
     try:
+        # Handle --all option
+        if show_all:
+            display_all_wallet_balances(client, format_type, show_guidance)
+            return
+
+        # Interactive prompting for missing arguments (only if not using --all)
+        wallet_name, address, format_type, show_guidance = prompt_for_balance_args(
+            wallet_name, address, format_type, show_guidance
+        )
+
         # If wallet name provided, get the address from the wallet
         if wallet_name:
             from ..utils.crypto import get_wallet_info_by_name
@@ -961,123 +968,6 @@ def balance(
 
     except Exception as e:
         print_error(f"Failed to get balance: {str(e)}")
-        raise typer.Exit(1)
-
-
-@app.command()
-def show_mnemonic(
-    wallet_name: str = typer.Option(..., "--wallet", "-w", help="Wallet name to show mnemonic for"),
-    copy_to_clipboard: bool = typer.Option(False, "--copy", "-c", help="Copy mnemonic to clipboard"),
-):
-    """Show the recovery phrase for an existing wallet."""
-    try:
-        from ..utils.crypto import get_wallet_info_by_name
-        from rich.panel import Panel
-
-        # Get wallet info
-        wallet_info = get_wallet_info_by_name(wallet_name)
-        wallet_type = "Hotkey" if wallet_info.get("is_hotkey", False) else "Coldkey"
-
-        console.print(f"[bold green]🔐 Recovery Phrase for {wallet_type} '{wallet_name}'[/bold green]")
-        console.print()
-
-        # Explain that mnemonics are only available during generation
-        info_text = f"""
-⚠️  Recovery phrases are only displayed during wallet generation for security reasons.
-
-🔐 {wallet_type} '{wallet_name}' Information:
-• Address: {wallet_info['ss58_address']}
-• Type: {wallet_info['key_type']}
-• Status: {'Encrypted' if wallet_info.get('is_encrypted', True) else 'Unencrypted'}
-
-💡 To get your recovery phrase:
-• If you just generated this wallet, scroll up to see the recovery phrase
-• If you imported this wallet, you should have the original recovery phrase
-• If you lost your recovery phrase, you cannot recover it from the stored wallet
-
-🔒 Security Note:
-• Recovery phrases are never stored on disk for security
-• They are only shown once during generation
-• Always save your recovery phrase in a secure, offline location
-        """
-
-        panel = Panel(
-            info_text,
-            title="[bold red]🔐 Recovery Phrase Information[/bold red]",
-            border_style="red",
-            padding=(1, 2)
-        )
-        console.print(panel)
-
-    except FileNotFoundError:
-        print_error(f"Wallet '{wallet_name}' not found.")
-        raise typer.Exit(1)
-    except Exception as e:
-        print_error(f"Failed to show wallet info: {str(e)}")
-        raise typer.Exit(1)
-
-
-@app.command()
-def verify_mnemonic(
-    wallet_name: str = typer.Option(..., "--wallet", "-w", help="Wallet name to verify mnemonic for"),
-):
-    """Verify that you have correctly backed up your recovery phrase."""
-    try:
-        from ..utils.crypto import get_wallet_info_by_name
-        from ..utils.mnemonic import verify_mnemonic_backup
-        from rich.panel import Panel
-
-        # Get wallet info
-        wallet_info = get_wallet_info_by_name(wallet_name)
-        wallet_type = "Hotkey" if wallet_info.get("is_hotkey", False) else "Coldkey"
-
-        console.print(f"[bold green]🔍 Backup Verification for {wallet_type} '{wallet_name}'[/bold green]")
-        console.print()
-
-        # Show wallet info
-        info_text = f"""
-🔐 {wallet_type} '{wallet_name}' Information:
-• Address: {wallet_info['ss58_address']}
-• Type: {wallet_info['key_type']}
-• Status: {'Encrypted' if wallet_info.get('is_encrypted', True) else 'Unencrypted'}
-
-⚠️  Important: This command helps verify that you have saved your recovery phrase correctly.
-   You will need to enter a few words from your recovery phrase to verify your backup.
-        """
-
-        panel = Panel(
-            info_text,
-            title="[bold yellow]🔍 Backup Verification[/bold yellow]",
-            border_style="yellow",
-            padding=(1, 2)
-        )
-        console.print(panel)
-
-        # Ask user to provide their mnemonic for verification
-        console.print("\n[bold cyan]Enter your recovery phrase (12 or 24 words):[/bold cyan]")
-        console.print("Type each word separated by spaces, then press Enter:")
-
-        mnemonic_input = input().strip()
-
-        if not mnemonic_input:
-            print_error("No recovery phrase provided.")
-            raise typer.Exit(1)
-
-        # Verify the mnemonic backup
-        if verify_mnemonic_backup(mnemonic_input):
-            console.print("\n🎉 [bold green]Verification successful![/bold green]")
-            console.print("✅ Your recovery phrase backup is correct.")
-            console.print("🔒 Keep it safe in a secure, offline location.")
-        else:
-            console.print("\n❌ [bold red]Verification failed![/bold red]")
-            console.print("⚠️  Please check your recovery phrase and try again.")
-            raise typer.Exit(1)
-
-    except FileNotFoundError:
-        print_error(f"Wallet '{wallet_name}' not found.")
-        raise typer.Exit(1)
-    except Exception as e:
-        print_error(f"Failed to verify mnemonic: {str(e)}")
         raise typer.Exit(1)
 
 

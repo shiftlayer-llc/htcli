@@ -15,6 +15,7 @@ from src.htcli.utils.validation import (
     validate_mnemonic,
     validate_address,
 )
+from src.htcli.utils.colors import Colors, get_table_style, get_wallet_color, get_balance_color, get_current_color_scheme
 
 console = Console()
 
@@ -530,22 +531,24 @@ def display_keys_table(keys: list):
     """Display keys in table format with hotkey/coldkey distinction."""
     from rich.table import Table
 
-    # Create table
+    # Create table with standardized colors
+    current_scheme = get_current_color_scheme()
+    table_style = get_table_style(current_scheme)
     table = Table(
-        title="[bold cyan]Stored Keys[/bold cyan]",
+        title=f"[bold {Colors.PRIMARY}]Stored Keys[/bold {Colors.PRIMARY}]",
         show_header=True,
         box=box.HORIZONTALS,
-        header_style="bold white",
-        border_style="white",
+        header_style=table_style["header_style"],
+        border_style=table_style["border_style"],
         show_edge=True,
         padding=(1, 1)
     )
-    table.add_column("Name", style="cyan", no_wrap=True)
-    table.add_column("Type", style="yellow")
-    table.add_column("Key Type", style="blue")
-    table.add_column("Address (SS58)", style="green")
-    table.add_column("Owner", style="purple")
-    table.add_column("Encrypted", style="white")
+    table.add_column("Name", style=Colors.TEXT_PRIMARY, no_wrap=True)
+    table.add_column("Type", style=Colors.WARNING, no_wrap=True)
+    table.add_column("Key Type", style=Colors.SECONDARY, no_wrap=True)
+    table.add_column("Address (SS58)", style=Colors.WALLET_ADDRESS, no_wrap=True)
+    table.add_column("Owner", style=Colors.TEXT_SECONDARY, no_wrap=True)
+    table.add_column("Encrypted", style=Colors.TEXT_PRIMARY, no_wrap=True)
 
     # Separate coldkeys and hotkeys for better organization
     coldkeys = [k for k in keys if not k.get("is_hotkey", False)]
@@ -1100,48 +1103,58 @@ def display_all_wallet_balances(client, format_type: str = "table", show_guidanc
             }
             console.print_json(data=json_data)
         else:
-            # Rich table with APA-style minimal borders
+                        # Rich table with standardized colors
+            current_scheme = get_current_color_scheme()
+            table_style = get_table_style(current_scheme)
             table = Table(
-                title="[bold white]Wallet Coldkey Balance[/bold white]",
+                title=f"[bold {Colors.PRIMARY}]Wallet Coldkey Balance[/bold {Colors.PRIMARY}]",
                 box=box.HORIZONTALS,
                 show_header=True,
-                header_style="bold white",
-                border_style="white",
+                header_style=table_style["header_style"],
+                border_style=table_style["border_style"],
                 show_edge=True,
                 padding=(1, 1)
             )
 
             # Add columns
-            table.add_column("Wallet Name", style="white", no_wrap=True)
-            table.add_column("Coldkey Address", style="green", no_wrap=True)
-            table.add_column("Free Balance", style="white", justify="right")
-            table.add_column("Staked Value", style="white", justify="right")
-            table.add_column("Total Balance", style="white", justify="right")
+            table.add_column("Wallet Name", style=Colors.TEXT_PRIMARY, no_wrap=True)
+            table.add_column("Coldkey Address", style=Colors.WALLET_ADDRESS, no_wrap=True)
+            table.add_column("Free Balance", style=Colors.TEXT_PRIMARY, justify="right")
+            table.add_column("Staked Value", style=Colors.TEXT_PRIMARY, justify="right")
+            table.add_column("Total Balance", style=Colors.TEXT_PRIMARY, justify="right")
 
-            # Add wallet rows
+                        # Add wallet rows with dynamic balance colors
             for wallet in wallet_balances:
+                free_balance = wallet['free_balance'] / 1e18
+                staked_value = wallet['staked_value'] / 1e18
+                total_balance = wallet['total_balance'] / 1e18
+
                 table.add_row(
                     wallet["name"],
                     wallet["address"],
-                    f"{(wallet['free_balance'] / 1e18):,.4f}",
-                    f"{(wallet['staked_value'] / 1e18):,.4f}",
-                    f"{(wallet['total_balance'] / 1e18):,.4f}"
+                    f"[{get_balance_color(free_balance)}]{(free_balance):,.4f}[/{get_balance_color(free_balance)}]",
+                    f"[{get_balance_color(staked_value)}]{(staked_value):,.4f}[/{get_balance_color(staked_value)}]",
+                    f"[{get_balance_color(total_balance)}]{(total_balance):,.4f}[/{get_balance_color(total_balance)}]"
                 )
 
             # Add totals row
+            total_free = total_free_balance / 1e18
+            total_staked = total_staked_value / 1e18
+            total_overall = (total_free_balance + total_staked_value) / 1e18
+
             table.add_row(
-                "[bold]Total Balance[/bold]",
+                f"[bold {Colors.TEXT_PRIMARY}]Total Balance[/bold {Colors.TEXT_PRIMARY}]",
                 "",
-                f"[bold]{(total_free_balance / 1e18):,.4f}[/bold]",
-                f"[bold]{(total_staked_value / 1e18):,.4f}[/bold]",
-                f"[bold]{((total_free_balance + total_staked_value) / 1e18):,.4f}[/bold]"
+                f"[bold {get_balance_color(total_free)}]{(total_free):,.4f}[/bold {get_balance_color(total_free)}]",
+                f"[bold {get_balance_color(total_staked)}]{(total_staked):,.4f}[/bold {get_balance_color(total_staked)}]",
+                f"[bold {get_balance_color(total_overall)}]{(total_overall):,.4f}[/bold {get_balance_color(total_overall)}]"
             )
 
             console.print(table)
 
             # Add unit information
             console.print()
-            console.print("[white]All balances in TENSOR[/white]")
+            console.print(f"[{Colors.TEXT_SECONDARY}]All balances in TENSOR[/{Colors.TEXT_SECONDARY}]")
 
             # Show guidance if requested
             if show_guidance:
@@ -1162,8 +1175,8 @@ Staked values will show 0.0000 until staking features are added.
                 """
                 guidance_panel = Panel(
                     guidance_text,
-                    title="[bold blue]Balance Information[/bold blue]",
-                    border_style="blue",
+                    title=f"[bold {Colors.INFO}]Balance Information[/bold {Colors.INFO}]",
+                    border_style=Colors.INFO,
                     padding=(1, 2)
                 )
                 console.print(guidance_panel)

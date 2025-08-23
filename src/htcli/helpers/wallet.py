@@ -4,6 +4,7 @@ import typer
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
+from rich import box
 
 from src.htcli.utils.crypto import list_keys, get_wallet_info_by_name, wallet_name_exists
 from src.htcli.utils.formatting import print_error
@@ -533,7 +534,11 @@ def display_keys_table(keys: list):
     table = Table(
         title="[bold cyan]Stored Keys[/bold cyan]",
         show_header=True,
-        header_style="bold magenta",
+        box=box.HORIZONTALS,
+        header_style="bold white",
+        border_style="white",
+        show_edge=True,
+        padding=(1, 1)
     )
     table.add_column("Name", style="cyan", no_wrap=True)
     table.add_column("Type", style="yellow")
@@ -1095,41 +1100,48 @@ def display_all_wallet_balances(client, format_type: str = "table", show_guidanc
             }
             console.print_json(data=json_data)
         else:
-            # Table format
+            # Rich table with APA-style minimal borders
             table = Table(
-                title="[bold cyan]Wallet Coldkey Balance[/bold cyan]",
+                title="[bold white]Wallet Coldkey Balance[/bold white]",
+                box=box.HORIZONTALS,
                 show_header=True,
-                header_style="bold cyan",
-                border_style="cyan"
+                header_style="bold white",
+                border_style="white",
+                show_edge=True,
+                padding=(1, 1)
             )
 
             # Add columns
-            table.add_column("Wallet Name", style="cyan", no_wrap=True)
+            table.add_column("Wallet Name", style="white", no_wrap=True)
             table.add_column("Coldkey Address", style="green", no_wrap=True)
-            table.add_column("Free Balance", style="yellow", justify="right")
-            table.add_column("Staked Value", style="blue", justify="right")
-            table.add_column("Total Balance", style="bold white", justify="right")
+            table.add_column("Free Balance", style="white", justify="right")
+            table.add_column("Staked Value", style="white", justify="right")
+            table.add_column("Total Balance", style="white", justify="right")
 
             # Add wallet rows
             for wallet in wallet_balances:
                 table.add_row(
                     wallet["name"],
                     wallet["address"],
-                    f"{wallet['free_balance'] / 1e18:,.4f} τ",
-                    f"{wallet['staked_value'] / 1e18:,.4f} τ",
-                    f"{wallet['total_balance'] / 1e18:,.4f} τ"
+                    f"{(wallet['free_balance'] / 1e18):,.4f}",
+                    f"{(wallet['staked_value'] / 1e18):,.4f}",
+                    f"{(wallet['total_balance'] / 1e18):,.4f}"
                 )
 
             # Add totals row
             table.add_row(
                 "[bold]Total Balance[/bold]",
                 "",
-                f"[bold]{total_free_balance / 1e18:,.4f} τ[/bold]",
-                f"[bold]{total_staked_value / 1e18:,.4f} τ[/bold]",
-                f"[bold]{(total_free_balance + total_staked_value) / 1e18:,.4f} τ[/bold]"
+                f"[bold]{(total_free_balance / 1e18):,.4f}[/bold]",
+                f"[bold]{(total_staked_value / 1e18):,.4f}[/bold]",
+                f"[bold]{((total_free_balance + total_staked_value) / 1e18):,.4f}[/bold]"
             )
 
             console.print(table)
+
+            # Add unit information
+            console.print()
+            console.print("[white]All balances in TENSOR[/white]")
 
             # Show guidance if requested
             if show_guidance:
@@ -1141,7 +1153,7 @@ def display_all_wallet_balances(client, format_type: str = "table", show_guidanc
 • Total Balance: Sum of free and staked balances
 
 [bold]Note:[/bold] Staking functionality is not yet implemented in htcli.
-Staked values will show 0.0000 τ until staking features are added.
+Staked values will show 0.0000 until staking features are added.
 
 [bold]Commands:[/bold]
 • Check individual wallet: htcli wallet balance --wallet <name>

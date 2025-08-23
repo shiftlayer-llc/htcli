@@ -184,3 +184,67 @@ WALLET_DELETE_GUIDANCE_TEMPLATE = """
 
 [yellow]⚠️ Warning:[/yellow] This action cannot be undone!
 """
+
+
+COLDKEY_UPDATE_GUIDANCE_TEMPLATE = """
+[bold green]🔐 Coldkey Updated Successfully[/bold green]
+
+[bold]Updated Coldkey Details:[/bold]
+• Old Name: {old_name}
+• New Name: {new_name}
+• Type: {key_type}
+• Address: {ss58_address}
+
+[bold]Changes Made:[/bold]
+• Name Updated: {name_updated_status}
+• Password Updated: {password_updated_status}
+
+[bold]What this means:[/bold]
+• The coldkey has been updated with your requested changes
+• The private key and address remain the same
+• All associated hotkeys will continue to work normally
+
+[bold]Security Notes:[/bold]
+• The private key is still stored securely on your local machine
+• If you changed the password, make sure to remember the new one
+• If you removed the password, the key is now stored unencrypted
+
+[bold]Next Steps:[/bold]
+• Use 'htcli wallet list' to see the updated key
+• Use 'htcli wallet status' to verify the changes
+• Continue using this coldkey for fund management and ownership
+"""
+
+
+HOTKEY_UPDATE_GUIDANCE_TEMPLATE = """
+[bold green]🔑 Hotkey Updated Successfully[/bold green]
+
+[bold]Updated Hotkey Details:[/bold]
+• Old Name: {old_name}
+• New Name: {new_name}
+• Type: {key_type}
+• Address: {ss58_address}
+• Old Owner: {old_owner_address}
+• New Owner: {new_owner_address}
+
+[bold]Changes Made:[/bold]
+• Name Updated: {name_updated_status}
+• Password Updated: {password_updated_status}
+• Owner Updated: {owner_updated_status}
+
+[bold]What this means:[/bold]
+• The hotkey has been updated with your requested changes
+• The private key and address remain the same
+• The hotkey will now be owned by the new coldkey (if changed)
+
+[bold]Security Notes:[/bold]
+• The private key is still stored securely on your local machine
+• If you changed the password, make sure to remember the new one
+• If you removed the password, the key is now stored unencrypted
+• If you changed the owner, the hotkey is now controlled by a different coldkey
+
+[bold]Next Steps:[/bold]
+• Use 'htcli wallet list' to see the updated key
+• Use 'htcli wallet status' to verify the changes
+• Continue using this hotkey for node operations and consensus signing
+"""

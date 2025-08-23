@@ -73,7 +73,7 @@ def prompt_for_password(
     Returns:
         The password
     """
-    min_length = min_length or PasswordConfig.MIN_PASSWORD_LENGTH
+    min_length = min_length or PasswordConfig.MIN_PASSWORD_LENGTH or 8
 
     while True:
         try:

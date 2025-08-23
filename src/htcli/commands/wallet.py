@@ -14,11 +14,11 @@ from src.htcli.guides.wallet import (
     HOTKEY_GUIDANCE_TEMPLATE,
     IDENTITY_TEMPLATE,
     NO_KEYS_TEMPLATE,
-    RESTORE_GUIDANCE_TEMPLATE,
-    WALLET_DELETE_GUIDANCE_TEMPLATE,
     WALLET_STATUS_GUIDANCE_TEMPLATE,
     COLDKEY_RESTORE_GUIDANCE_TEMPLATE,
     HOTKEY_RESTORE_GUIDANCE_TEMPLATE,
+    COLDKEY_UPDATE_GUIDANCE_TEMPLATE,
+    HOTKEY_UPDATE_GUIDANCE_TEMPLATE,
 )
 from src.htcli.helpers.wallet import (
     display_keys_table,
@@ -26,9 +26,10 @@ from src.htcli.helpers.wallet import (
     prompt_for_coldkey_args,
     prompt_for_delete_args,
     prompt_for_missing_args,
-    prompt_for_restore_args,
     prompt_for_restore_coldkey_args,
     prompt_for_restore_hotkey_args,
+    prompt_for_update_coldkey_args,
+    prompt_for_update_hotkey_args,
 )
 
 from ..utils.crypto import (
@@ -41,6 +42,9 @@ from ..utils.crypto import (
     import_hotkey_from_mnemonic,
     list_keys,
     delete_coldkey_and_hotkeys,
+    wallet_name_exists,
+    update_coldkey,
+    update_hotkey,
 )
 from ..utils.formatting import print_error, print_success
 from ..utils.validation import (
@@ -279,11 +283,7 @@ def restore_coldkey(
 
         print_success(f"✅ Coldkey imported successfully from {import_method}!")
 
-        # Display key information
-        console.print(f"Name: {keypair_info.name}")
-        console.print(f"Type: {keypair_info.key_type}")
-        console.print(f"Public Key: {keypair_info.public_key}")
-        console.print(f"SS58 Address: {keypair_info.ss58_address}")
+
 
         if show_guidance:
             from rich.panel import Panel
@@ -299,6 +299,12 @@ def restore_coldkey(
                 border_style="green",
             )
             console.print(guidance_panel)
+        else:
+            # Display key information
+            console.print(f"Name: {keypair_info.name}")
+            console.print(f"Type: {keypair_info.key_type}")
+            console.print(f"Public Key: {keypair_info.public_key}")
+            console.print(f"SS58 Address: {keypair_info.ss58_address}")
 
     except Exception as e:
         print_error(f"Failed to import coldkey: {str(e)}")
@@ -393,13 +399,6 @@ def restore_hotkey(
 
         print_success(f"✅ Hotkey imported successfully from {import_method}!")
 
-        # Display key information
-        console.print(f"Name: {keypair_info.name}")
-        console.print(f"Type: {keypair_info.key_type}")
-        console.print(f"Public Key: {keypair_info.public_key}")
-        console.print(f"SS58 Address: {keypair_info.ss58_address}")
-        console.print(f"Owner: {owner_name} ({owner_address})")
-
         if show_guidance:
             from rich.panel import Panel
 
@@ -416,6 +415,13 @@ def restore_hotkey(
                 border_style="green",
             )
             console.print(guidance_panel)
+        else:
+            # Display key information
+            console.print(f"Name: {keypair_info.name}")
+            console.print(f"Type: {keypair_info.key_type}")
+            console.print(f"Public Key: {keypair_info.public_key}")
+            console.print(f"SS58 Address: {keypair_info.ss58_address}")
+            console.print(f"Owner: {owner_name} ({owner_address})")
 
     except Exception as e:
         print_error(f"Failed to import hotkey: {str(e)}")
@@ -485,8 +491,8 @@ def status(
         console.print(
             Panel(
                 IDENTITY_TEMPLATE.format(num_keys=len(keys), num_addresses=len(keys)),
-                title="[bold green]🔐 Your Blockchain Identity[/bold green]",
-                border_style="green",
+            title="[bold green]🔐 Your Blockchain Identity[/bold green]",
+            border_style="green",
             )
         )
         console.print()
@@ -550,8 +556,8 @@ def status(
         console.print(
             Panel(
                 CAPABILITIES_TEMPLATE,
-                title="[bold blue]🎯 Your Capabilities[/bold blue]",
-                border_style="blue",
+            title="[bold blue]🎯 Your Capabilities[/bold blue]",
+            border_style="blue",
             )
         )
 
@@ -562,7 +568,7 @@ def status(
 
 @app.command()
 def delete(
-    name: Optional[str] = typer.Option(None, "--name", "-n", help="Key name to delete"),
+    names: Optional[str] = typer.Argument(None, help="Key names to delete (comma-separated for multiple)"),
     confirm: bool = typer.Option(
         False, "--confirm", "-y", help="Skip confirmation prompt"
     ),
@@ -570,111 +576,264 @@ def delete(
         None, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
 ):
-    """Delete a stored key with comprehensive guidance."""
+    """Delete one or more stored keys with comprehensive guidance."""
+
+    # Parse names string into list
+    name_list = None
+    if names:
+        name_list = [n.strip() for n in names.split(",") if n.strip()]
 
     # Interactive prompting for missing arguments
-    name, confirm, show_guidance = prompt_for_delete_args(name, confirm, show_guidance)
+    name_list, confirm, show_guidance = prompt_for_delete_args(name_list, confirm, show_guidance)
 
-    if not validate_wallet_name(name):
-        print_error("Invalid wallet name.")
-        raise typer.Exit(1)
+    # Validate all wallet names
+    for name in name_list:
+        if not validate_wallet_name(name):
+            print_error(f"Invalid wallet name: {name}")
+            raise typer.Exit(1)
 
     try:
-        # Check if this is a coldkey and has associated hotkeys
-        from ..utils.crypto import get_wallet_info_by_name
-        wallet_info = get_wallet_info_by_name(name)
-        is_coldkey = not wallet_info.get("is_hotkey", False)
+        # Track deletion results
+        deleted_coldkeys = []
+        deleted_hotkeys = []
+        total_associated_hotkeys_deleted = 0
 
-        if is_coldkey:
-            # Check for associated hotkeys
-            all_keys = list_keys()
-            coldkey_address = wallet_info["ss58_address"]
-            associated_hotkeys = []
+        # Process each key
+        for name in name_list:
+            # Check if this is a coldkey and has associated hotkeys
+            from ..utils.crypto import get_wallet_info_by_name
+            wallet_info = get_wallet_info_by_name(name)
+            is_coldkey = not wallet_info.get("is_hotkey", False)
 
-            for key_info in all_keys:
-                if (key_info.get("is_hotkey", False) and
-                    key_info.get("owner_address") == coldkey_address):
-                    associated_hotkeys.append(key_info["name"])
+            if is_coldkey:
+                # Check for associated hotkeys
+                all_keys = list_keys()
+                coldkey_address = wallet_info["ss58_address"]
+                associated_hotkeys = []
 
-            if associated_hotkeys:
-                # Show warning about associated hotkeys
-                console.print(f"\n[yellow]⚠️  Warning:[/yellow] Coldkey '{name}' has {len(associated_hotkeys)} associated hotkey(s):")
-                for hotkey in associated_hotkeys:
-                    console.print(f"   • {hotkey}")
-                console.print("\n[yellow]All associated hotkeys will be deleted together with the coldkey.[/yellow]")
+                for key_info in all_keys:
+                    if (key_info.get("is_hotkey", False) and
+                        key_info.get("owner_address") == coldkey_address):
+                        associated_hotkeys.append(key_info["name"])
 
-                # Confirmation prompt
-                if not confirm:
-                    delete_confirm = typer.confirm(
-                        f"Are you sure you want to delete coldkey '{name}' and all {len(associated_hotkeys)} associated hotkeys?"
-                    )
-                    if not delete_confirm:
-                        console.print("Operation cancelled.")
-                        return
+                if associated_hotkeys:
+                    # Show warning about associated hotkeys
+                    console.print(f"\n[yellow]⚠️  Warning:[/yellow] Coldkey '{name}' has {len(associated_hotkeys)} associated hotkey(s):")
+                    for hotkey in associated_hotkeys:
+                        console.print(f"   • {hotkey}")
+                    console.print(f"[yellow]All associated hotkeys will be deleted together with the coldkey '{name}'.[/yellow]")
 
-                # Delete coldkey and all associated hotkeys
-                result = delete_coldkey_and_hotkeys(name)
-                print_success(f"✅ Coldkey '{name}' and {result['total_hotkeys_deleted']} associated hotkeys deleted successfully!")
+                    # Delete coldkey and all associated hotkeys
+                    result = delete_coldkey_and_hotkeys(name)
+                    deleted_coldkeys.append(name)
+                    total_associated_hotkeys_deleted += result['total_hotkeys_deleted']
+                    print_success(f"✅ Coldkey '{name}' and {result['total_hotkeys_deleted']} associated hotkeys deleted successfully!")
+                else:
+                    # No associated hotkeys, proceed with normal deletion
+                    delete_keypair(name)
+                    deleted_coldkeys.append(name)
+                    print_success(f"✅ Coldkey '{name}' deleted successfully!")
+            else:
+                # It's a hotkey, proceed with normal deletion
+                delete_keypair(name)
+                deleted_hotkeys.append(name)
+                print_success(f"✅ Hotkey '{name}' deleted successfully!")
 
-                if show_guidance:
-                    from rich.panel import Panel
+        # Show summary
+        if len(name_list) > 1:
+            console.print(f"\n[bold green]🎉 Bulk Deletion Complete![/bold green]")
+            console.print(f"[bold]Summary:[/bold] {len(deleted_coldkeys)} coldkeys, {len(deleted_hotkeys)} hotkeys deleted")
+            if total_associated_hotkeys_deleted > 0:
+                console.print(f"[bold]Additional hotkeys deleted due to coldkey associations:[/bold] {total_associated_hotkeys_deleted}")
+
+        # Show guidance if requested
+        if show_guidance:
+            from rich.panel import Panel
+
+            if len(name_list) == 1:
+                # Single key deletion - show detailed guidance
+                name = name_list[0]
+                if name in deleted_coldkeys:
                     guidance_panel = Panel(
-                        f"[bold red]🗑️ Coldkey and Hotkeys Deleted Successfully[/bold red]\n\n"
-                        f"[bold]Deleted Coldkey:[/bold] {result['coldkey_deleted']}\n"
-                        f"[bold]Coldkey Address:[/bold] {result['coldkey_address']}\n"
-                        f"[bold]Associated Hotkeys Deleted:[/bold] {result['total_hotkeys_deleted']}\n\n"
+                        f"[bold red]🗑️ Coldkey Deleted Successfully[/bold red]\n\n"
+                        f"[bold]Deleted Coldkey:[/bold] {name}\n\n"
                         f"[bold]What happened?[/bold]\n"
-                        f"• The coldkey and all its hotkeys have been permanently removed\n"
+                        f"• The coldkey has been permanently removed\n"
                         f"• All encrypted private key files have been deleted\n"
-                        f"• You can no longer use these keys for operations\n\n"
+                        f"• You can no longer use this key for operations\n\n"
                         f"[bold]Important Notes:[/bold]\n"
                         f"• If you had funds associated with the coldkey, they are still on the blockchain\n"
                         f"• You can recover them by importing the private key again\n"
                         f"• Make sure you have a backup of the private keys if needed\n\n"
                         f"[yellow]⚠️ Warning:[/yellow] This action cannot be undone!",
-                        title="Coldkey and Hotkeys Deletion Complete",
-                        border_style="red",
-                    )
-                    console.print(guidance_panel)
-            else:
-                # No associated hotkeys, proceed with normal deletion
-                if not confirm:
-                    delete_confirm = typer.confirm(f"Are you sure you want to delete coldkey '{name}'?")
-                    if not delete_confirm:
-                        console.print("Operation cancelled.")
-                        return
-
-                delete_keypair(name)
-                print_success(f"✅ Coldkey '{name}' deleted successfully!")
-
-                if show_guidance:
-                    from rich.panel import Panel
-                    guidance_panel = Panel(
-                        WALLET_DELETE_GUIDANCE_TEMPLATE.format(name=name),
                         title="Coldkey Deletion Complete",
                         border_style="red",
                     )
-                    console.print(guidance_panel)
-        else:
-            # It's a hotkey, proceed with normal deletion
-            if not confirm:
-                delete_confirm = typer.confirm(f"Are you sure you want to delete hotkey '{name}'?")
-                if not delete_confirm:
-                    console.print("Operation cancelled.")
-                    return
-
-            delete_keypair(name)
-            print_success(f"✅ Hotkey '{name}' deleted successfully!")
-
-            if show_guidance:
-                from rich.panel import Panel
+                else:
+                    guidance_panel = Panel(
+                        f"[bold red]🗑️ Hotkey Deleted Successfully[/bold red]\n\n"
+                        f"[bold]Deleted Hotkey:[/bold] {name}\n\n"
+                        f"[bold]What happened?[/bold]\n"
+                        f"• The hotkey has been permanently removed\n"
+                        f"• All encrypted private key files have been deleted\n"
+                        f"• You can no longer use this key for operations\n\n"
+                        f"[yellow]⚠️ Warning:[/yellow] This action cannot be undone!",
+                        title="Hotkey Deletion Complete",
+                        border_style="red",
+                    )
+                console.print(guidance_panel)
+            else:
+                # Multiple key deletion - show summary guidance
                 guidance_panel = Panel(
-                    WALLET_DELETE_GUIDANCE_TEMPLATE.format(name=name),
-                    title="Hotkey Deletion Complete",
+                    f"[bold red]🗑️ Bulk Deletion Complete[/bold red]\n\n"
+                    f"[bold]Deleted Keys:[/bold]\n"
+                    f"• Coldkeys: {', '.join(deleted_coldkeys) if deleted_coldkeys else 'None'}\n"
+                    f"• Hotkeys: {', '.join(deleted_hotkeys) if deleted_hotkeys else 'None'}\n"
+                    f"• Additional hotkeys (from coldkey associations): {total_associated_hotkeys_deleted}\n\n"
+                    f"[bold]What happened?[/bold]\n"
+                    f"• All specified keys have been permanently removed\n"
+                    f"• All encrypted private key files have been deleted\n"
+                    f"• Associated hotkeys were automatically deleted with their coldkeys\n\n"
+                    f"[yellow]⚠️ Warning:[/yellow] This action cannot be undone!",
+                    title="Bulk Deletion Complete",
                     border_style="red",
                 )
                 console.print(guidance_panel)
 
     except Exception as e:
         print_error(f"Failed to delete key: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command(name="update-coldkey")
+def update_coldkey_cmd(
+    name: Optional[str] = typer.Option(None, "--name", "-n", help="Current coldkey name"),
+    new_name: Optional[str] = typer.Option(None, "--new-name", help="New coldkey name"),
+    new_password: Optional[str] = typer.Option(None, "--new-password", help="New password"),
+    remove_password: bool = typer.Option(False, "--remove-password", help="Remove password protection"),
+    show_guidance: Optional[bool] = typer.Option(
+        None, "--guidance/--no-guidance", help="Show comprehensive guidance"
+    ),
+):
+    """Update a coldkey's properties (name, password)."""
+
+    # Interactive prompting for missing arguments
+    name, new_name, new_password, remove_password, show_guidance = prompt_for_update_coldkey_args(
+        name, new_name, new_password, remove_password, show_guidance
+    )
+
+    # Validate inputs
+    if not validate_wallet_name(name):
+        print_error("Invalid current wallet name.")
+        raise typer.Exit(1)
+
+    if new_name and not validate_wallet_name(new_name):
+        print_error("Invalid new wallet name.")
+        raise typer.Exit(1)
+
+    if new_password and not validate_password(new_password):
+        print_error("Invalid new password. Must be at least 8 characters with letters and numbers.")
+        raise typer.Exit(1)
+
+    try:
+        result = update_coldkey(name, new_name, new_password, remove_password)
+        print_success("✅ Coldkey updated successfully!")
+
+        if show_guidance:
+            from rich.panel import Panel
+            guidance_panel = Panel(
+                COLDKEY_UPDATE_GUIDANCE_TEMPLATE.format(
+                    old_name=result["old_name"],
+                    new_name=result["new_name"],
+                    key_type=result["key_type"],
+                    ss58_address=result["ss58_address"],
+                    name_updated_status="✅ Yes" if result["name_updated"] else "❌ No",
+                    password_updated_status="✅ Yes" if result["password_updated"] else "❌ No",
+                ),
+                title="Coldkey Update Complete",
+                border_style="green",
+            )
+            console.print(guidance_panel)
+        else:
+            # Display update information
+            console.print(f"Name: {result['old_name']} → {result['new_name']}")
+            console.print(f"Type: {result['key_type']}")
+            console.print(f"Address: {result['ss58_address']}")
+            if result["name_updated"]:
+                console.print("✅ Name updated")
+            if result["password_updated"]:
+                console.print("✅ Password updated")
+
+    except Exception as e:
+        print_error(f"Failed to update coldkey: {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command(name="update-hotkey")
+def update_hotkey_cmd(
+    name: Optional[str] = typer.Option(None, "--name", "-n", help="Current hotkey name"),
+    new_name: Optional[str] = typer.Option(None, "--new-name", help="New hotkey name"),
+    new_password: Optional[str] = typer.Option(None, "--new-password", help="New password"),
+    remove_password: bool = typer.Option(False, "--remove-password", help="Remove password protection"),
+    new_owner: Optional[str] = typer.Option(None, "--new-owner", help="New coldkey owner name"),
+    show_guidance: Optional[bool] = typer.Option(
+        None, "--guidance/--no-guidance", help="Show comprehensive guidance"
+    ),
+):
+    """Update a hotkey's properties (name, password, owner)."""
+
+    # Interactive prompting for missing arguments
+    name, new_name, new_password, remove_password, new_owner, show_guidance = prompt_for_update_hotkey_args(
+        name, new_name, new_password, remove_password, new_owner, show_guidance
+    )
+
+    # Validate inputs
+    if not validate_wallet_name(name):
+        print_error("Invalid current wallet name.")
+        raise typer.Exit(1)
+
+    if new_name and not validate_wallet_name(new_name):
+        print_error("Invalid new wallet name.")
+        raise typer.Exit(1)
+
+    if new_password and not validate_password(new_password):
+        print_error("Invalid new password. Must be at least 8 characters with letters and numbers.")
+        raise typer.Exit(1)
+
+    try:
+        result = update_hotkey(name, new_name, new_password, remove_password, new_owner)
+        print_success("✅ Hotkey updated successfully!")
+
+        if show_guidance:
+            from rich.panel import Panel
+            guidance_panel = Panel(
+                HOTKEY_UPDATE_GUIDANCE_TEMPLATE.format(
+                    old_name=result["old_name"],
+                    new_name=result["new_name"],
+                    key_type=result["key_type"],
+                    ss58_address=result["ss58_address"],
+                    old_owner_address=result["old_owner_address"],
+                    new_owner_address=result["new_owner_address"],
+                    name_updated_status="✅ Yes" if result["name_updated"] else "❌ No",
+                    password_updated_status="✅ Yes" if result["password_updated"] else "❌ No",
+                    owner_updated_status="✅ Yes" if result["owner_updated"] else "❌ No",
+                ),
+                title="Hotkey Update Complete",
+                border_style="green",
+            )
+            console.print(guidance_panel)
+        else:
+            # Display update information
+            console.print(f"Name: {result['old_name']} → {result['new_name']}")
+            console.print(f"Type: {result['key_type']}")
+            console.print(f"Address: {result['ss58_address']}")
+            if result["name_updated"]:
+                console.print("✅ Name updated")
+            if result["password_updated"]:
+                console.print("✅ Password updated")
+            if result["owner_updated"]:
+                console.print(f"✅ Owner updated: {result['old_owner_address']} → {result['new_owner_address']}")
+
+    except Exception as e:
+        print_error(f"Failed to update hotkey: {str(e)}")
         raise typer.Exit(1)

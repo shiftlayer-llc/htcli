@@ -410,10 +410,10 @@ def load_keypair(name: str, password: Optional[str] = None) -> Keypair:
 
         # Create keypair
         if keypair_data["key_type"] == "sr25519":
-            keypair = Keypair.create_from_private_key(private_key_bytes.hex())
+            keypair = Keypair.create_from_private_key(private_key_bytes.hex(), ss58_format=42)
         else:
             keypair = Keypair.create_from_private_key(
-                private_key_bytes.hex(), crypto_type=0
+                private_key_bytes.hex(), crypto_type=0, ss58_format=42
             )  # 0 for ed25519
 
         return keypair
@@ -491,6 +491,16 @@ def get_wallet_info_by_name(name: str) -> dict:
         raise Exception(f"Failed to get wallet info: {str(e)}")
 
 
+def wallet_name_exists(name: str) -> bool:
+    """Check if a wallet name already exists."""
+    try:
+        wallet_dir = Path.home() / ".htcli" / "wallets"
+        keypair_file = wallet_dir / f"{name}.json"
+        return keypair_file.exists()
+    except Exception:
+        return False
+
+
 def delete_keypair(name: str) -> bool:
     """Delete a keypair from disk."""
     try:
@@ -552,3 +562,129 @@ def delete_coldkey_and_hotkeys(coldkey_name: str) -> dict:
 
     except Exception as e:
         raise Exception(f"Failed to delete coldkey and hotkeys: {str(e)}")
+
+
+def update_coldkey(
+    current_name: str,
+    new_name: Optional[str] = None,
+    new_password: Optional[str] = None,
+    remove_password: bool = False,
+) -> dict:
+    """Update a coldkey's properties."""
+    try:
+        # Load the current keypair
+        keypair = load_keypair(current_name)
+
+        # Get current wallet info
+        wallet_info = get_wallet_info_by_name(current_name)
+
+        # Verify it's a coldkey
+        if wallet_info.get("is_hotkey", False):
+            raise Exception(f"'{current_name}' is a hotkey, not a coldkey")
+
+        # Determine new name
+        final_name = new_name if new_name else current_name
+
+        # Check if new name already exists (if changing name)
+        if new_name and new_name != current_name:
+            if wallet_name_exists(new_name):
+                raise Exception(f"Wallet name '{new_name}' already exists")
+
+        # Determine password
+        if remove_password:
+            final_password = None
+        elif new_password:
+            final_password = new_password
+        else:
+            # Keep current password (will be handled by save function)
+            final_password = None
+
+        # Save with new properties
+        save_coldkey(final_name, keypair, final_password)
+
+        # Delete old file if name changed
+        if new_name and new_name != current_name:
+            delete_keypair(current_name)
+
+        return {
+            "old_name": current_name,
+            "new_name": final_name,
+            "key_type": wallet_info["key_type"],
+            "ss58_address": wallet_info["ss58_address"],
+            "password_updated": new_password is not None or remove_password,
+            "name_updated": new_name is not None and new_name != current_name
+        }
+
+    except Exception as e:
+        raise Exception(f"Failed to update coldkey: {str(e)}")
+
+
+def update_hotkey(
+    current_name: str,
+    new_name: Optional[str] = None,
+    new_password: Optional[str] = None,
+    remove_password: bool = False,
+    new_owner_name: Optional[str] = None,
+) -> dict:
+    """Update a hotkey's properties."""
+    try:
+        # Load the current keypair
+        keypair = load_keypair(current_name)
+
+        # Get current wallet info
+        wallet_info = get_wallet_info_by_name(current_name)
+
+        # Verify it's a hotkey
+        if not wallet_info.get("is_hotkey", False):
+            raise Exception(f"'{current_name}' is a coldkey, not a hotkey")
+
+        # Determine new name
+        final_name = new_name if new_name else current_name
+
+        # Check if new name already exists (if changing name)
+        if new_name and new_name != current_name:
+            if wallet_name_exists(new_name):
+                raise Exception(f"Wallet name '{new_name}' already exists")
+
+        # Determine owner address
+        owner_address = wallet_info["owner_address"]
+        if new_owner_name:
+            # Validate new owner exists and is a coldkey
+            try:
+                new_owner_info = get_wallet_info_by_name(new_owner_name)
+                if new_owner_info.get("is_hotkey", False):
+                    raise Exception(f"'{new_owner_name}' is a hotkey. Please provide a coldkey wallet name as the owner.")
+                owner_address = new_owner_info["ss58_address"]
+            except FileNotFoundError:
+                raise Exception(f"Owner wallet '{new_owner_name}' not found. Please provide an existing coldkey wallet name.")
+
+        # Determine password
+        if remove_password:
+            final_password = None
+        elif new_password:
+            final_password = new_password
+        else:
+            # Keep current password (will be handled by save function)
+            final_password = None
+
+        # Save with new properties
+        save_hotkey(final_name, keypair, owner_address, final_password)
+
+        # Delete old file if name changed
+        if new_name and new_name != current_name:
+            delete_keypair(current_name)
+
+        return {
+            "old_name": current_name,
+            "new_name": final_name,
+            "key_type": wallet_info["key_type"],
+            "ss58_address": wallet_info["ss58_address"],
+            "old_owner_address": wallet_info["owner_address"],
+            "new_owner_address": owner_address,
+            "password_updated": new_password is not None or remove_password,
+            "name_updated": new_name is not None and new_name != current_name,
+            "owner_updated": new_owner_name is not None
+        }
+
+    except Exception as e:
+        raise Exception(f"Failed to update hotkey: {str(e)}")

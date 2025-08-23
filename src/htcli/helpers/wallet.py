@@ -4,7 +4,7 @@ import typer
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
-from src.htcli.utils.crypto import list_keys, get_wallet_info_by_name
+from src.htcli.utils.crypto import list_keys, get_wallet_info_by_name, wallet_name_exists
 from src.htcli.utils.formatting import print_error
 from src.htcli.utils.validation import (
     validate_password,
@@ -30,10 +30,19 @@ def prompt_for_missing_args(
         while True:
             name = Prompt.ask("Enter hotkey name", default="my-hotkey")
             if validate_wallet_name(name):
+                # Check if wallet name already exists
+                if wallet_name_exists(name):
+                    print_error(f"Wallet name '{name}' already exists. Please choose a different name.")
+                    continue
                 break
             print_error(
                 "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
             )
+    else:
+        # Check if provided name already exists
+        if wallet_name_exists(name):
+            print_error(f"Wallet name '{name}' already exists. Please choose a different name.")
+            raise typer.Exit(1)
 
     # Prompt for owner wallet name if missing
     if not owner_name:
@@ -103,10 +112,19 @@ def prompt_for_coldkey_args(
         while True:
             name = Prompt.ask("Enter coldkey name", default="my-coldkey")
             if validate_wallet_name(name):
+                # Check if wallet name already exists
+                if wallet_name_exists(name):
+                    print_error(f"Wallet name '{name}' already exists. Please choose a different name.")
+                    continue
                 break
             print_error(
                 "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
             )
+    else:
+        # Check if provided name already exists
+        if wallet_name_exists(name):
+            print_error(f"Wallet name '{name}' already exists. Please choose a different name.")
+            raise typer.Exit(1)
 
     # Prompt for key type if missing
     if not key_type:
@@ -162,8 +180,8 @@ def prompt_for_restore_args(
     # Prompt for import method if neither private key nor mnemonic is provided
     if not private_key and not mnemonic:
         import_method = Prompt.ask(
-            "Choose import method", 
-            choices=["private-key", "mnemonic"], 
+            "Choose import method",
+            choices=["private-key", "mnemonic"],
             default="mnemonic"
         )
     else:
@@ -237,16 +255,25 @@ def prompt_for_restore_coldkey_args(
         while True:
             name = Prompt.ask("Enter coldkey name", default="imported-coldkey")
             if validate_wallet_name(name):
+                # Check if wallet name already exists
+                if wallet_name_exists(name):
+                    print_error(f"Wallet name '{name}' already exists. Please choose a different name.")
+                    continue
                 break
             print_error(
                 "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
             )
+    else:
+        # Check if provided name already exists
+        if wallet_name_exists(name):
+            print_error(f"Wallet name '{name}' already exists. Please choose a different name.")
+            raise typer.Exit(1)
 
     # Prompt for import method if neither private key nor mnemonic is provided
     if not private_key and not mnemonic:
         import_method = Prompt.ask(
-            "Choose import method", 
-            choices=["private-key", "mnemonic"], 
+            "Choose import method",
+            choices=["private-key", "mnemonic"],
             default="mnemonic"
         )
     else:
@@ -321,16 +348,25 @@ def prompt_for_restore_hotkey_args(
         while True:
             name = Prompt.ask("Enter hotkey name", default="imported-hotkey")
             if validate_wallet_name(name):
+                # Check if wallet name already exists
+                if wallet_name_exists(name):
+                    print_error(f"Wallet name '{name}' already exists. Please choose a different name.")
+                    continue
                 break
             print_error(
                 "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
             )
+    else:
+        # Check if provided name already exists
+        if wallet_name_exists(name):
+            print_error(f"Wallet name '{name}' already exists. Please choose a different name.")
+            raise typer.Exit(1)
 
     # Prompt for import method if neither private key nor mnemonic is provided
     if not private_key and not mnemonic:
         import_method = Prompt.ask(
-            "Choose import method", 
-            choices=["private-key", "mnemonic"], 
+            "Choose import method",
+            choices=["private-key", "mnemonic"],
             default="mnemonic"
         )
     else:
@@ -413,12 +449,21 @@ def display_keys_tree(keys: list):
     coldkeys = [k for k in keys if not k.get("is_hotkey", False)]
     hotkeys = [k for k in keys if k.get("is_hotkey", False)]
 
+    # Create a set of coldkey addresses for quick lookup
+    coldkey_addresses = {coldkey.get("ss58_address") for coldkey in coldkeys}
+
     # Group hotkeys by owner
     hotkeys_by_owner = defaultdict(list)
+    orphaned_hotkeys = []
+
     for hotkey in hotkeys:
-        owner = hotkey.get("owner_address")
-        if owner:
-            hotkeys_by_owner[owner].append(hotkey)
+        owner_address = hotkey.get("owner_address")
+        if owner_address and owner_address in coldkey_addresses:
+            # Valid owner - add to grouped hotkeys
+            hotkeys_by_owner[owner_address].append(hotkey)
+        else:
+            # Orphaned hotkey - no valid owner
+            orphaned_hotkeys.append(hotkey)
 
     # Display coldkeys with their hotkeys
     for i, coldkey in enumerate(coldkeys):
@@ -452,16 +497,16 @@ def display_keys_tree(keys: list):
         if i < len(coldkeys) - 1:
             console.print()
 
-    # Display orphaned hotkeys (hotkeys without a coldkey owner)
-    orphaned_hotkeys = [h for h in hotkeys if not h.get("owner_address")]
+    # Display orphaned hotkeys (hotkeys without a valid coldkey owner)
     if orphaned_hotkeys:
         if coldkeys:  # Add spacing if we had coldkeys
             console.print()
 
-        console.print("[yellow]Orphaned Hotkeys (no owner):[/yellow]")
+        console.print("[yellow]Orphaned Hotkeys (no valid owner):[/yellow]")
         for i, hotkey in enumerate(orphaned_hotkeys):
             hotkey_name = hotkey.get("name", "N/A")
             hotkey_address = hotkey.get("ss58_address", "N/A")
+            owner_address = hotkey.get("owner_address", "N/A")
 
             if i == len(orphaned_hotkeys) - 1:
                 connector = "└── "
@@ -469,7 +514,7 @@ def display_keys_tree(keys: list):
                 connector = "├── "
 
             console.print(
-                f"{connector}[red]Hotkey[/red] [cyan]{hotkey_name}[/cyan] [white]ss58_address[/white]: [green]{hotkey_address}[/green]"
+                f"{connector}[red]Hotkey[/red] [cyan]{hotkey_name}[/cyan] [white]ss58_address[/white]: [green]{hotkey_address}[/green] [white](owner: {owner_address})[/white]"
             )
 
     # Show summary
@@ -551,14 +596,14 @@ def display_keys_table(keys: list):
 
 
 def prompt_for_delete_args(
-    name: Optional[str] = None,
+    names: Optional[list] = None,
     confirm: Optional[bool] = None,
     show_guidance: Optional[bool] = None,
-) -> tuple[str, bool, bool]:
+) -> tuple[list, bool, bool]:
     """Interactive prompt for delete arguments."""
 
-    # Prompt for name if missing
-    if not name:
+    # Prompt for names if missing
+    if not names:
         # First show available keys
         keys = list_keys()
         if not keys:
@@ -569,30 +614,233 @@ def prompt_for_delete_args(
         for i, key in enumerate(keys, 1):
             console.print(f"{i}. {key['name']} ({key['ss58_address']})")
 
+        names = []
         while True:
-            name = Prompt.ask("\nEnter key name to delete")
-            if validate_wallet_name(name):
-                # Check if key exists
-                key_names = [k["name"] for k in keys]
-                if name in key_names:
-                    break
+            name_input = Prompt.ask("\nEnter key name(s) to delete (comma-separated for multiple)")
+            name_list = [n.strip() for n in name_input.split(",") if n.strip()]
+
+            if not name_list:
+                print_error("Please enter at least one key name.")
+                continue
+
+            # Validate all names
+            valid_names = []
+            key_names = [k["name"] for k in keys]
+
+            for name in name_list:
+                if validate_wallet_name(name):
+                    if name in key_names:
+                        valid_names.append(name)
+                    else:
+                        print_error(f"Key '{name}' not found. Please choose from the list above.")
                 else:
-                    print_error(
-                        f"Key '{name}' not found. Please choose from the list above."
-                    )
-            else:
-                print_error(
-                    "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
-                )
+                    print_error(f"Invalid wallet name '{name}'. Use alphanumeric characters, hyphens, and underscores only.")
+
+            if valid_names:
+                names = valid_names
+                break
 
     # Prompt for confirmation if not provided
     if confirm is None:
-        confirm = Confirm.ask(
-            f"Are you sure you want to delete key '{name}'?", default=False
-        )
+        if len(names) == 1:
+            confirm = Confirm.ask(
+                f"Are you sure you want to delete key '{names[0]}'?", default=False
+            )
+        else:
+            confirm = Confirm.ask(
+                f"Are you sure you want to delete {len(names)} keys: {', '.join(names)}?", default=False
+            )
 
     # Prompt for guidance if not provided
     if show_guidance is None:
         show_guidance = Confirm.ask("Show comprehensive guidance?", default=True)
 
-    return name, confirm, show_guidance
+    return names, confirm, show_guidance
+
+
+def prompt_for_update_coldkey_args(
+    name: Optional[str] = None,
+    new_name: Optional[str] = None,
+    new_password: Optional[str] = None,
+    remove_password: Optional[bool] = None,
+    show_guidance: Optional[bool] = None,
+) -> tuple[str, Optional[str], Optional[str], bool, bool]:
+    """Interactive prompt for update coldkey arguments."""
+
+    # Prompt for current name if missing
+    if not name:
+        # First show available coldkeys
+        keys = list_keys()
+        coldkeys = [k for k in keys if not k.get("is_hotkey", False)]
+        
+        if not coldkeys:
+            print_error("No coldkeys found to update.")
+            raise typer.Exit(1)
+
+        console.print("\n[bold]Available coldkeys:[/bold]")
+        for i, key in enumerate(coldkeys, 1):
+            console.print(f"{i}. {key['name']} ({key['ss58_address']})")
+
+        while True:
+            name = Prompt.ask("\nEnter coldkey name to update")
+            if validate_wallet_name(name):
+                # Check if key exists and is a coldkey
+                key_names = [k["name"] for k in coldkeys]
+                if name in key_names:
+                    break
+                else:
+                    print_error(f"Coldkey '{name}' not found. Please choose from the list above.")
+            else:
+                print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
+
+    # Prompt for new name if not provided
+    if new_name is None:
+        change_name = Confirm.ask("Do you want to change the coldkey name?", default=False)
+        if change_name:
+            while True:
+                new_name = Prompt.ask("Enter new coldkey name")
+                if validate_wallet_name(new_name):
+                    # Check if new name already exists
+                    if wallet_name_exists(new_name):
+                        print_error(f"Wallet name '{new_name}' already exists. Please choose a different name.")
+                        continue
+                    break
+                else:
+                    print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
+
+    # Prompt for password changes if not provided
+    if new_password is None and remove_password is None:
+        password_action = Prompt.ask(
+            "Password action", 
+            choices=["keep", "change", "remove"], 
+            default="keep"
+        )
+        
+        if password_action == "change":
+            while True:
+                new_password = Prompt.ask("Enter new password (min 8 chars, letters + numbers)", password=True)
+                if validate_password(new_password):
+                    break
+                print_error("Invalid password. Must be at least 8 characters with letters and numbers.")
+            remove_password = False
+        elif password_action == "remove":
+            remove_password = True
+            new_password = None
+        else:
+            remove_password = False
+            new_password = None
+
+    # Prompt for guidance if not provided
+    if show_guidance is None:
+        show_guidance = Confirm.ask("Show comprehensive guidance?", default=True)
+
+    return name, new_name, new_password, remove_password, show_guidance
+
+
+def prompt_for_update_hotkey_args(
+    name: Optional[str] = None,
+    new_name: Optional[str] = None,
+    new_password: Optional[str] = None,
+    remove_password: Optional[bool] = None,
+    new_owner: Optional[str] = None,
+    show_guidance: Optional[bool] = None,
+) -> tuple[str, Optional[str], Optional[str], bool, Optional[str], bool]:
+    """Interactive prompt for update hotkey arguments."""
+
+    # Prompt for current name if missing
+    if not name:
+        # First show available hotkeys
+        keys = list_keys()
+        hotkeys = [k for k in keys if k.get("is_hotkey", False)]
+        
+        if not hotkeys:
+            print_error("No hotkeys found to update.")
+            raise typer.Exit(1)
+
+        console.print("\n[bold]Available hotkeys:[/bold]")
+        for i, key in enumerate(hotkeys, 1):
+            owner_info = f" (owner: {key['owner_address']})" if key.get('owner_address') else ""
+            console.print(f"{i}. {key['name']} ({key['ss58_address']}){owner_info}")
+
+        while True:
+            name = Prompt.ask("\nEnter hotkey name to update")
+            if validate_wallet_name(name):
+                # Check if key exists and is a hotkey
+                key_names = [k["name"] for k in hotkeys]
+                if name in key_names:
+                    break
+                else:
+                    print_error(f"Hotkey '{name}' not found. Please choose from the list above.")
+            else:
+                print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
+
+    # Prompt for new name if not provided
+    if new_name is None:
+        change_name = Confirm.ask("Do you want to change the hotkey name?", default=False)
+        if change_name:
+            while True:
+                new_name = Prompt.ask("Enter new hotkey name")
+                if validate_wallet_name(new_name):
+                    # Check if new name already exists
+                    if wallet_name_exists(new_name):
+                        print_error(f"Wallet name '{new_name}' already exists. Please choose a different name.")
+                        continue
+                    break
+                else:
+                    print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
+
+    # Prompt for new owner if not provided
+    if new_owner is None:
+        change_owner = Confirm.ask("Do you want to change the hotkey owner?", default=False)
+        if change_owner:
+            # Show available coldkeys
+            keys = list_keys()
+            coldkeys = [k for k in keys if not k.get("is_hotkey", False)]
+            
+            if not coldkeys:
+                print_error("No coldkeys available to assign as owner.")
+                raise typer.Exit(1)
+
+            console.print("\n[bold]Available coldkeys to assign as owner:[/bold]")
+            for i, key in enumerate(coldkeys, 1):
+                console.print(f"{i}. {key['name']} ({key['ss58_address']})")
+
+            while True:
+                new_owner = Prompt.ask("Enter new coldkey owner name")
+                if validate_wallet_name(new_owner):
+                    # Check if owner exists and is a coldkey
+                    key_names = [k["name"] for k in coldkeys]
+                    if new_owner in key_names:
+                        break
+                    else:
+                        print_error(f"Coldkey '{new_owner}' not found. Please choose from the list above.")
+                else:
+                    print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
+
+    # Prompt for password changes if not provided
+    if new_password is None and remove_password is None:
+        password_action = Prompt.ask(
+            "Password action", 
+            choices=["keep", "change", "remove"], 
+            default="keep"
+        )
+        
+        if password_action == "change":
+            while True:
+                new_password = Prompt.ask("Enter new password (min 8 chars, letters + numbers)", password=True)
+                if validate_password(new_password):
+                    break
+                print_error("Invalid password. Must be at least 8 characters with letters and numbers.")
+            remove_password = False
+        elif password_action == "remove":
+            remove_password = True
+            new_password = None
+        else:
+            remove_password = False
+            new_password = None
+
+    # Prompt for guidance if not provided
+    if show_guidance is None:
+        show_guidance = Confirm.ask("Show comprehensive guidance?", default=True)
+
+    return name, new_name, new_password, remove_password, new_owner, show_guidance

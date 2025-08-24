@@ -541,14 +541,14 @@ def display_keys_table(keys: list):
         header_style=table_style["header_style"],
         border_style=table_style["border_style"],
         show_edge=True,
-        padding=(1, 1)
+        padding=(1, 0)
     )
-    table.add_column("Name", style=Colors.TEXT_PRIMARY, no_wrap=True)
-    table.add_column("Type", style=Colors.WARNING, no_wrap=True)
-    table.add_column("Key Type", style=Colors.SECONDARY, no_wrap=True)
-    table.add_column("Address (SS58)", style=Colors.WALLET_ADDRESS, no_wrap=True)
-    table.add_column("Owner", style=Colors.TEXT_SECONDARY, no_wrap=True)
-    table.add_column("Encrypted", style=Colors.TEXT_PRIMARY, no_wrap=True)
+    table.add_column("Name", style=Colors.TEXT_PRIMARY, width=20, no_wrap=True)
+    table.add_column("Type", style=Colors.WARNING, width=10, no_wrap=True)
+    table.add_column("Key Type", style=Colors.SECONDARY, width=12, no_wrap=True)
+    table.add_column("Address (SS58)", style=Colors.WALLET_ADDRESS, width=50, no_wrap=False)
+    table.add_column("Owner", style=Colors.TEXT_SECONDARY, width=40, no_wrap=False)
+    table.add_column("Encrypted", style=Colors.TEXT_PRIMARY, width=12, no_wrap=True)
 
     # Separate coldkeys and hotkeys for better organization
     coldkeys = [k for k in keys if not k.get("is_hotkey", False)]
@@ -565,11 +565,16 @@ def display_keys_table(keys: list):
         owner = "N/A"
         encrypted_status = "✅ Yes" if key_info.get("is_encrypted", True) else "❌ No"
 
+        # Format address to show more characters
+        address = key_info.get("ss58_address", "N/A")
+        if len(address) > 45:
+            address = address[:20] + "..." + address[-20:]
+
         table.add_row(
             key_info.get("name", "N/A"),
             key_info.get("key_type", "N/A"),
             key_type_display,
-            key_info.get("ss58_address", "N/A"),
+            address,
             owner,
             encrypted_status,
         )
@@ -585,13 +590,33 @@ def display_keys_table(keys: list):
         else:
             owner = owner_address
 
+        # Format owner address to show more characters
+        if len(owner) > 35:
+            # For hotkeys, show the coldkey name more prominently
+            if "(" in owner and ")" in owner:
+                # Extract the coldkey name from the parentheses
+                start = owner.find("(") + 1
+                end = owner.find(")")
+                coldkey_name = owner[start:end]
+                address_part = owner[:start-1]  # Everything before the parentheses
+                if len(address_part) > 20:
+                    address_part = address_part[:15] + "..." + address_part[-5:]
+                owner = f"{address_part} ({coldkey_name})"
+            else:
+                owner = owner[:15] + "..." + owner[-15:]
+
         encrypted_status = "✅ Yes" if key_info.get("is_encrypted", True) else "❌ No"
+
+        # Format address to show more characters
+        address = key_info.get("ss58_address", "N/A")
+        if len(address) > 45:
+            address = address[:20] + "..." + address[-20:]
 
         table.add_row(
             key_info.get("name", "N/A"),
             key_info.get("key_type", "N/A"),
             key_type_display,
-            key_info.get("ss58_address", "N/A"),
+            address,
             owner,
             encrypted_status,
         )

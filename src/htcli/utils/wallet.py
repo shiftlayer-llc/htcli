@@ -1,3 +1,7 @@
+"""
+Wallet management utilities for the Hypertensor CLI.
+"""
+
 import hashlib
 import json
 import logging

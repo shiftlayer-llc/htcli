@@ -114,7 +114,8 @@ class ChainClient:
                 data={
                     "address": address,
                     "balance": balance,
-                    "formatted_balance": f"{balance / 1e12:.6f} TENSOR",
+                    "formatted_balance": f"{balance / 1e18:.6f} TENSOR",
+                    "unit": "TENSOR",
                 },
             )
         except Exception as e:
@@ -395,7 +396,7 @@ class ChainClient:
                     "balance": balance,
                     "nonce": nonce_value,
                     "formatted_balance": (
-                        f"{(balance / 1e12):.6f} TENSOR" if balance > 0 else "0 TENSOR"
+                        f"{(balance / 1e18):.6f} TENSOR" if balance > 0 else "0 TENSOR"
                     ),
                 },
             )

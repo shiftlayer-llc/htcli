@@ -121,6 +121,73 @@ class WalletClient:
             logger.error(f"Failed to remove stake: {str(e)}")
             raise
 
+    def transfer_funds(self, from_address: str, to_address: str, amount: str, keypair=None):
+        """Transfer funds using Balances.transfer with real transaction submission."""
+        try:
+            if not self.substrate:
+                raise Exception("Not connected to blockchain")
+
+            # Convert amount to the smallest unit (18 decimals for TENSOR)
+            amount_in_smallest_unit = int(float(amount) * 1e18)
+
+            # Compose the call using Balances pallet
+            call_data = self.substrate.compose_call(
+                call_module="Balances",
+                call_function="transfer_keep_alive",
+                call_params={
+                    "dest": to_address,
+                    "value": amount_in_smallest_unit,
+                },
+            )
+
+            # If keypair provided, submit real transaction
+            if keypair:
+                # Create and submit transaction
+                extrinsic = self.substrate.create_signed_extrinsic(
+                    call=call_data, keypair=keypair
+                )
+
+                # Submit and wait for confirmation
+                receipt = self.substrate.submit_extrinsic(
+                    extrinsic=extrinsic, wait_for_inclusion=True
+                )
+
+                # Return real transaction details
+                return TransferResponse(
+                    success=True,
+                    message="Transfer completed successfully",
+                    transaction_hash=receipt.extrinsic_hash,
+                    block_number=receipt.block_number,
+                    data={
+                        "from_address": from_address,
+                        "to_address": to_address,
+                        "amount": amount,
+                        "amount_in_smallest_unit": amount_in_smallest_unit,
+                        "receipt": receipt,
+                        "fee": receipt.get("fee", "N/A"),
+                    },
+                )
+            else:
+                # Return composed call data for manual submission
+                return TransferResponse(
+                    success=True,
+                    message="Transfer call composed successfully",
+                    transaction_hash=None,
+                    block_number=None,
+                    data={
+                        "from_address": from_address,
+                        "to_address": to_address,
+                        "amount": amount,
+                        "amount_in_smallest_unit": amount_in_smallest_unit,
+                        "call_data": call_data,
+                    },
+                )
+        except Exception as e:
+            # Use the centralized error handling system
+            from src.htcli.errors import handle_blockchain_error
+            blockchain_error = handle_blockchain_error(str(e))
+            raise blockchain_error
+
     def get_account_subnet_stake(self, account: str, subnet_id: int):
         """Get account stake for a subnet using storage query."""
         try:
@@ -178,7 +245,8 @@ class WalletClient:
                 data={
                     "address": address,
                     "balance": balance,
-                    "formatted_balance": f"{balance / 1e12:.6f} TENSOR",
+                    "formatted_balance": f"{balance / 1e18:.6f} TENSOR",
+                    "unit": "TENSOR",
                 },
             )
         except Exception as e:

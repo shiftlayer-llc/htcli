@@ -19,10 +19,12 @@ from typing import Any, Dict, List
 
 from rich.prompt import Confirm, IntPrompt, Prompt
 
-from ..models.requests import (StakeAddRequest, SubnetNodeAddRequest,
-                               SubnetRegisterRequest)
-from ..utils.formatting import (format_balance, print_error, print_info,
-                                print_success)
+from ..models.requests import (
+    StakeAddRequest,
+    SubnetNodeAddRequest,
+    SubnetRegisterRequest,
+)
+from ..utils.formatting import format_balance, print_error, print_info, print_success
 from ..utils.validation import validate_address, validate_path
 from .base import BaseFlow, FlowStep
 

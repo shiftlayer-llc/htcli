@@ -8,8 +8,11 @@ from unittest.mock import mock_open, patch
 import pytest
 
 from src.htcli.main import app
-from src.htcli.utils.password import (clear_password_cache,
-                                      get_secure_password, get_stored_password)
+from src.htcli.utils.password import (
+    clear_password_cache,
+    get_secure_password,
+    get_stored_password,
+)
 
 
 class TestPasswordIntegration:

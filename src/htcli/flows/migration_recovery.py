@@ -18,8 +18,7 @@ from typing import Any, Dict, List, Tuple
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
-from ..utils.formatting import (format_balance, print_error, print_info,
-                                print_success)
+from ..utils.formatting import format_balance, print_error, print_info, print_success
 from ..utils.validation import validate_address
 from .base import BaseFlow, FlowStep
 

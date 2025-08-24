@@ -9,20 +9,31 @@ from rich.console import Console
 
 from ..dependencies import get_client
 from ..models.requests import SubnetRegisterRequest
-from ..utils.formatting import (format_balance, format_subnet_info,
-                                format_subnet_list, print_error, print_info,
-                                print_success)
-from ..utils.ownership import (require_user_keys, show_mine_filter_info,
-                               user_owns_subnet)
-from ..utils.validation import (validate_address, validate_churn_limit,
-                                validate_coldkey_addresses,
-                                validate_delegate_percentage,
-                                validate_epoch_value, validate_key_types,
-                                validate_max_nodes, validate_max_penalties,
-                                validate_node_id, validate_repo_url,
-                                validate_stake_amount,
-                                validate_subnet_description,
-                                validate_subnet_id, validate_subnet_name)
+from ..utils.formatting import (
+    format_balance,
+    format_subnet_info,
+    format_subnet_list,
+    print_error,
+    print_info,
+    print_success,
+)
+from ..utils.ownership import require_user_keys, show_mine_filter_info, user_owns_subnet
+from ..utils.validation import (
+    validate_address,
+    validate_churn_limit,
+    validate_coldkey_addresses,
+    validate_delegate_percentage,
+    validate_epoch_value,
+    validate_key_types,
+    validate_max_nodes,
+    validate_max_penalties,
+    validate_node_id,
+    validate_repo_url,
+    validate_stake_amount,
+    validate_subnet_description,
+    validate_subnet_id,
+    validate_subnet_name,
+)
 
 app = typer.Typer(name="subnet", help="Subnet operations")
 console = Console()

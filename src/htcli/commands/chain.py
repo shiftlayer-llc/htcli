@@ -8,18 +8,21 @@ import typer
 from rich.console import Console
 
 from ..dependencies import get_client
-from ..utils.formatting import (format_account_info, format_epoch_info,
-                                format_network_stats, format_table,
-                                print_error)
-from ..utils.validation import (validate_address, validate_block_number,
-                                validate_limit)
+from ..utils.formatting import (
+    format_account_info,
+    format_epoch_info,
+    format_network_stats,
+    format_table,
+    print_error,
+)
+from ..utils.validation import validate_address, validate_block_number, validate_limit
 
 app = typer.Typer(name="chain", help="Chain operations")
 console = Console()
 
 
 @app.command()
-def network(
+def stats(
     format_type: str = typer.Option(
         "table", "--format", "-f", help="Output format (table/json)"
     )

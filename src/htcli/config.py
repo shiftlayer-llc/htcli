@@ -26,6 +26,7 @@ class OutputConfig(BaseModel):
     format: str = Field("table", description="Output format (table/json/csv)")
     verbose: bool = Field(False, description="Verbose output")
     color: bool = Field(True, description="Enable colored output")
+    color_scheme: str = Field("default", description="Color scheme (default/dark/light/high_contrast/soft)")
 
 
 class FilterConfig(BaseModel):
@@ -77,6 +78,7 @@ def load_config(config_file: Optional[Path] = None) -> Config:
             format=os.getenv("HTCLI_OUTPUT_FORMAT", "table"),
             verbose=os.getenv("HTCLI_OUTPUT_VERBOSE", "false").lower() == "true",
             color=os.getenv("HTCLI_OUTPUT_COLOR", "true").lower() == "true",
+            color_scheme=os.getenv("HTCLI_OUTPUT_COLOR_SCHEME", "default"),
         )
 
         wallet_config = WalletConfig(

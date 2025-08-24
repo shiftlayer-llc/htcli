@@ -11,12 +11,15 @@ from rich.panel import Panel
 
 from ..dependencies import get_client, get_config
 from ..models.requests import StakeAddRequest
-from ..utils.formatting import (format_balance, print_error, print_info,
-                                print_success)
+from ..utils.formatting import format_balance, print_error, print_info, print_success
 from ..utils.ownership import get_user_addresses
 from ..utils.password import get_secure_password
-from ..utils.validation import (validate_address, validate_amount,
-                                validate_node_id, validate_subnet_id)
+from ..utils.validation import (
+    validate_address,
+    validate_amount,
+    validate_node_id,
+    validate_subnet_id,
+)
 
 app = typer.Typer(name="stake", help="Staking operations and management")
 console = Console()

@@ -10,13 +10,22 @@ from rich.console import Console
 from rich.panel import Panel
 
 from ..dependencies import get_client
-from ..utils.formatting import (format_balance, format_node_list, print_error,
-                                print_info, print_success)
+from ..utils.formatting import (
+    format_balance,
+    format_node_list,
+    print_error,
+    print_info,
+    print_success,
+)
 from ..utils.password import get_secure_password
-from ..utils.validation import (validate_address, validate_amount,
-                                validate_delegate_reward_rate,
-                                validate_node_id, validate_peer_id,
-                                validate_subnet_id)
+from ..utils.validation import (
+    validate_address,
+    validate_amount,
+    validate_delegate_reward_rate,
+    validate_node_id,
+    validate_peer_id,
+    validate_subnet_id,
+)
 
 app = typer.Typer(name="node", help="Node management operations")
 console = Console()

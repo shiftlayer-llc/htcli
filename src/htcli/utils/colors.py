@@ -11,6 +11,7 @@ from typing import Optional
 
 class ColorScheme(Enum):
     """Available color schemes for different terminal environments."""
+
     DEFAULT = "default"
     DARK = "dark"
     LIGHT = "light"
@@ -32,71 +33,71 @@ class Colors:
     """
 
     # Primary colors - Soft, eye-friendly alternatives
-    PRIMARY = "bright_blue"      # Soft blue - good for primary elements
-    SECONDARY = "cyan"           # Gentle cyan - good for secondary info
-    SUCCESS = "bright_green"     # Softer green - less harsh than deep green
-    WARNING = "yellow"           # Gentle yellow - warnings
-    ERROR = "bright_red"         # Softer red - less harsh than deep red
-    INFO = "blue"                # Soft blue - informational
+    PRIMARY = "bright_blue"  # Soft blue - good for primary elements
+    SECONDARY = "cyan"  # Gentle cyan - good for secondary info
+    SUCCESS = "bright_green"  # Softer green - less harsh than deep green
+    WARNING = "yellow"  # Gentle yellow - warnings
+    ERROR = "bright_red"  # Softer red - less harsh than deep red
+    INFO = "blue"  # Soft blue - informational
 
     # Text colors - Easy on the eyes, avoiding pure white
-    TEXT_PRIMARY = "bright_white"    # Softer white for primary text
+    TEXT_PRIMARY = "bright_white"  # Softer white for primary text
     TEXT_SECONDARY = "bright_black"  # Soft gray for secondary text
-    TEXT_MUTED = "dim"               # Very soft gray for muted text
+    TEXT_MUTED = "dim"  # Very soft gray for muted text
 
     # Background colors - Subtle and non-intrusive
-    BG_PRIMARY = "black"             # Standard terminal background
-    BG_SECONDARY = "bright_black"    # Slightly lighter background
-    BG_HIGHLIGHT = "blue"            # Subtle highlight background
+    BG_PRIMARY = "black"  # Standard terminal background
+    BG_SECONDARY = "bright_black"  # Slightly lighter background
+    BG_HIGHLIGHT = "blue"  # Subtle highlight background
 
     # Border colors - Clean and professional, avoiding harsh whites
-    BORDER_PRIMARY = "bright_white"      # Softer white borders
-    BORDER_SECONDARY = "bright_black"    # Subtle borders
+    BORDER_PRIMARY = "bright_white"  # Softer white borders
+    BORDER_SECONDARY = "bright_black"  # Subtle borders
 
     # Status colors - Clear but not harsh
-    STATUS_ONLINE = "bright_green"       # Softer green for online/active
-    STATUS_OFFLINE = "bright_red"        # Softer red for offline/inactive
-    STATUS_PENDING = "yellow"            # Gentle yellow for pending/waiting
+    STATUS_ONLINE = "bright_green"  # Softer green for online/active
+    STATUS_OFFLINE = "bright_red"  # Softer red for offline/inactive
+    STATUS_PENDING = "yellow"  # Gentle yellow for pending/waiting
 
     # Balance colors - Financial clarity with eye-friendly alternatives
-    BALANCE_POSITIVE = "bright_green"    # Softer green for positive balances
-    BALANCE_NEGATIVE = "bright_red"      # Softer red for negative balances
-    BALANCE_ZERO = "bright_black"        # Soft gray for zero balances
+    BALANCE_POSITIVE = "bright_green"  # Softer green for positive balances
+    BALANCE_NEGATIVE = "bright_red"  # Softer red for negative balances
+    BALANCE_ZERO = "bright_black"  # Soft gray for zero balances
 
     # Wallet colors - Clear identification with softer tones
-    WALLET_COLDKEY = "cyan"              # Cyan for coldkey identification
-    WALLET_HOTKEY = "blue"               # Blue for hotkey identification
-    WALLET_ADDRESS = "bright_green"      # Softer green for address display
+    WALLET_COLDKEY = "cyan"  # Cyan for coldkey identification
+    WALLET_HOTKEY = "blue"  # Blue for hotkey identification
+    WALLET_ADDRESS = "bright_green"  # Softer green for address display
 
     # Table colors - Professional appearance with reduced eye strain
-    TABLE_HEADER = "bright_white"        # Softer white for headers
-    TABLE_ROW = "bright_black"           # Soft gray for row text
-    TABLE_BORDER = "bright_white"        # Softer white borders
-    TABLE_HIGHLIGHT = "blue"             # Subtle blue for highlighted rows
+    TABLE_HEADER = "bright_white"  # Softer white for headers
+    TABLE_ROW = "bright_black"  # Soft gray for row text
+    TABLE_BORDER = "bright_white"  # Softer white borders
+    TABLE_HIGHLIGHT = "blue"  # Subtle blue for highlighted rows
 
     # Interactive elements - Gentle colors for user interaction
-    PROMPT = "cyan"                      # Cyan for user prompts
-    INPUT = "bright_white"               # Softer white for user input
-    BUTTON = "blue"                      # Blue for interactive buttons
-    LINK = "cyan"                        # Cyan for clickable links
+    PROMPT = "cyan"  # Cyan for user prompts
+    INPUT = "bright_white"  # Softer white for user input
+    BUTTON = "blue"  # Blue for interactive buttons
+    LINK = "cyan"  # Cyan for clickable links
 
     # Special purpose colors - Important but not harsh
-    SECURITY = "bright_red"              # Softer red for security items
-    ENCRYPTION = "bright_green"          # Softer green for encryption status
-    MNEMONIC = "yellow"                  # Yellow for recovery phrases (important!)
-    PASSWORD = "bright_red"              # Softer red for password fields
+    SECURITY = "bright_red"  # Softer red for security items
+    ENCRYPTION = "bright_green"  # Softer green for encryption status
+    MNEMONIC = "yellow"  # Yellow for recovery phrases (important!)
+    PASSWORD = "bright_red"  # Softer red for password fields
 
     # Alternative color schemes for different preferences
-    ALTERNATIVE_SUCCESS = "cyan"         # Cyan alternative for success states
-    ALTERNATIVE_BALANCE = "blue"         # Blue alternative for balances
-    ALTERNATIVE_WALLET = "magenta"       # Magenta alternative for wallet types
+    ALTERNATIVE_SUCCESS = "cyan"  # Cyan alternative for success states
+    ALTERNATIVE_BALANCE = "blue"  # Blue alternative for balances
+    ALTERNATIVE_WALLET = "magenta"  # Magenta alternative for wallet types
 
     # Soft color scheme - Even more eye-friendly
-    SOFT_SUCCESS = "cyan"                # Cyan instead of green for success
-    SOFT_BALANCE = "blue"                # Blue instead of green for balances
-    SOFT_WALLET = "magenta"              # Magenta for wallet types
-    SOFT_TEXT = "bright_black"           # Very soft text color
-    SOFT_BORDER = "bright_black"         # Very soft borders
+    SOFT_SUCCESS = "cyan"  # Cyan instead of green for success
+    SOFT_BALANCE = "blue"  # Blue instead of green for balances
+    SOFT_WALLET = "magenta"  # Magenta for wallet types
+    SOFT_TEXT = "bright_black"  # Very soft text color
+    SOFT_BORDER = "bright_black"  # Very soft borders
 
     # Accessibility colors - High contrast option
     ACCESSIBILITY_HIGH_CONTRAST = {
@@ -105,7 +106,7 @@ class Colors:
         "border": "bright_white",
         "error": "bright_red",
         "success": "bright_green",
-        "warning": "bright_yellow"
+        "warning": "bright_yellow",
     }
 
 
@@ -141,6 +142,7 @@ def get_current_color_scheme() -> ColorScheme:
     """
     try:
         from src.htcli.config import load_config
+
         config = load_config()
         scheme_name = config.output.color_scheme.lower()
 
@@ -174,19 +176,19 @@ def get_table_style(scheme: ColorScheme = ColorScheme.DEFAULT) -> dict:
         return {
             "header_style": "bold bright_white",
             "border_style": "bright_white",
-            "row_styles": ["bright_white", "bright_black"]
+            "row_styles": ["bright_white", "bright_black"],
         }
     elif scheme == ColorScheme.SOFT:
         return {
             "header_style": f"bold {Colors.SOFT_TEXT}",
             "border_style": Colors.SOFT_BORDER,
-            "row_styles": [Colors.SOFT_TEXT, Colors.SOFT_TEXT]
+            "row_styles": [Colors.SOFT_TEXT, Colors.SOFT_TEXT],
         }
 
     return {
         "header_style": f"bold {Colors.TABLE_HEADER}",
         "border_style": Colors.TABLE_BORDER,
-        "row_styles": [Colors.TABLE_ROW, Colors.TEXT_PRIMARY]
+        "row_styles": [Colors.TABLE_ROW, Colors.TEXT_PRIMARY],
     }
 
 
@@ -210,7 +212,7 @@ def get_status_color(status: str, scheme: ColorScheme = ColorScheme.DEFAULT) -> 
         "success": Colors.SUCCESS,
         "error": Colors.ERROR,
         "warning": Colors.WARNING,
-        "info": Colors.INFO
+        "info": Colors.INFO,
     }
 
     return status_colors.get(status.lower(), Colors.TEXT_PRIMARY)
@@ -243,7 +245,9 @@ def get_balance_color(balance: float, scheme: ColorScheme = ColorScheme.DEFAULT)
             return Colors.BALANCE_ZERO
 
 
-def get_wallet_color(wallet_type: str, scheme: ColorScheme = ColorScheme.DEFAULT) -> str:
+def get_wallet_color(
+    wallet_type: str, scheme: ColorScheme = ColorScheme.DEFAULT
+) -> str:
     """
     Get appropriate color for wallet type display.
 
@@ -259,14 +263,14 @@ def get_wallet_color(wallet_type: str, scheme: ColorScheme = ColorScheme.DEFAULT
             "coldkey": Colors.SOFT_WALLET,
             "hotkey": Colors.SOFT_WALLET,
             "address": Colors.SOFT_BALANCE,
-            "external": Colors.SOFT_TEXT
+            "external": Colors.SOFT_TEXT,
         }
     else:
         wallet_colors = {
             "coldkey": Colors.WALLET_COLDKEY,
             "hotkey": Colors.WALLET_HOTKEY,
             "address": Colors.WALLET_ADDRESS,
-            "external": Colors.TEXT_SECONDARY
+            "external": Colors.TEXT_SECONDARY,
         }
 
     return wallet_colors.get(wallet_type.lower(), Colors.TEXT_PRIMARY)

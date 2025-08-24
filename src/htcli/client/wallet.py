@@ -121,7 +121,9 @@ class WalletClient:
             logger.error(f"Failed to remove stake: {str(e)}")
             raise
 
-    def transfer_funds(self, from_address: str, to_address: str, amount: str, keypair=None):
+    def transfer_funds(
+        self, from_address: str, to_address: str, amount: str, keypair=None
+    ):
         """Transfer funds using Balances.transfer with real transaction submission."""
         try:
             if not self.substrate:
@@ -185,6 +187,7 @@ class WalletClient:
         except Exception as e:
             # Use the centralized error handling system
             from src.htcli.errors import handle_blockchain_error
+
             blockchain_error = handle_blockchain_error(str(e))
             raise blockchain_error
 

@@ -28,24 +28,29 @@ class HTCLIError(Exception):
 
 class WalletError(HTCLIError):
     """Base class for wallet-related errors."""
+
     pass
 
 
 class TransferError(HTCLIError):
     """Base class for transfer-related errors."""
+
     pass
 
 
 class BalanceError(HTCLIError):
     """Base class for balance-related errors."""
+
     pass
 
 
 class KeyGenerationError(HTCLIError):
     """Base class for key generation errors."""
+
     pass
 
 
 class KeyDeletionError(HTCLIError):
     """Base class for key deletion errors."""
+
     pass

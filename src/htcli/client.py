@@ -133,7 +133,9 @@ class HypertensorClient:
         """Test method."""
         return "test"
 
-    def transfer_funds(self, from_address: str, to_address: str, amount: str, keypair=None):
+    def transfer_funds(
+        self, from_address: str, to_address: str, amount: str, keypair=None
+    ):
         """Transfer funds from one address to another."""
         return self.wallet.transfer_funds(from_address, to_address, amount, keypair)
 

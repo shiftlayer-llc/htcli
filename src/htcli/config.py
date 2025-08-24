@@ -26,7 +26,9 @@ class OutputConfig(BaseModel):
     format: str = Field("table", description="Output format (table/json/csv)")
     verbose: bool = Field(False, description="Verbose output")
     color: bool = Field(True, description="Enable colored output")
-    color_scheme: str = Field("default", description="Color scheme (default/dark/light/high_contrast/soft)")
+    color_scheme: str = Field(
+        "default", description="Color scheme (default/dark/light/high_contrast/soft)"
+    )
 
 
 class FilterConfig(BaseModel):

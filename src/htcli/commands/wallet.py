@@ -80,14 +80,16 @@ def generate_hotkey(
         None, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
     copy_mnemonic: bool = typer.Option(
-        False, "--copy-mnemonic", help="Copy recovery phrase to clipboard after generation"
+        False,
+        "--copy-mnemonic",
+        help="Copy recovery phrase to clipboard after generation",
     ),
 ):
     """Generate a new hotkey with comprehensive guidance."""
 
     # Interactive prompting for missing arguments
-    name, owner_address, key_type, owner_name, password, show_guidance = prompt_for_missing_args(
-        name, owner_name, key_type, password, show_guidance
+    name, owner_address, key_type, owner_name, password, show_guidance = (
+        prompt_for_missing_args(name, owner_name, key_type, password, show_guidance)
     )
 
     # Validate inputs
@@ -110,12 +112,17 @@ def generate_hotkey(
     # Validate that owner is a coldkey, not a hotkey
     try:
         from ..utils.crypto import get_wallet_info_by_name
+
         owner_wallet_info = get_wallet_info_by_name(owner_name)
         if owner_wallet_info.get("is_hotkey", False):
-            print_error(f"'{owner_name}' is a hotkey. Please provide a coldkey wallet name as the owner.")
+            print_error(
+                f"'{owner_name}' is a hotkey. Please provide a coldkey wallet name as the owner."
+            )
             raise typer.Exit(1)
     except FileNotFoundError:
-        print_error(f"Owner wallet '{owner_name}' not found. Please provide an existing coldkey wallet name.")
+        print_error(
+            f"Owner wallet '{owner_name}' not found. Please provide an existing coldkey wallet name."
+        )
         raise typer.Exit(1)
     except Exception as e:
         print_error(f"Error validating owner wallet '{owner_name}': {str(e)}")
@@ -149,8 +156,14 @@ def generate_hotkey(
 
             # Display mnemonic with copy option
             if keypair_info.mnemonic:
-                from ..utils.mnemonic import display_mnemonic_with_copy_option, copy_to_clipboard
-                display_mnemonic_with_copy_option(keypair_info.mnemonic, keypair_info.name, "Hotkey")
+                from ..utils.mnemonic import (
+                    display_mnemonic_with_copy_option,
+                    copy_to_clipboard,
+                )
+
+                display_mnemonic_with_copy_option(
+                    keypair_info.mnemonic, keypair_info.name, "Hotkey"
+                )
 
                 # Handle copy to clipboard flag
                 if copy_mnemonic:
@@ -158,14 +171,18 @@ def generate_hotkey(
                         console.print("✅ Recovery phrase copied to clipboard!")
                         console.print("📋 You can now paste it in a secure location.")
                     else:
-                        console.print("⚠️  Failed to copy to clipboard. Please copy manually.")
+                        console.print(
+                            "⚠️  Failed to copy to clipboard. Please copy manually."
+                        )
 
     except Exception as e:
         from src.htcli.errors import HTCLIError
+
         if isinstance(e, HTCLIError):
             e.display()
         else:
             from src.htcli.errors import handle_and_display_error
+
             handle_and_display_error(e, "generate-hotkey")
         raise typer.Exit(1)
 
@@ -186,7 +203,9 @@ def generate_coldkey(
         None, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
     copy_mnemonic: bool = typer.Option(
-        False, "--copy-mnemonic", help="Copy recovery phrase to clipboard after generation"
+        False,
+        "--copy-mnemonic",
+        help="Copy recovery phrase to clipboard after generation",
     ),
 ):
     """Generate a new coldkey with comprehensive guidance."""
@@ -239,8 +258,14 @@ def generate_coldkey(
 
             # Display mnemonic with copy option
             if keypair_info.mnemonic:
-                from ..utils.mnemonic import display_mnemonic_with_copy_option, copy_to_clipboard
-                display_mnemonic_with_copy_option(keypair_info.mnemonic, keypair_info.name, "Coldkey")
+                from ..utils.mnemonic import (
+                    display_mnemonic_with_copy_option,
+                    copy_to_clipboard,
+                )
+
+                display_mnemonic_with_copy_option(
+                    keypair_info.mnemonic, keypair_info.name, "Coldkey"
+                )
 
                 # Handle copy to clipboard flag
                 if copy_mnemonic:
@@ -248,14 +273,18 @@ def generate_coldkey(
                         console.print("✅ Recovery phrase copied to clipboard!")
                         console.print("📋 You can now paste it in a secure location.")
                     else:
-                        console.print("⚠️  Failed to copy to clipboard. Please copy manually.")
+                        console.print(
+                            "⚠️  Failed to copy to clipboard. Please copy manually."
+                        )
 
     except Exception as e:
         from src.htcli.errors import HTCLIError
+
         if isinstance(e, HTCLIError):
             e.display()
         else:
             from src.htcli.errors import handle_and_display_error
+
             handle_and_display_error(e, "generate-coldkey")
         raise typer.Exit(1)
 
@@ -282,8 +311,10 @@ def restore_coldkey(
     """Import a coldkey from private key or mnemonic phrase with comprehensive guidance."""
 
     # Interactive prompting for missing arguments
-    name, private_key, mnemonic, key_type, password, show_guidance = prompt_for_restore_coldkey_args(
-        name, private_key, mnemonic, key_type, password, show_guidance
+    name, private_key, mnemonic, key_type, password, show_guidance = (
+        prompt_for_restore_coldkey_args(
+            name, private_key, mnemonic, key_type, password, show_guidance
+        )
     )
 
     # Validate inputs
@@ -325,12 +356,12 @@ def restore_coldkey(
             keypair_info = import_keypair(name, private_key, key_type, password)
             import_method = "private key"
         else:
-            keypair_info = import_keypair_from_mnemonic(name, mnemonic, key_type, password)
+            keypair_info = import_keypair_from_mnemonic(
+                name, mnemonic, key_type, password
+            )
             import_method = "mnemonic phrase"
 
-        print_success(f"✅ Coldkey imported successfully from {import_method}!")
-
-
+        print_success(f"Coldkey imported successfully from {import_method}!")
 
         if show_guidance:
             from rich.panel import Panel
@@ -383,8 +414,10 @@ def restore_hotkey(
     """Import a hotkey from private key or mnemonic phrase with comprehensive guidance."""
 
     # Interactive prompting for missing arguments
-    name, private_key, mnemonic, owner_name, key_type, password, show_guidance = prompt_for_restore_hotkey_args(
-        name, private_key, mnemonic, owner_name, key_type, password, show_guidance
+    name, private_key, mnemonic, owner_name, key_type, password, show_guidance = (
+        prompt_for_restore_hotkey_args(
+            name, private_key, mnemonic, owner_name, key_type, password, show_guidance
+        )
     )
 
     # Validate inputs
@@ -424,13 +457,18 @@ def restore_hotkey(
     # Get owner address from owner name
     try:
         from ..utils.crypto import get_wallet_info_by_name
+
         owner_wallet_info = get_wallet_info_by_name(owner_name)
         if owner_wallet_info.get("is_hotkey", False):
-            print_error(f"'{owner_name}' is a hotkey. Please provide a coldkey wallet name as the owner.")
+            print_error(
+                f"'{owner_name}' is a hotkey. Please provide a coldkey wallet name as the owner."
+            )
             raise typer.Exit(1)
         owner_address = owner_wallet_info["ss58_address"]
     except FileNotFoundError:
-        print_error(f"Owner wallet '{owner_name}' not found. Please provide an existing coldkey wallet name.")
+        print_error(
+            f"Owner wallet '{owner_name}' not found. Please provide an existing coldkey wallet name."
+        )
         raise typer.Exit(1)
     except Exception as e:
         print_error(f"Error validating owner wallet '{owner_name}': {str(e)}")
@@ -438,13 +476,17 @@ def restore_hotkey(
 
     try:
         if private_key:
-            keypair_info = import_hotkey_from_private_key(name, private_key, owner_address, key_type, password)
+            keypair_info = import_hotkey_from_private_key(
+                name, private_key, owner_address, key_type, password
+            )
             import_method = "private key"
         else:
-            keypair_info = import_hotkey_from_mnemonic(name, mnemonic, owner_address, key_type, password)
+            keypair_info = import_hotkey_from_mnemonic(
+                name, mnemonic, owner_address, key_type, password
+            )
             import_method = "mnemonic phrase"
 
-        print_success(f"✅ Hotkey imported successfully from {import_method}!")
+        print_success(f"Hotkey imported successfully from {import_method}!")
 
         if show_guidance:
             from rich.panel import Panel
@@ -538,8 +580,8 @@ def status(
         console.print(
             Panel(
                 IDENTITY_TEMPLATE.format(num_keys=len(keys), num_addresses=len(keys)),
-            title="[bold green]🔐 Your Blockchain Identity[/bold green]",
-            border_style="green",
+                title="[bold green]🔐 Your Blockchain Identity[/bold green]",
+                border_style="green",
             )
         )
         console.print()
@@ -603,8 +645,8 @@ def status(
         console.print(
             Panel(
                 CAPABILITIES_TEMPLATE,
-            title="[bold blue]🎯 Your Capabilities[/bold blue]",
-            border_style="blue",
+                title="[bold blue]🎯 Your Capabilities[/bold blue]",
+                border_style="blue",
             )
         )
 
@@ -615,7 +657,9 @@ def status(
 
 @app.command()
 def delete(
-    names: Optional[str] = typer.Argument(None, help="Key names to delete (comma-separated for multiple)"),
+    names: Optional[str] = typer.Argument(
+        None, help="Key names to delete (comma-separated for multiple)"
+    ),
     confirm: bool = typer.Option(
         False, "--confirm", "-y", help="Skip confirmation prompt"
     ),
@@ -631,7 +675,9 @@ def delete(
         name_list = [n.strip() for n in names.split(",") if n.strip()]
 
     # Interactive prompting for missing arguments
-    name_list, confirm, show_guidance = prompt_for_delete_args(name_list, confirm, show_guidance)
+    name_list, confirm, show_guidance = prompt_for_delete_args(
+        name_list, confirm, show_guidance
+    )
 
     # Validate all wallet names
     for name in name_list:
@@ -649,6 +695,7 @@ def delete(
         for name in name_list:
             # Check if this is a coldkey and has associated hotkeys
             from ..utils.crypto import get_wallet_info_by_name
+
             wallet_info = get_wallet_info_by_name(name)
             is_coldkey = not wallet_info.get("is_hotkey", False)
 
@@ -659,39 +706,51 @@ def delete(
                 associated_hotkeys = []
 
                 for key_info in all_keys:
-                    if (key_info.get("is_hotkey", False) and
-                        key_info.get("owner_address") == coldkey_address):
+                    if (
+                        key_info.get("is_hotkey", False)
+                        and key_info.get("owner_address") == coldkey_address
+                    ):
                         associated_hotkeys.append(key_info["name"])
 
                 if associated_hotkeys:
                     # Show warning about associated hotkeys
-                    console.print(f"\n[yellow]⚠️  Warning:[/yellow] Coldkey '{name}' has {len(associated_hotkeys)} associated hotkey(s):")
+                    console.print(
+                        f"\n[yellow]⚠️  Warning:[/yellow] Coldkey '{name}' has {len(associated_hotkeys)} associated hotkey(s):"
+                    )
                     for hotkey in associated_hotkeys:
                         console.print(f"   • {hotkey}")
-                    console.print(f"[yellow]All associated hotkeys will be deleted together with the coldkey '{name}'.[/yellow]")
+                    console.print(
+                        f"[yellow]All associated hotkeys will be deleted together with the coldkey '{name}'.[/yellow]"
+                    )
 
                     # Delete coldkey and all associated hotkeys
                     result = delete_coldkey_and_hotkeys(name)
                     deleted_coldkeys.append(name)
-                    total_associated_hotkeys_deleted += result['total_hotkeys_deleted']
-                    print_success(f"✅ Coldkey '{name}' and {result['total_hotkeys_deleted']} associated hotkeys deleted successfully!")
+                    total_associated_hotkeys_deleted += result["total_hotkeys_deleted"]
+                    print_success(
+                        f"Coldkey '{name}' and {result['total_hotkeys_deleted']} associated hotkeys deleted successfully!"
+                    )
                 else:
                     # No associated hotkeys, proceed with normal deletion
                     delete_keypair(name)
                     deleted_coldkeys.append(name)
-                    print_success(f"✅ Coldkey '{name}' deleted successfully!")
+                    print_success(f"Coldkey '{name}' deleted successfully!")
             else:
                 # It's a hotkey, proceed with normal deletion
                 delete_keypair(name)
                 deleted_hotkeys.append(name)
-                print_success(f"✅ Hotkey '{name}' deleted successfully!")
+                print_success(f"Hotkey '{name}' deleted successfully!")
 
         # Show summary
         if len(name_list) > 1:
             console.print(f"\n[bold green]🎉 Bulk Deletion Complete![/bold green]")
-            console.print(f"[bold]Summary:[/bold] {len(deleted_coldkeys)} coldkeys, {len(deleted_hotkeys)} hotkeys deleted")
+            console.print(
+                f"[bold]Summary:[/bold] {len(deleted_coldkeys)} coldkeys, {len(deleted_hotkeys)} hotkeys deleted"
+            )
             if total_associated_hotkeys_deleted > 0:
-                console.print(f"[bold]Additional hotkeys deleted due to coldkey associations:[/bold] {total_associated_hotkeys_deleted}")
+                console.print(
+                    f"[bold]Additional hotkeys deleted due to coldkey associations:[/bold] {total_associated_hotkeys_deleted}"
+                )
 
         # Show guidance if requested
         if show_guidance:
@@ -749,20 +808,28 @@ def delete(
 
     except Exception as e:
         from src.htcli.errors import HTCLIError
+
         if isinstance(e, HTCLIError):
             e.display()
         else:
             from src.htcli.errors import handle_and_display_error
+
             handle_and_display_error(e, "delete")
         raise typer.Exit(1)
 
 
 @app.command(name="update-coldkey")
 def update_coldkey_cmd(
-    name: Optional[str] = typer.Option(None, "--name", "-n", help="Current coldkey name"),
+    name: Optional[str] = typer.Option(
+        None, "--name", "-n", help="Current coldkey name"
+    ),
     new_name: Optional[str] = typer.Option(None, "--new-name", help="New coldkey name"),
-    new_password: Optional[str] = typer.Option(None, "--new-password", help="New password"),
-    remove_password: bool = typer.Option(False, "--remove-password", help="Remove password protection"),
+    new_password: Optional[str] = typer.Option(
+        None, "--new-password", help="New password"
+    ),
+    remove_password: bool = typer.Option(
+        False, "--remove-password", help="Remove password protection"
+    ),
     show_guidance: Optional[bool] = typer.Option(
         None, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
@@ -770,8 +837,10 @@ def update_coldkey_cmd(
     """Update a coldkey's properties (name, password)."""
 
     # Interactive prompting for missing arguments
-    name, new_name, new_password, remove_password, show_guidance = prompt_for_update_coldkey_args(
-        name, new_name, new_password, remove_password, show_guidance
+    name, new_name, new_password, remove_password, show_guidance = (
+        prompt_for_update_coldkey_args(
+            name, new_name, new_password, remove_password, show_guidance
+        )
     )
 
     # Validate inputs
@@ -784,7 +853,9 @@ def update_coldkey_cmd(
         raise typer.Exit(1)
 
     if new_password and not validate_password(new_password):
-        print_error("Invalid new password. Must be at least 8 characters with letters and numbers.")
+        print_error(
+            "Invalid new password. Must be at least 8 characters with letters and numbers."
+        )
         raise typer.Exit(1)
 
     try:
@@ -793,6 +864,7 @@ def update_coldkey_cmd(
 
         if show_guidance:
             from rich.panel import Panel
+
             guidance_panel = Panel(
                 COLDKEY_UPDATE_GUIDANCE_TEMPLATE.format(
                     old_name=result["old_name"],
@@ -800,7 +872,9 @@ def update_coldkey_cmd(
                     key_type=result["key_type"],
                     ss58_address=result["ss58_address"],
                     name_updated_status="✅ Yes" if result["name_updated"] else "❌ No",
-                    password_updated_status="✅ Yes" if result["password_updated"] else "❌ No",
+                    password_updated_status=(
+                        "✅ Yes" if result["password_updated"] else "❌ No"
+                    ),
                 ),
                 title="Coldkey Update Complete",
                 border_style="green",
@@ -823,11 +897,19 @@ def update_coldkey_cmd(
 
 @app.command(name="update-hotkey")
 def update_hotkey_cmd(
-    name: Optional[str] = typer.Option(None, "--name", "-n", help="Current hotkey name"),
+    name: Optional[str] = typer.Option(
+        None, "--name", "-n", help="Current hotkey name"
+    ),
     new_name: Optional[str] = typer.Option(None, "--new-name", help="New hotkey name"),
-    new_password: Optional[str] = typer.Option(None, "--new-password", help="New password"),
-    remove_password: bool = typer.Option(False, "--remove-password", help="Remove password protection"),
-    new_owner: Optional[str] = typer.Option(None, "--new-owner", help="New coldkey owner name"),
+    new_password: Optional[str] = typer.Option(
+        None, "--new-password", help="New password"
+    ),
+    remove_password: bool = typer.Option(
+        False, "--remove-password", help="Remove password protection"
+    ),
+    new_owner: Optional[str] = typer.Option(
+        None, "--new-owner", help="New coldkey owner name"
+    ),
     show_guidance: Optional[bool] = typer.Option(
         None, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
@@ -835,8 +917,10 @@ def update_hotkey_cmd(
     """Update a hotkey's properties (name, password, owner)."""
 
     # Interactive prompting for missing arguments
-    name, new_name, new_password, remove_password, new_owner, show_guidance = prompt_for_update_hotkey_args(
-        name, new_name, new_password, remove_password, new_owner, show_guidance
+    name, new_name, new_password, remove_password, new_owner, show_guidance = (
+        prompt_for_update_hotkey_args(
+            name, new_name, new_password, remove_password, new_owner, show_guidance
+        )
     )
 
     # Validate inputs
@@ -849,7 +933,9 @@ def update_hotkey_cmd(
         raise typer.Exit(1)
 
     if new_password and not validate_password(new_password):
-        print_error("Invalid new password. Must be at least 8 characters with letters and numbers.")
+        print_error(
+            "Invalid new password. Must be at least 8 characters with letters and numbers."
+        )
         raise typer.Exit(1)
 
     try:
@@ -858,6 +944,7 @@ def update_hotkey_cmd(
 
         if show_guidance:
             from rich.panel import Panel
+
             guidance_panel = Panel(
                 HOTKEY_UPDATE_GUIDANCE_TEMPLATE.format(
                     old_name=result["old_name"],
@@ -867,8 +954,12 @@ def update_hotkey_cmd(
                     old_owner_address=result["old_owner_address"],
                     new_owner_address=result["new_owner_address"],
                     name_updated_status="✅ Yes" if result["name_updated"] else "❌ No",
-                    password_updated_status="✅ Yes" if result["password_updated"] else "❌ No",
-                    owner_updated_status="✅ Yes" if result["owner_updated"] else "❌ No",
+                    password_updated_status=(
+                        "✅ Yes" if result["password_updated"] else "❌ No"
+                    ),
+                    owner_updated_status=(
+                        "✅ Yes" if result["owner_updated"] else "❌ No"
+                    ),
                 ),
                 title="Hotkey Update Complete",
                 border_style="green",
@@ -884,7 +975,9 @@ def update_hotkey_cmd(
             if result["password_updated"]:
                 console.print("✅ Password updated")
             if result["owner_updated"]:
-                console.print(f"✅ Owner updated: {result['old_owner_address']} → {result['new_owner_address']}")
+                console.print(
+                    f"✅ Owner updated: {result['old_owner_address']} → {result['new_owner_address']}"
+                )
 
     except Exception as e:
         print_error(f"Failed to update hotkey: {str(e)}")
@@ -893,8 +986,12 @@ def update_hotkey_cmd(
 
 @app.command()
 def balance(
-    wallet_name: Optional[str] = typer.Option(None, "--wallet", "-w", help="Wallet name to check balance"),
-    address: Optional[str] = typer.Option(None, "--address", "-a", help="Address to check balance"),
+    wallet_name: Optional[str] = typer.Option(
+        None, "--wallet", "-w", help="Wallet name to check balance"
+    ),
+    address: Optional[str] = typer.Option(
+        None, "--address", "-a", help="Address to check balance"
+    ),
     show_all: bool = typer.Option(False, "--all", help="Show balance for all wallets"),
     format_type: str = typer.Option(
         "table", "--format", "-f", help="Output format (table/json)"
@@ -907,6 +1004,7 @@ def balance(
 
     # Get client for blockchain operations
     from ..dependencies import get_client
+
     client = get_client()
 
     try:
@@ -923,6 +1021,7 @@ def balance(
         # If wallet name provided, get the address from the wallet
         if wallet_name:
             from ..utils.crypto import get_wallet_info_by_name
+
             wallet_info = get_wallet_info_by_name(wallet_name)
             address = wallet_info["ss58_address"]
             wallet_type = "Hotkey" if wallet_info.get("is_hotkey", False) else "Coldkey"
@@ -936,14 +1035,15 @@ def balance(
 
             if show_guidance:
                 from rich.panel import Panel
+
                 guidance_panel = Panel(
                     BALANCE_GUIDANCE_TEMPLATE.format(
                         wallet_name=wallet_name or "N/A",
                         address=address,
                         wallet_type=wallet_type,
-                        formatted_balance=balance_data.get('formatted_balance', 'N/A'),
-                        raw_balance=balance_data.get('balance', 'N/A'),
-                        unit=balance_data.get('unit', 'HT'),
+                        formatted_balance=balance_data.get("formatted_balance", "N/A"),
+                        raw_balance=balance_data.get("balance", "N/A"),
+                        unit=balance_data.get("unit", "HT"),
                     ),
                     title="Balance Information",
                     border_style="blue",
@@ -953,15 +1053,22 @@ def balance(
                 if format_type == "json":
                     console.print_json(data=balance_data)
                 else:
-                    console.print(f"[bold]Wallet:[/bold] {wallet_name or 'External Address'}")
+                    console.print(
+                        f"[bold]Wallet:[/bold] {wallet_name or 'External Address'}"
+                    )
                     console.print(f"[bold]Address:[/bold] {address}")
                     console.print(f"[bold]Type:[/bold] {wallet_type}")
-                    console.print(f"[bold]Balance:[/bold] {balance_data.get('formatted_balance', 'N/A')}")
-                    console.print(f"[bold]Raw Balance:[/bold] {balance_data.get('balance', 'N/A')}")
+                    console.print(
+                        f"[bold]Balance:[/bold] {balance_data.get('formatted_balance', 'N/A')}"
+                    )
+                    console.print(
+                        f"[bold]Raw Balance:[/bold] {balance_data.get('balance', 'N/A')}"
+                    )
 
                     # Add helpful information if balance is 0
                     from src.htcli.errors import display_balance_info
-                    display_balance_info(address, balance_data.get('balance', 0))
+
+                    display_balance_info(address, balance_data.get("balance", 0))
         else:
             print_error(f"Failed to retrieve balance: {response.message}")
             raise typer.Exit(1)
@@ -973,10 +1080,18 @@ def balance(
 
 @app.command()
 def transfer(
-    from_wallet: Optional[str] = typer.Option(None, "--from", "-f", help="Source wallet name"),
-    to_address: Optional[str] = typer.Option(None, "--to", "-t", help="Destination address"),
-    amount: Optional[str] = typer.Option(None, "--amount", "-a", help="Amount to transfer"),
-    password: Optional[str] = typer.Option(None, "--password", "-p", help="Wallet password"),
+    from_wallet: Optional[str] = typer.Option(
+        None, "--from", "-f", help="Source wallet name"
+    ),
+    to_address: Optional[str] = typer.Option(
+        None, "--to", "-t", help="Destination address"
+    ),
+    amount: Optional[str] = typer.Option(
+        None, "--amount", "-a", help="Amount to transfer"
+    ),
+    password: Optional[str] = typer.Option(
+        None, "--password", "-p", help="Wallet password"
+    ),
     show_guidance: Optional[bool] = typer.Option(
         None, "--guidance/--no-guidance", help="Show comprehensive guidance"
     ),
@@ -990,16 +1105,20 @@ def transfer(
 
     # Get client for blockchain operations
     from ..dependencies import get_client
+
     client = get_client()
 
     try:
         # Load the source wallet
         from ..utils.crypto import get_wallet_info_by_name, load_keypair
+
         wallet_info = get_wallet_info_by_name(from_wallet)
 
         # Verify it's a coldkey (only coldkeys can transfer funds)
         if wallet_info.get("is_hotkey", False):
-            print_error(f"'{from_wallet}' is a hotkey. Only coldkeys can transfer funds.")
+            print_error(
+                f"'{from_wallet}' is a hotkey. Only coldkeys can transfer funds."
+            )
             raise typer.Exit(1)
 
         # Load the keypair
@@ -1007,19 +1126,24 @@ def transfer(
 
         # Validate destination address or resolve wallet name
         from ..utils.validation import validate_address
+
         if not validate_address(to_address):
             # If not a valid address, try to treat it as a wallet name
             if validate_wallet_name(to_address):
                 try:
                     # Check if wallet exists and get its address
                     dest_wallet_info = get_wallet_info_by_name(to_address)
-                    console.print(f"[green]✓[/green] Resolved wallet '{to_address}' to address: {dest_wallet_info['ss58_address']}")
+                    console.print(
+                        f"[green]✓[/green] Resolved wallet '{to_address}' to address: {dest_wallet_info['ss58_address']}"
+                    )
                     to_address = dest_wallet_info["ss58_address"]
                 except FileNotFoundError:
                     print_error(f"Destination wallet '{to_address}' not found.")
                     raise typer.Exit(1)
                 except Exception as e:
-                    print_error(f"Error accessing destination wallet '{to_address}': {str(e)}")
+                    print_error(
+                        f"Error accessing destination wallet '{to_address}': {str(e)}"
+                    )
                     raise typer.Exit(1)
             else:
                 print_error("Invalid destination address or wallet name format.")
@@ -1030,7 +1154,7 @@ def transfer(
             from_address=wallet_info["ss58_address"],
             to_address=to_address,
             amount=amount,
-            keypair=keypair
+            keypair=keypair,
         )
 
         if response.success:
@@ -1038,15 +1162,16 @@ def transfer(
 
             if show_guidance:
                 from rich.panel import Panel
+
                 guidance_panel = Panel(
                     TRANSFER_GUIDANCE_TEMPLATE.format(
                         from_wallet=from_wallet,
                         from_address=wallet_info["ss58_address"],
                         to_address=to_address,
                         amount=amount,
-                        tx_hash=transfer_data.get('tx_hash', 'N/A'),
-                        block_number=transfer_data.get('block_number', 'N/A'),
-                        fee=transfer_data.get('fee', 'N/A'),
+                        tx_hash=transfer_data.get("tx_hash", "N/A"),
+                        block_number=transfer_data.get("block_number", "N/A"),
+                        fee=transfer_data.get("fee", "N/A"),
                     ),
                     title="Transfer Complete",
                     border_style="green",
@@ -1054,11 +1179,17 @@ def transfer(
                 console.print(guidance_panel)
             else:
                 console.print(f"[bold green]✅ Transfer successful![/bold green]")
-                console.print(f"[bold]From:[/bold] {from_wallet} ({wallet_info['ss58_address']})")
+                console.print(
+                    f"[bold]From:[/bold] {from_wallet} ({wallet_info['ss58_address']})"
+                )
                 console.print(f"[bold]To:[/bold] {to_address}")
                 console.print(f"[bold]Amount:[/bold] {amount}")
-                console.print(f"[bold]Transaction Hash:[/bold] {transfer_data.get('tx_hash', 'N/A')}")
-                console.print(f"[bold]Block Number:[/bold] {transfer_data.get('block_number', 'N/A')}")
+                console.print(
+                    f"[bold]Transaction Hash:[/bold] {transfer_data.get('tx_hash', 'N/A')}"
+                )
+                console.print(
+                    f"[bold]Block Number:[/bold] {transfer_data.get('block_number', 'N/A')}"
+                )
                 console.print(f"[bold]Fee:[/bold] {transfer_data.get('fee', 'N/A')}")
         else:
             print_error(f"Transfer failed: {response.message}")
@@ -1066,9 +1197,11 @@ def transfer(
 
     except Exception as e:
         from src.htcli.errors import HTCLIError
+
         if isinstance(e, HTCLIError):
             e.display()
         else:
             from src.htcli.errors import handle_and_display_error
+
             handle_and_display_error(e, "transfer")
         raise typer.Exit(1)

@@ -156,9 +156,13 @@ def import_keypair_from_mnemonic(
     try:
         # Import keypair from mnemonic
         if key_type == "sr25519":
-            keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42, crypto_type=1)
+            keypair = Keypair.create_from_mnemonic(
+                mnemonic, ss58_format=42, crypto_type=1
+            )
         elif key_type == "ed25519":
-            keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42, crypto_type=0)
+            keypair = Keypair.create_from_mnemonic(
+                mnemonic, ss58_format=42, crypto_type=0
+            )
         else:
             raise ValueError(f"Unsupported key type: {key_type}")
 
@@ -228,9 +232,13 @@ def import_hotkey_from_mnemonic(
     try:
         # Import keypair from mnemonic
         if key_type == "sr25519":
-            keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42, crypto_type=1)
+            keypair = Keypair.create_from_mnemonic(
+                mnemonic, ss58_format=42, crypto_type=1
+            )
         elif key_type == "ed25519":
-            keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=42, crypto_type=0)
+            keypair = Keypair.create_from_mnemonic(
+                mnemonic, ss58_format=42, crypto_type=0
+            )
         else:
             raise ValueError(f"Unsupported key type: {key_type}")
 
@@ -413,7 +421,9 @@ def load_keypair(name: str, password: Optional[str] = None) -> Keypair:
 
         # Create keypair
         if keypair_data["key_type"] == "sr25519":
-            keypair = Keypair.create_from_private_key(private_key_bytes.hex(), ss58_format=42)
+            keypair = Keypair.create_from_private_key(
+                private_key_bytes.hex(), ss58_format=42
+            )
         else:
             keypair = Keypair.create_from_private_key(
                 private_key_bytes.hex(), crypto_type=0, ss58_format=42
@@ -536,8 +546,10 @@ def delete_coldkey_and_hotkeys(coldkey_name: str) -> dict:
         associated_hotkeys = []
 
         for key_info in all_keys:
-            if (key_info.get("is_hotkey", False) and
-                key_info.get("owner_address") == coldkey_address):
+            if (
+                key_info.get("is_hotkey", False)
+                and key_info.get("owner_address") == coldkey_address
+            ):
                 associated_hotkeys.append(key_info["name"])
 
         # Delete the coldkey first
@@ -560,7 +572,7 @@ def delete_coldkey_and_hotkeys(coldkey_name: str) -> dict:
             "coldkey_deleted": coldkey_name,
             "coldkey_address": coldkey_address,
             "hotkeys_deleted": hotkeys_deleted,
-            "total_hotkeys_deleted": len(hotkeys_deleted)
+            "total_hotkeys_deleted": len(hotkeys_deleted),
         }
 
     except Exception as e:
@@ -615,7 +627,7 @@ def update_coldkey(
             "key_type": wallet_info["key_type"],
             "ss58_address": wallet_info["ss58_address"],
             "password_updated": new_password is not None or remove_password,
-            "name_updated": new_name is not None and new_name != current_name
+            "name_updated": new_name is not None and new_name != current_name,
         }
 
     except Exception as e:
@@ -656,10 +668,14 @@ def update_hotkey(
             try:
                 new_owner_info = get_wallet_info_by_name(new_owner_name)
                 if new_owner_info.get("is_hotkey", False):
-                    raise Exception(f"'{new_owner_name}' is a hotkey. Please provide a coldkey wallet name as the owner.")
+                    raise Exception(
+                        f"'{new_owner_name}' is a hotkey. Please provide a coldkey wallet name as the owner."
+                    )
                 owner_address = new_owner_info["ss58_address"]
             except FileNotFoundError:
-                raise Exception(f"Owner wallet '{new_owner_name}' not found. Please provide an existing coldkey wallet name.")
+                raise Exception(
+                    f"Owner wallet '{new_owner_name}' not found. Please provide an existing coldkey wallet name."
+                )
 
         # Determine password
         if remove_password:
@@ -686,7 +702,7 @@ def update_hotkey(
             "new_owner_address": owner_address,
             "password_updated": new_password is not None or remove_password,
             "name_updated": new_name is not None and new_name != current_name,
-            "owner_updated": new_owner_name is not None
+            "owner_updated": new_owner_name is not None,
         }
 
     except Exception as e:

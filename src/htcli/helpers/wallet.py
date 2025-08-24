@@ -6,7 +6,11 @@ from rich.prompt import Confirm, Prompt
 from rich.table import Table
 from rich import box
 
-from src.htcli.utils.crypto import list_keys, get_wallet_info_by_name, wallet_name_exists
+from src.htcli.utils.crypto import (
+    list_keys,
+    get_wallet_info_by_name,
+    wallet_name_exists,
+)
 from src.htcli.utils.formatting import print_error
 from src.htcli.utils.validation import (
     validate_password,
@@ -15,7 +19,13 @@ from src.htcli.utils.validation import (
     validate_mnemonic,
     validate_address,
 )
-from src.htcli.utils.colors import Colors, get_table_style, get_wallet_color, get_balance_color, get_current_color_scheme
+from src.htcli.utils.colors import (
+    Colors,
+    get_table_style,
+    get_wallet_color,
+    get_balance_color,
+    get_current_color_scheme,
+)
 
 console = Console()
 
@@ -36,7 +46,9 @@ def prompt_for_missing_args(
             if validate_wallet_name(name):
                 # Check if wallet name already exists
                 if wallet_name_exists(name):
-                    print_error(f"Wallet name '{name}' already exists. Please choose a different name.")
+                    print_error(
+                        f"Wallet name '{name}' already exists. Please choose a different name."
+                    )
                     continue
                 break
             print_error(
@@ -45,7 +57,9 @@ def prompt_for_missing_args(
     else:
         # Check if provided name already exists
         if wallet_name_exists(name):
-            print_error(f"Wallet name '{name}' already exists. Please choose a different name.")
+            print_error(
+                f"Wallet name '{name}' already exists. Please choose a different name."
+            )
             raise typer.Exit(1)
 
     # Prompt for owner wallet name if missing
@@ -56,11 +70,15 @@ def prompt_for_missing_args(
                 # Validate that the wallet exists and is a coldkey
                 wallet_info = get_wallet_info_by_name(owner_name)
                 if wallet_info.get("is_hotkey", False):
-                    print_error(f"'{owner_name}' is a hotkey. Please provide a coldkey wallet name.")
+                    print_error(
+                        f"'{owner_name}' is a hotkey. Please provide a coldkey wallet name."
+                    )
                     continue
                 break
             except FileNotFoundError:
-                print_error(f"Coldkey wallet '{owner_name}' not found. Please provide an existing coldkey wallet name.")
+                print_error(
+                    f"Coldkey wallet '{owner_name}' not found. Please provide an existing coldkey wallet name."
+                )
             except Exception as e:
                 print_error(f"Error accessing wallet '{owner_name}': {str(e)}")
 
@@ -118,7 +136,9 @@ def prompt_for_coldkey_args(
             if validate_wallet_name(name):
                 # Check if wallet name already exists
                 if wallet_name_exists(name):
-                    print_error(f"Wallet name '{name}' already exists. Please choose a different name.")
+                    print_error(
+                        f"Wallet name '{name}' already exists. Please choose a different name."
+                    )
                     continue
                 break
             print_error(
@@ -127,7 +147,9 @@ def prompt_for_coldkey_args(
     else:
         # Check if provided name already exists
         if wallet_name_exists(name):
-            print_error(f"Wallet name '{name}' already exists. Please choose a different name.")
+            print_error(
+                f"Wallet name '{name}' already exists. Please choose a different name."
+            )
             raise typer.Exit(1)
 
     # Prompt for key type if missing
@@ -186,7 +208,7 @@ def prompt_for_restore_args(
         import_method = Prompt.ask(
             "Choose import method",
             choices=["private-key", "mnemonic"],
-            default="mnemonic"
+            default="mnemonic",
         )
     else:
         import_method = "private-key" if private_key else "mnemonic"
@@ -209,9 +231,7 @@ def prompt_for_restore_args(
             )
             if validate_mnemonic(mnemonic):
                 break
-            print_error(
-                "Invalid mnemonic format. Should be 12 or 24 lowercase words."
-            )
+            print_error("Invalid mnemonic format. Should be 12 or 24 lowercase words.")
 
     # Prompt for key type if missing
     if not key_type:
@@ -261,7 +281,9 @@ def prompt_for_restore_coldkey_args(
             if validate_wallet_name(name):
                 # Check if wallet name already exists
                 if wallet_name_exists(name):
-                    print_error(f"Wallet name '{name}' already exists. Please choose a different name.")
+                    print_error(
+                        f"Wallet name '{name}' already exists. Please choose a different name."
+                    )
                     continue
                 break
             print_error(
@@ -270,7 +292,9 @@ def prompt_for_restore_coldkey_args(
     else:
         # Check if provided name already exists
         if wallet_name_exists(name):
-            print_error(f"Wallet name '{name}' already exists. Please choose a different name.")
+            print_error(
+                f"Wallet name '{name}' already exists. Please choose a different name."
+            )
             raise typer.Exit(1)
 
     # Prompt for import method if neither private key nor mnemonic is provided
@@ -278,7 +302,7 @@ def prompt_for_restore_coldkey_args(
         import_method = Prompt.ask(
             "Choose import method",
             choices=["private-key", "mnemonic"],
-            default="mnemonic"
+            default="mnemonic",
         )
     else:
         import_method = "private-key" if private_key else "mnemonic"
@@ -301,9 +325,7 @@ def prompt_for_restore_coldkey_args(
             )
             if validate_mnemonic(mnemonic):
                 break
-            print_error(
-                "Invalid mnemonic format. Should be 12 or 24 lowercase words."
-            )
+            print_error("Invalid mnemonic format. Should be 12 or 24 lowercase words.")
 
     # Prompt for key type if missing
     if not key_type:
@@ -354,7 +376,9 @@ def prompt_for_restore_hotkey_args(
             if validate_wallet_name(name):
                 # Check if wallet name already exists
                 if wallet_name_exists(name):
-                    print_error(f"Wallet name '{name}' already exists. Please choose a different name.")
+                    print_error(
+                        f"Wallet name '{name}' already exists. Please choose a different name."
+                    )
                     continue
                 break
             print_error(
@@ -363,7 +387,9 @@ def prompt_for_restore_hotkey_args(
     else:
         # Check if provided name already exists
         if wallet_name_exists(name):
-            print_error(f"Wallet name '{name}' already exists. Please choose a different name.")
+            print_error(
+                f"Wallet name '{name}' already exists. Please choose a different name."
+            )
             raise typer.Exit(1)
 
     # Prompt for import method if neither private key nor mnemonic is provided
@@ -371,7 +397,7 @@ def prompt_for_restore_hotkey_args(
         import_method = Prompt.ask(
             "Choose import method",
             choices=["private-key", "mnemonic"],
-            default="mnemonic"
+            default="mnemonic",
         )
     else:
         import_method = "private-key" if private_key else "mnemonic"
@@ -394,9 +420,7 @@ def prompt_for_restore_hotkey_args(
             )
             if validate_mnemonic(mnemonic):
                 break
-            print_error(
-                "Invalid mnemonic format. Should be 12 or 24 lowercase words."
-            )
+            print_error("Invalid mnemonic format. Should be 12 or 24 lowercase words.")
 
     # Prompt for owner wallet name if missing
     if not owner_name:
@@ -406,11 +430,15 @@ def prompt_for_restore_hotkey_args(
                 # Validate that the wallet exists and is a coldkey
                 wallet_info = get_wallet_info_by_name(owner_name)
                 if wallet_info.get("is_hotkey", False):
-                    print_error(f"'{owner_name}' is a hotkey. Please provide a coldkey wallet name.")
+                    print_error(
+                        f"'{owner_name}' is a hotkey. Please provide a coldkey wallet name."
+                    )
                     continue
                 break
             except FileNotFoundError:
-                print_error(f"Coldkey wallet '{owner_name}' not found. Please provide an existing coldkey wallet name.")
+                print_error(
+                    f"Coldkey wallet '{owner_name}' not found. Please provide an existing coldkey wallet name."
+                )
             except Exception as e:
                 print_error(f"Error accessing wallet '{owner_name}': {str(e)}")
 
@@ -541,12 +569,14 @@ def display_keys_table(keys: list):
         header_style=table_style["header_style"],
         border_style=table_style["border_style"],
         show_edge=True,
-        padding=(1, 0)
+        padding=(1, 0),
     )
     table.add_column("Name", style=Colors.TEXT_PRIMARY, width=20, no_wrap=True)
     table.add_column("Type", style=Colors.WARNING, width=10, no_wrap=True)
     table.add_column("Key Type", style=Colors.SECONDARY, width=12, no_wrap=True)
-    table.add_column("Address (SS58)", style=Colors.WALLET_ADDRESS, width=50, no_wrap=False)
+    table.add_column(
+        "Address (SS58)", style=Colors.WALLET_ADDRESS, width=50, no_wrap=False
+    )
     table.add_column("Owner", style=Colors.TEXT_SECONDARY, width=40, no_wrap=False)
     table.add_column("Encrypted", style=Colors.TEXT_PRIMARY, width=12, no_wrap=True)
 
@@ -598,7 +628,7 @@ def display_keys_table(keys: list):
                 start = owner.find("(") + 1
                 end = owner.find(")")
                 coldkey_name = owner[start:end]
-                address_part = owner[:start-1]  # Everything before the parentheses
+                address_part = owner[: start - 1]  # Everything before the parentheses
                 if len(address_part) > 20:
                     address_part = address_part[:15] + "..." + address_part[-5:]
                 owner = f"{address_part} ({coldkey_name})"
@@ -651,7 +681,9 @@ def prompt_for_delete_args(
 
         names = []
         while True:
-            name_input = Prompt.ask("\nEnter key name(s) to delete (comma-separated for multiple)")
+            name_input = Prompt.ask(
+                "\nEnter key name(s) to delete (comma-separated for multiple)"
+            )
             name_list = [n.strip() for n in name_input.split(",") if n.strip()]
 
             if not name_list:
@@ -667,9 +699,13 @@ def prompt_for_delete_args(
                     if name in key_names:
                         valid_names.append(name)
                     else:
-                        print_error(f"Key '{name}' not found. Please choose from the list above.")
+                        print_error(
+                            f"Key '{name}' not found. Please choose from the list above."
+                        )
                 else:
-                    print_error(f"Invalid wallet name '{name}'. Use alphanumeric characters, hyphens, and underscores only.")
+                    print_error(
+                        f"Invalid wallet name '{name}'. Use alphanumeric characters, hyphens, and underscores only."
+                    )
 
             if valid_names:
                 names = valid_names
@@ -683,7 +719,8 @@ def prompt_for_delete_args(
             )
         else:
             confirm = Confirm.ask(
-                f"Are you sure you want to delete {len(names)} keys: {', '.join(names)}?", default=False
+                f"Are you sure you want to delete {len(names)} keys: {', '.join(names)}?",
+                default=False,
             )
 
     # Prompt for guidance if not provided
@@ -724,39 +761,51 @@ def prompt_for_update_coldkey_args(
                 if name in key_names:
                     break
                 else:
-                    print_error(f"Coldkey '{name}' not found. Please choose from the list above.")
+                    print_error(
+                        f"Coldkey '{name}' not found. Please choose from the list above."
+                    )
             else:
-                print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
+                print_error(
+                    "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
+                )
 
     # Prompt for new name if not provided
     if new_name is None:
-        change_name = Confirm.ask("Do you want to change the coldkey name?", default=False)
+        change_name = Confirm.ask(
+            "Do you want to change the coldkey name?", default=False
+        )
         if change_name:
             while True:
                 new_name = Prompt.ask("Enter new coldkey name")
                 if validate_wallet_name(new_name):
                     # Check if new name already exists
                     if wallet_name_exists(new_name):
-                        print_error(f"Wallet name '{new_name}' already exists. Please choose a different name.")
+                        print_error(
+                            f"Wallet name '{new_name}' already exists. Please choose a different name."
+                        )
                         continue
                     break
                 else:
-                    print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
+                    print_error(
+                        "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
+                    )
 
     # Prompt for password changes if not provided
     if new_password is None and remove_password is None:
         password_action = Prompt.ask(
-            "Password action",
-            choices=["keep", "change", "remove"],
-            default="keep"
+            "Password action", choices=["keep", "change", "remove"], default="keep"
         )
 
         if password_action == "change":
             while True:
-                new_password = Prompt.ask("Enter new password (min 8 chars, letters + numbers)", password=True)
+                new_password = Prompt.ask(
+                    "Enter new password (min 8 chars, letters + numbers)", password=True
+                )
                 if validate_password(new_password):
                     break
-                print_error("Invalid password. Must be at least 8 characters with letters and numbers.")
+                print_error(
+                    "Invalid password. Must be at least 8 characters with letters and numbers."
+                )
             remove_password = False
         elif password_action == "remove":
             remove_password = True
@@ -794,7 +843,9 @@ def prompt_for_update_hotkey_args(
 
         console.print("\n[bold]Available hotkeys:[/bold]")
         for i, key in enumerate(hotkeys, 1):
-            owner_info = f" (owner: {key['owner_address']})" if key.get('owner_address') else ""
+            owner_info = (
+                f" (owner: {key['owner_address']})" if key.get("owner_address") else ""
+            )
             console.print(f"{i}. {key['name']} ({key['ss58_address']}){owner_info}")
 
         while True:
@@ -805,28 +856,40 @@ def prompt_for_update_hotkey_args(
                 if name in key_names:
                     break
                 else:
-                    print_error(f"Hotkey '{name}' not found. Please choose from the list above.")
+                    print_error(
+                        f"Hotkey '{name}' not found. Please choose from the list above."
+                    )
             else:
-                print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
+                print_error(
+                    "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
+                )
 
     # Prompt for new name if not provided
     if new_name is None:
-        change_name = Confirm.ask("Do you want to change the hotkey name?", default=False)
+        change_name = Confirm.ask(
+            "Do you want to change the hotkey name?", default=False
+        )
         if change_name:
             while True:
                 new_name = Prompt.ask("Enter new hotkey name")
                 if validate_wallet_name(new_name):
                     # Check if new name already exists
                     if wallet_name_exists(new_name):
-                        print_error(f"Wallet name '{new_name}' already exists. Please choose a different name.")
+                        print_error(
+                            f"Wallet name '{new_name}' already exists. Please choose a different name."
+                        )
                         continue
                     break
                 else:
-                    print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
+                    print_error(
+                        "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
+                    )
 
     # Prompt for new owner if not provided
     if new_owner is None:
-        change_owner = Confirm.ask("Do you want to change the hotkey owner?", default=False)
+        change_owner = Confirm.ask(
+            "Do you want to change the hotkey owner?", default=False
+        )
         if change_owner:
             # Show available coldkeys
             keys = list_keys()
@@ -848,24 +911,30 @@ def prompt_for_update_hotkey_args(
                     if new_owner in key_names:
                         break
                     else:
-                        print_error(f"Coldkey '{new_owner}' not found. Please choose from the list above.")
+                        print_error(
+                            f"Coldkey '{new_owner}' not found. Please choose from the list above."
+                        )
                 else:
-                    print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
+                    print_error(
+                        "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
+                    )
 
     # Prompt for password changes if not provided
     if new_password is None and remove_password is None:
         password_action = Prompt.ask(
-            "Password action",
-            choices=["keep", "change", "remove"],
-            default="keep"
+            "Password action", choices=["keep", "change", "remove"], default="keep"
         )
 
         if password_action == "change":
             while True:
-                new_password = Prompt.ask("Enter new password (min 8 chars, letters + numbers)", password=True)
+                new_password = Prompt.ask(
+                    "Enter new password (min 8 chars, letters + numbers)", password=True
+                )
                 if validate_password(new_password):
                     break
-                print_error("Invalid password. Must be at least 8 characters with letters and numbers.")
+                print_error(
+                    "Invalid password. Must be at least 8 characters with letters and numbers."
+                )
             remove_password = False
         elif password_action == "remove":
             remove_password = True
@@ -892,9 +961,7 @@ def prompt_for_balance_args(
     # Prompt for wallet name or address if missing
     if not wallet_name and not address:
         choice = Prompt.ask(
-            "Check balance by",
-            choices=["wallet", "address"],
-            default="wallet"
+            "Check balance by", choices=["wallet", "address"], default="wallet"
         )
 
         if choice == "wallet":
@@ -908,7 +975,9 @@ def prompt_for_balance_args(
             console.print("\n[bold]Available wallets:[/bold]")
             for i, key in enumerate(keys, 1):
                 key_type = "Hotkey" if key.get("is_hotkey", False) else "Coldkey"
-                console.print(f"{i}. {key['name']} ({key_type}) - {key['ss58_address']}")
+                console.print(
+                    f"{i}. {key['name']} ({key_type}) - {key['ss58_address']}"
+                )
 
             while True:
                 wallet_name = Prompt.ask("\nEnter wallet name to check balance")
@@ -918,9 +987,13 @@ def prompt_for_balance_args(
                     if wallet_name in key_names:
                         break
                     else:
-                        print_error(f"Wallet '{wallet_name}' not found. Please choose from the list above.")
+                        print_error(
+                            f"Wallet '{wallet_name}' not found. Please choose from the list above."
+                        )
                 else:
-                    print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
+                    print_error(
+                        "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
+                    )
         else:
             # Get address directly
             while True:
@@ -933,9 +1006,7 @@ def prompt_for_balance_args(
     # Prompt for format if not provided
     if format_type is None:
         format_type = Prompt.ask(
-            "Output format",
-            choices=["table", "json"],
-            default="table"
+            "Output format", choices=["table", "json"], default="table"
         )
 
     # Prompt for guidance if not provided
@@ -976,15 +1047,21 @@ def prompt_for_transfer_args(
                 if from_wallet in key_names:
                     break
                 else:
-                    print_error(f"Coldkey '{from_wallet}' not found. Please choose from the list above.")
+                    print_error(
+                        f"Coldkey '{from_wallet}' not found. Please choose from the list above."
+                    )
             else:
-                print_error("Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only.")
+                print_error(
+                    "Invalid wallet name. Use alphanumeric characters, hyphens, and underscores only."
+                )
 
     # Prompt for destination address if missing
     if not to_address:
         console.print("\n[bold]You can enter either:[/bold]")
         console.print("• A wallet name (e.g., 'my-wallet')")
-        console.print("• A full SS58 address (e.g., '5CFhfdvxRwW6gdSMALYJxK8TTgURrDPyFedbvc7wagJD8H5B')")
+        console.print(
+            "• A full SS58 address (e.g., '5CFhfdvxRwW6gdSMALYJxK8TTgURrDPyFedbvc7wagJD8H5B')"
+        )
 
         while True:
             to_address = Prompt.ask("Enter destination (wallet name or address)")
@@ -999,7 +1076,9 @@ def prompt_for_transfer_args(
                     # Check if wallet exists and get its address
                     wallet_info = get_wallet_info_by_name(to_address)
                     to_address = wallet_info["ss58_address"]
-                    console.print(f"[green]✓[/green] Found wallet '{to_address}' with address: {wallet_info['ss58_address']}")
+                    console.print(
+                        f"[green]✓[/green] Found wallet '{to_address}' with address: {wallet_info['ss58_address']}"
+                    )
                     break
                 except FileNotFoundError:
                     print_error(f"Wallet '{to_address}' not found.")
@@ -1014,13 +1093,17 @@ def prompt_for_transfer_args(
             try:
                 # Check if wallet exists and get its address
                 wallet_info = get_wallet_info_by_name(to_address)
-                console.print(f"[green]✓[/green] Resolved wallet '{to_address}' to address: {wallet_info['ss58_address']}")
+                console.print(
+                    f"[green]✓[/green] Resolved wallet '{to_address}' to address: {wallet_info['ss58_address']}"
+                )
                 to_address = wallet_info["ss58_address"]
             except FileNotFoundError:
                 print_error(f"Destination wallet '{to_address}' not found.")
                 raise typer.Exit(1)
             except Exception as e:
-                print_error(f"Error accessing destination wallet '{to_address}': {str(e)}")
+                print_error(
+                    f"Error accessing destination wallet '{to_address}': {str(e)}"
+                )
                 raise typer.Exit(1)
         else:
             print_error("Invalid destination address or wallet name format.")
@@ -1057,7 +1140,9 @@ def prompt_for_transfer_args(
     return from_wallet, to_address, amount, password, show_guidance
 
 
-def display_all_wallet_balances(client, format_type: str = "table", show_guidance: bool = False):
+def display_all_wallet_balances(
+    client, format_type: str = "table", show_guidance: bool = False
+):
     """Display balance for all wallets in a table format similar to btcli."""
     try:
         from src.htcli.utils.crypto import list_keys
@@ -1066,14 +1151,18 @@ def display_all_wallet_balances(client, format_type: str = "table", show_guidanc
         wallets = list_keys()
 
         if not wallets:
-            console.print("[yellow]No wallets found. Create a wallet first using 'htcli wallet generate-coldkey'[/yellow]")
+            console.print(
+                "[yellow]No wallets found. Create a wallet first using 'htcli wallet generate-coldkey'[/yellow]"
+            )
             return
 
         # Filter to only coldkeys for balance display (like btcli)
         coldkeys = [w for w in wallets if not w.get("is_hotkey", False)]
 
         if not coldkeys:
-            console.print("[yellow]No coldkeys found. Create a coldkey first using 'htcli wallet generate-coldkey'[/yellow]")
+            console.print(
+                "[yellow]No coldkeys found. Create a coldkey first using 'htcli wallet generate-coldkey'[/yellow]"
+            )
             return
 
         # Get balances for all coldkeys
@@ -1087,26 +1176,32 @@ def display_all_wallet_balances(client, format_type: str = "table", show_guidanc
                 response = client.get_balance(wallet["ss58_address"])
                 if response.success:
                     balance_data = response.data
-                    free_balance = balance_data.get('balance', 0)
+                    free_balance = balance_data.get("balance", 0)
 
                     # For now, we'll set staked value to 0 since we don't have staking info yet
                     # TODO: Implement staking balance retrieval when staking is available
                     staked_value = 0
 
-                    wallet_balances.append({
-                        "name": wallet["name"],
-                        "address": wallet["ss58_address"],
-                        "free_balance": free_balance,
-                        "staked_value": staked_value,
-                        "total_balance": free_balance + staked_value
-                    })
+                    wallet_balances.append(
+                        {
+                            "name": wallet["name"],
+                            "address": wallet["ss58_address"],
+                            "free_balance": free_balance,
+                            "staked_value": staked_value,
+                            "total_balance": free_balance + staked_value,
+                        }
+                    )
 
                     total_free_balance += free_balance
                     total_staked_value += staked_value
                 else:
-                    console.print(f"[red]Failed to get balance for {wallet['name']}: {response.message}[/red]")
+                    console.print(
+                        f"[red]Failed to get balance for {wallet['name']}: {response.message}[/red]"
+                    )
             except Exception as e:
-                console.print(f"[red]Error getting balance for {wallet['name']}: {str(e)}[/red]")
+                console.print(
+                    f"[red]Error getting balance for {wallet['name']}: {str(e)}[/red]"
+                )
 
         if not wallet_balances:
             console.print("[red]Failed to retrieve any wallet balances.[/red]")
@@ -1123,12 +1218,12 @@ def display_all_wallet_balances(client, format_type: str = "table", show_guidanc
                 "totals": {
                     "total_free_balance": total_free_balance,
                     "total_staked_value": total_staked_value,
-                    "total_balance": total_free_balance + total_staked_value
-                }
+                    "total_balance": total_free_balance + total_staked_value,
+                },
             }
             console.print_json(data=json_data)
         else:
-                        # Rich table with standardized colors
+            # Rich table with standardized colors
             current_scheme = get_current_color_scheme()
             table_style = get_table_style(current_scheme)
             table = Table(
@@ -1138,28 +1233,32 @@ def display_all_wallet_balances(client, format_type: str = "table", show_guidanc
                 header_style=table_style["header_style"],
                 border_style=table_style["border_style"],
                 show_edge=True,
-                padding=(1, 1)
+                padding=(1, 1),
             )
 
             # Add columns
             table.add_column("Wallet Name", style=Colors.TEXT_PRIMARY, no_wrap=True)
-            table.add_column("Coldkey Address", style=Colors.WALLET_ADDRESS, no_wrap=True)
+            table.add_column(
+                "Coldkey Address", style=Colors.WALLET_ADDRESS, no_wrap=True
+            )
             table.add_column("Free Balance", style=Colors.TEXT_PRIMARY, justify="right")
             table.add_column("Staked Value", style=Colors.TEXT_PRIMARY, justify="right")
-            table.add_column("Total Balance", style=Colors.TEXT_PRIMARY, justify="right")
+            table.add_column(
+                "Total Balance", style=Colors.TEXT_PRIMARY, justify="right"
+            )
 
-                        # Add wallet rows with dynamic balance colors
+            # Add wallet rows with dynamic balance colors
             for wallet in wallet_balances:
-                free_balance = wallet['free_balance'] / 1e18
-                staked_value = wallet['staked_value'] / 1e18
-                total_balance = wallet['total_balance'] / 1e18
+                free_balance = wallet["free_balance"] / 1e18
+                staked_value = wallet["staked_value"] / 1e18
+                total_balance = wallet["total_balance"] / 1e18
 
                 table.add_row(
                     wallet["name"],
                     wallet["address"],
                     f"[{get_balance_color(free_balance)}]{(free_balance):,.4f}[/{get_balance_color(free_balance)}]",
                     f"[{get_balance_color(staked_value)}]{(staked_value):,.4f}[/{get_balance_color(staked_value)}]",
-                    f"[{get_balance_color(total_balance)}]{(total_balance):,.4f}[/{get_balance_color(total_balance)}]"
+                    f"[{get_balance_color(total_balance)}]{(total_balance):,.4f}[/{get_balance_color(total_balance)}]",
                 )
 
             # Add totals row
@@ -1172,18 +1271,21 @@ def display_all_wallet_balances(client, format_type: str = "table", show_guidanc
                 "",
                 f"[bold {get_balance_color(total_free)}]{(total_free):,.4f}[/bold {get_balance_color(total_free)}]",
                 f"[bold {get_balance_color(total_staked)}]{(total_staked):,.4f}[/bold {get_balance_color(total_staked)}]",
-                f"[bold {get_balance_color(total_overall)}]{(total_overall):,.4f}[/bold {get_balance_color(total_overall)}]"
+                f"[bold {get_balance_color(total_overall)}]{(total_overall):,.4f}[/bold {get_balance_color(total_overall)}]",
             )
 
             console.print(table)
 
             # Add unit information
             console.print()
-            console.print(f"[{Colors.TEXT_SECONDARY}]All balances in TENSOR[/{Colors.TEXT_SECONDARY}]")
+            console.print(
+                f"[{Colors.TEXT_SECONDARY}]All balances in TENSOR[/{Colors.TEXT_SECONDARY}]"
+            )
 
             # Show guidance if requested
             if show_guidance:
                 from rich.panel import Panel
+
                 guidance_text = """
 [bold]Balance Information:[/bold]
 • Free Balance: Liquid funds available for transfers and transactions
@@ -1202,7 +1304,7 @@ Staked values will show 0.0000 until staking features are added.
                     guidance_text,
                     title=f"[bold {Colors.INFO}]Balance Information[/bold {Colors.INFO}]",
                     border_style=Colors.INFO,
-                    padding=(1, 2)
+                    padding=(1, 2),
                 )
                 console.print(guidance_panel)
 
